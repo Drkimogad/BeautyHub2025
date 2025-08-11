@@ -300,3 +300,23 @@ header {
     background: rgba(0,0,0,0.3);
     z-index: 1;
 }
+
+/* Product Grid Enhancements */
+.product-card {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.price {
+    display: block;
+    color: var(--pink);
+    font-weight: bold;
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .price {
+        font-size: 0.9rem;
+    }
+}
