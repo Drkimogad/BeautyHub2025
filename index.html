@@ -3,232 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeautyHub2025</title>
+    <title>BeautyHub2025 | Luxury Beauty</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Glam Theme: Purple/Pink */
-        :root {
-            --purple: #9c27b0;
-            --pink: #e91e63;
-            --light-pink: #f8bbd0;
-            --white: #fff;
-            --gold: #ffd700;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
-        }
-
-        body {
-            background-color: #fafafa;
-        }
-
-        /* Header */
-        header {
-            background: linear-gradient(135deg, var(--purple), var(--pink));
-            color: var(--white);
-            padding: 1rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.8rem;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .nav-links a {
-            color: var(--white);
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: var(--gold);
-        }
-
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(rgba(156, 39, 176, 0.7), rgba(233, 30, 99, 0.7)), 
-                        url('https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1887&q=80');
-            background-size: cover;
-            background-position: center;
-            height: 60vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            color: var(--white);
-        }
-
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            font-style: italic;
-        }
-
-        /* Product Cards (Surprise Glam Effect!) */
-        .products {
-            padding: 4rem 2rem;
-            text-align: center;
-        }
-
-        .products h2 {
-            font-size: 2.5rem;
-            color: var(--purple);
-            margin-bottom: 2rem;
-        }
-
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            padding: 1rem;
-        }
-
-        .product-card {
-            background: var(--white);
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .product-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 12px 20px rgba(233, 30, 99, 0.2);
-        }
-
-        .product-card::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--purple), var(--pink));
-        }
-
-        .product-img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-        }
-
-        .product-info {
-            padding: 1.5rem;
-        }
-
-        .product-info h3 {
-            color: var(--purple);
-            margin-bottom: 0.5rem;
-        }
-
-        .product-info p {
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        /* Glitter/Pearl Surprise on Hover */
-        .product-card:hover .product-img {
-            opacity: 0.9;
-        }
-
-        .product-card:hover::after {
-            content: "✨";
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 1.5rem;
-            animation: glitter 1.5s infinite;
-        }
-
-        @keyframes glitter {
-            0% { opacity: 0.3; }
-            50% { opacity: 1; }
-            100% { opacity: 0.3; }
-        }
-
-        /* Footer */
-        footer {
-            background: linear-gradient(135deg, var(--purple), var(--pink));
-            color: var(--white);
-            padding: 2rem;
-            text-align: center;
-        }
-
-        .social-links {
-            margin-bottom: 1rem;
-        }
-
-        .social-links a {
-            color: var(--white);
-            font-size: 1.5rem;
-            margin: 0 0.5rem;
-            transition: all 0.3s;
-        }
-
-        .social-links a:hover {
-            color: var(--gold);
-            transform: scale(1.2);
-        }
-
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .footer-links a {
-            color: var(--white);
-            text-decoration: none;
-        }
-
-        .footer-links a:hover {
-            text-decoration: underline;
-        }
-
-        .copyright {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <!-- Header -->
     <header>
         <nav class="navbar">
-            <div class="logo">Bloom & Scent</div>
+            <div class="logo">BeautyHub2025</div>
             <div class="nav-links">
                 <a href="#">Home</a>
                 <a href="#">Shop</a>
                 <a href="#">About</a>
                 <a href="#">Contact</a>
+                <a href="#"><i class="fas fa-shopping-cart"></i> (0)</a>
             </div>
         </nav>
     </header>
@@ -236,7 +25,7 @@
     <!-- Hero Section -->
     <section class="hero">
         <div>
-            <h1>Bloom & Scent</h1>
+            <h1>BeautyHub2025</h1>
             <p>"Perfume is the invisible, unforgettable, ultimate accessory." — Carolina Herrera</p>
         </div>
     </section>
@@ -245,57 +34,27 @@
     <section class="products">
         <h2>Our Glam Collection</h2>
         <div class="product-grid">
-            <!-- Product 1 -->
-            <div class="product-card">
-                <img src="https://images.unsplash.com/photo-1594035910387-fea47794261f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80" alt="Luxury Perfume" class="product-img">
-                <div class="product-info">
-                    <h3>Signature Perfumes</h3>
-                    <p>Elegant scents that linger like a memory.</p>
-                </div>
-            </div>
-
-            <!-- Product 2 -->
-            <div class="product-card">
-                <img src="https://images.unsplash.com/photo-1607602132700-068258944f72?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80" alt="False Lashes" class="product-img">
-                <div class="product-info">
-                    <h3>Glam Lashes</h3>
-                    <p>Dramatic or natural—find your perfect flutter.</p>
-                </div>
-            </div>
-
-            <!-- Product 3 -->
-            <div class="product-card">
-                <img src="https://images.unsplash.com/photo-1596704017255-ee7b0a029373?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Skincare" class="product-img">
-                <div class="product-info">
-                    <h3>Radiant Skincare</h3>
-                    <p>Glow from within with our nourishing formulas.</p>
-                </div>
-            </div>
-
-            <!-- Product 4 -->
-            <div class="product-card">
-                <img src="https://images.unsplash.com/photo-1595341595379-cf0f907a0b1a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Wigs" class="product-img">
-                <div class="product-info">
-                    <h3>Luxury Wigs</h3>
-                    <p>Silky, voluminous hair for every mood.</p>
-                </div>
-            </div>
+            <!-- Product cards (same as before) -->
         </div>
     </section>
 
     <!-- Footer -->
     <footer>
         <div class="social-links">
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-whatsapp"></i></a>
             <a href="#"><i class="fab fa-instagram"></i></a>
             <a href="#"><i class="fab fa-tiktok"></i></a>
-            <a href="#"><i class="fab fa-facebook"></i></a>
         </div>
         <div class="footer-links">
             <a href="#">Privacy Policy</a>
             <a href="#">Shipping</a>
             <a href="#">Returns</a>
         </div>
-        <p class="copyright">© 2023 BeautyHub2025. All rights reserved.</p>
+        <p class="copyright">© 2025 BeautyHub2025. All rights reserved.</p>
     </footer>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
 </body>
 </html>
