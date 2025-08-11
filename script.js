@@ -70,3 +70,40 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+
+
+
+
+//*Option 2: Video Background
+//<section class="hero">
+  //  <video autoplay muted loop class="hero-video">
+  //      <source src="assets/videos/beauty-showcase.mp4" type="video/mp4">
+ //       <!-- Fallback image -->
+ //       <img src="assets/images/hero-fallback.jpg" alt="Beauty Products">
+ //   </video>
+//    <div class="hero-content">
+ //       <h1>BeautyHub2025</h1>
+ //       <p>Where glamour meets innovation</p>
+//    </div>
+//</section>
+
+
+//Option 3: Slider/Carousel (Requires JS)
+//<section class="hero-slider">
+  //  <div class="slide active" style="background-image: url('image1.jpg')">
+     //   <div class="slide-content">
+  //          <h1>New Perfume Collection</h1>
+    //        <a href="#perfumes" class="btn">Discover</a>
+//        </div>
+//    </div>
+ //   <div class="slide" style="background-image: url('image2.jpg')">
+  //      <div class="slide-content">
+  //          <h1>Luxury Skincare</h1>
+ //           <a href="#skincare" class="btn">Explore</a>
+ //       </div>
+//    </div>
+//</section>
+
+
+
