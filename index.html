@@ -5,56 +5,93 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BeautyHub2025 | Luxury Beauty</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS will be linked later -->
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Header -->
+    <!-- Header/Navigation -->
     <header>
         <nav class="navbar">
             <div class="logo">BeautyHub2025</div>
             <div class="nav-links">
                 <a href="#">Home</a>
-                <a href="#">Shop</a>
-                <a href="#">About</a>
-                <a href="#">Contact</a>
-                <a href="#"><i class="fas fa-shopping-cart"></i> (0)</a>
+                <a href="#products">Shop</a>
+                <a href="#contact">Contact</a>
+                <a href="#shipping">Shipping & Returns</a>
+                <a href="#policy">Privacy Policy</a>
             </div>
         </nav>
     </header>
 
-    <!-- Hero Section -->
+    <!-- Hero Banner -->
     <section class="hero">
-        <div>
+        <div class="hero-content">
             <h1>BeautyHub2025</h1>
-            <p>"Perfume is the invisible, unforgettable, ultimate accessory." — Carolina Herrera</p>
+            <p>Luxury beauty, delivered to your doorstep.</p>
         </div>
     </section>
 
-    <!-- Product Showcase -->
-    <section class="products">
-        <h2>Our Glam Collection</h2>
+    <!-- Product Grid -->
+    <section id="products" class="products">
+        <h2 class="section-title">Glam Collection</h2>
         <div class="product-grid">
-            <!-- Product cards (same as before) -->
+            <!-- Product 1 -->
+            <div class="product-card">
+                <img src="https://via.placeholder.com/300x300" alt="Luxury Perfume" class="product-img">
+                <div class="product-info">
+                    <h3>Signature Perfumes</h3>
+                    <p>Elegant scents that linger like a memory.</p>
+                </div>
+            </div>
+            <!-- Product 2-4 would follow same structure -->
+        </div>
+    </section>
+
+    <!-- Shipping & Returns -->
+    <section id="shipping" class="shipping-section">
+        <h2 class="section-title">Shipping & Returns</h2>
+        <div class="shipping-info">
+            <textarea readonly>
+                Free shipping on orders over $50! 
+                Returns accepted within 30 days. 
+                Contact us for details.
+            </textarea>
+        </div>
+    </section>
+
+    <!-- Contact Socials -->
+    <section id="contact" class="contact-section">
+        <h2 class="section-title">Contact Us</h2>
+        <div class="social-grid">
+            <a href="https://wa.me/yournumber" class="social-link">
+                <i class="fab fa-whatsapp"></i>
+            </a>
+            <a href="https://facebook.com/yourpage" class="social-link">
+                <i class="fab fa-facebook"></i>
+            </a>
+            <a href="https://instagram.com/yourhandle" class="social-link">
+                <i class="fab fa-instagram"></i>
+            </a>
+            <a href="https://tiktok.com/@yourhandle" class="social-link">
+                <i class="fab fa-tiktok"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- Privacy Policy -->
+    <section id="policy" class="policy-section">
+        <h2 class="section-title">Privacy Policy</h2>
+        <div class="policy-content">
+            <p>Your privacy is important to us. This section will contain your policy details.</p>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer>
-        <div class="social-links">
-            <a href="#"><i class="fab fa-facebook"></i></a>
-            <a href="#"><i class="fab fa-whatsapp"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-            <a href="#"><i class="fab fa-tiktok"></i></a>
-        </div>
-        <div class="footer-links">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Shipping</a>
-            <a href="#">Returns</a>
-        </div>
-        <p class="copyright">© 2025 BeautyHub2025. All rights reserved.</p>
+    <footer class="main-footer">
+        <p>&copy; 2025 BeautyHub2025. All rights reserved.</p>
     </footer>
 
-    <!-- JavaScript -->
+    <!-- JavaScript will be added later -->
     <script src="script.js"></script>
 </body>
 </html>
