@@ -3,140 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeautyHub2025 | Luxury Beauty</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- CSS will be linked later -->
+    <meta name="description" content="Luxury beauty products including perfumes, lashes, skincare, and wigs">
+    <title>BeautyHub2025 | Luxury Beauty Products</title>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Navigation Structure -->
-<header>
-    <div class="header-content">
-        <h1 class="logo">BeautyHub2025</h1>
-    </div>
-    <nav class="navbar">
-        <div class="nav-links">
-            <a href="#" class="nav-item">Home</a>
-            <a href="#products" class="nav-item">Shop</a>
-            <a href="#contact" class="nav-item">Contact</a>
-            <a href="#" class="nav-item" id="shipping-link">Shipping & Returns</a>
-            <a href="#" class="nav-item" id="policy-link">Privacy Policy</a>
+    <header>
+        <div class="header-content">
+            <h1 class="logo">BeautyHub2025</h1>
         </div>
-    </nav>
-</header>
-
-    <!-- Hero Banner -->
-<section class="hero" style="background-image: url('https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80');">
-    <div class="hero-content">
-        <h1>BeautyHub2025</h1>
-        <p>Luxury beauty, delivered to your doorstep.</p>
-        <!-- Optional Button -->
-        <a href="#products" class="hero-btn">Shop Now</a>
-    </div>
-</section>
-
-<!-- Product Grid -->
-<section id="products" class="products">
-    <h2 class="section-title">Glam Collection</h2>
-    <div class="product-grid">
-        <!-- Product 1 -->
-        <div class="product-card">
-            <img src="https://images.unsplash.com/photo-1594035910387-fea47794261f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80" 
-                 alt="Luxury Perfume" 
-                 class="product-img">
-            <div class="product-info">
-                <h3>Signature Perfumes</h3>
-                <p>Elegant scents that linger like a memory.</p>
-                <span class="price">$59.99</span>
+        <nav class="navbar" aria-label="Main navigation">
+            <div class="nav-links">
+                <a href="#" class="nav-item" aria-current="page">Home</a>
+                <a href="#products" class="nav-item">Shop</a>
+                <a href="#contact" class="nav-item">Contact</a>
+                <a href="#" class="nav-item" id="shipping-link">Shipping & Returns</a>
+                <a href="#" class="nav-item" id="policy-link">Privacy Policy</a>
             </div>
-        </div>
+        </nav>
+    </header>
 
-        <!-- Product 2 -->
-        <div class="product-card">
-            <img src="https://images.unsplash.com/photo-1607602132700-068258944f72?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80" 
-                 alt="False Lashes" 
-                 class="product-img">
-            <div class="product-info">
-                <h3>Glam Lashes</h3>
-                <p>Dramatic or natural—find your perfect flutter.</p>
-                <span class="price">$24.99</span>
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>BeautyHub2025</h1>
+                <p>Luxury beauty, delivered to your doorstep.</p>
+                <a href="#products" class="hero-btn">Shop Now</a>
             </div>
-        </div>
+        </section>
 
-        <!-- Product 3 -->
-        <div class="product-card">
-            <img src="https://images.unsplash.com/photo-1596704017255-ee7b0a029373?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" 
-                 alt="Skincare Set" 
-                 class="product-img">
-            <div class="product-info">
-                <h3>Radiant Skincare</h3>
-                <p>Glow from within with our nourishing formulas.</p>
-                <span class="price">$89.99</span>
+        <section id="products" class="products" aria-labelledby="products-heading">
+            <h2 id="products-heading" class="section-title">Glam Collection</h2>
+            <div class="product-grid">
+                <article class="product-card">
+                    <img src="https://images.unsplash.com/photo-1594035910387-fea47794261f?ixlib=rb-4.0.3&auto=format&fit=crop&w=440&q=80" 
+                         alt="Luxury perfume bottle with gold details" 
+                         class="product-img"
+                         width="440" height="440"
+                         loading="lazy">
+                    <div class="product-info">
+                        <h3>Signature Perfumes</h3>
+                        <p>Elegant scents that linger like a memory.</p>
+                        <span class="price">$59.99</span>
+                    </div>
+                </article>
+
+                <article class="product-card">
+                    <img src="https://images.unsplash.com/photo-1607602132700-068258944f72?ixlib=rb-4.0.3&auto=format&fit=crop&w=440&q=80" 
+                         alt="False eyelashes on a pink background" 
+                         class="product-img"
+                         width="440" height="440"
+                         loading="lazy">
+                    <div class="product-info">
+                        <h3>Glam Lashes</h3>
+                        <p>Dramatic or natural—find your perfect flutter.</p>
+                        <span class="price">$24.99</span>
+                    </div>
+                </article>
+
+                <article class="product-card">
+                    <img src="https://images.unsplash.com/photo-1596704017255-ee7b0a029373?ixlib=rb-4.0.3&auto=format&fit=crop&w=344&q=80" 
+                         alt="Skincare products arranged neatly" 
+                         class="product-img"
+                         width="344" height="344"
+                         loading="lazy">
+                    <div class="product-info">
+                        <h3>Radiant Skincare</h3>
+                        <p>Glow from within with our nourishing formulas.</p>
+                        <span class="price">$89.99</span>
+                    </div>
+                </article>
+
+                <article class="product-card">
+                    <img src="https://images.unsplash.com/photo-1595341595379-cf0f907a0b1a?ixlib=rb-4.0.3&auto=format&fit=crop&w=344&q=80" 
+                         alt="High-quality wig on a stand" 
+                         class="product-img"
+                         width="344" height="344"
+                         loading="lazy">
+                    <div class="product-info">
+                        <h3>Luxury Wigs</h3>
+                        <p>Silky, voluminous hair for every mood.</p>
+                        <span class="price">$129.99</span>
+                    </div>
+                </article>
             </div>
-        </div>
+        </section>
 
-        <!-- Product 4 -->
-        <div class="product-card">
-            <img src="https://images.unsplash.com/photo-1595341595379-cf0f907a0b1a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" 
-                 alt="Luxury Wigs" 
-                 class="product-img">
-            <div class="product-info">
-                <h3>Luxury Wigs</h3>
-                <p>Silky, voluminous hair for every mood.</p>
-                <span class="price">$129.99</span>
+        <section id="shipping" class="expandable-section" hidden aria-labelledby="shipping-heading">
+            <div class="section-container">
+                <h2 id="shipping-heading">Shipping & Returns</h2>
+                <div class="section-content">
+                    <p>Free shipping on orders over $50! Returns accepted within 30 days.</p>
+                    <ul>
+                        <li>Standard shipping: 3-5 business days</li>
+                        <li>Express shipping available</li>
+                        <li>No returns on opened cosmetics</li>
+                    </ul>
+                </div>
             </div>
-        </div>
-    </div>
-</section>  
+        </section>
 
-    <!-- Shipping & Returns (Hidden by Default) -->
-<section id="shipping" class="expandable-section" style="display: none;">
-    <div class="section-container">
-        <h2>Shipping & Returns</h2>
-        <div class="section-content">
-            <p>Free shipping on orders over $50! Returns accepted within 30 days.</p>
-            <ul>
-                <li>Standard shipping: 3-5 business days</li>
-                <li>Express shipping available</li>
-                <li>No returns on opened cosmetics</li>
-            </ul>
-        </div>
-    </div>
-</section>
+        <section id="contact" class="contact-section" aria-labelledby="contact-heading">
+            <h2 id="contact-heading" class="section-title">Contact Us</h2>
+            <div class="social-grid">
+                <a href="https://wa.me/yournumber" class="social-link" aria-label="Contact us on WhatsApp">
+                    <i class="fab fa-whatsapp" aria-hidden="true"></i>
+                </a>
+                <a href="https://facebook.com/yourpage" class="social-link" aria-label="Visit our Facebook page">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+                <a href="https://instagram.com/yourhandle" class="social-link" aria-label="Follow us on Instagram">
+                    <i class="fab fa-instagram" aria-hidden="true"></i>
+                </a>
+                <a href="https://tiktok.com/@yourhandle" class="social-link" aria-label="Follow us on TikTok">
+                    <i class="fab fa-tiktok" aria-hidden="true"></i>
+                </a>
+            </div>
+        </section>
 
-    <!-- Contact Socials -->
-    <section id="contact" class="contact-section">
-        <h2 class="section-title">Contact Us</h2>
-        <div class="social-grid">
-            <a href="https://wa.me/yournumber" class="social-link">
-                <i class="fab fa-whatsapp"></i>
-            </a>
-            <a href="https://facebook.com/yourpage" class="social-link">
-                <i class="fab fa-facebook"></i>
-            </a>
-            <a href="https://instagram.com/yourhandle" class="social-link">
-                <i class="fab fa-instagram"></i>
-            </a>
-            <a href="https://tiktok.com/@yourhandle" class="social-link">
-                <i class="fab fa-tiktok"></i>
-            </a>
-        </div>
-    </section>
+        <section id="privacy-content" class="privacy-section" hidden aria-labelledby="privacy-heading">
+            <div class="privacy-container">
+                <h2 id="privacy-heading">Privacy Policy</h2>
+                <!-- Content will load from privacy.html -->
+            </div>
+        </section>
+    </main>
 
-    <!-- Privacy Policy (Hidden by Default) -->
-<section id="privacy-content" class="privacy-section" style="display: none;">
-    <div class="privacy-container">
-        <h2>Privacy Policy</h2>
-        <!-- Content will load from privacy.html -->
-    </div>
-</section>
-
-    <!-- Footer -->
     <footer class="main-footer">
-        <p>&copy; 2025 BeautyHub2025. All rights reserved.</p>
+        <p>&copy; <span id="current-year">2025</span> BeautyHub2025. All rights reserved.</p>
     </footer>
 
-    <!-- JavaScript will be added later -->
-    <script src="script.js"></script>
+    <script>
+        // Simple current year injection
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+    </script>
+    <script src="script.js" defer></script>
 </body>
 </html>
