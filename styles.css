@@ -365,12 +365,20 @@ header {
 
 .close-btn {
     position: absolute;
-    top: -10px;
-    right: 0;
-    background: var(--purple);
+    top: 10px;
+    right: 10px;
+    background: var(--pink);
     color: white;
     border: none;
-    padding: 0.3rem 0.6rem;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
+    font-size: 1.2rem;
     cursor: pointer;
+    z-index: 10;
+}
+
+.close-btn:hover {
+    background: var(--purple);
+    transform: scale(1.1);
 }
