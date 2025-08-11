@@ -1,109 +1,115 @@
-// ===== PROTECTED ADMIN SECTIONS =====
+// ===== GLOBAL CONSTANTS =====
 const PROTECTED_MODE = false; // Set to 'true' to enable editing
+const EXPANDABLE_SECTIONS = {
+    'shipping-link': 'shipping',
+    'policy-link': 'policy-content'
+};
 
+// ===== MAIN INITIALIZATION =====
+document.addEventListener('DOMContentLoaded', () => {
+    protectSections();
+    setupExpandableSections();
+    setupSmoothScrolling();
+});
+
+// ===== PROTECTED ADMIN SECTIONS =====
 function protectSections() {
-    const protectedAreas = document.querySelectorAll('.protected');
+    if (!PROTECTED_MODE) return;
     
-    protectedAreas.forEach(area => {
-        if (PROTECTED_MODE) {
-            area.style.borderLeft = '4px solid #4CAF50';
-            area.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
-            area.querySelector('textarea').readOnly = false;
-            console.log('Admin edit mode: ON');
-        } else {
-            area.querySelector('textarea').readOnly = true;
+    document.querySelectorAll('.protected').forEach(area => {
+        area.style.borderLeft = '4px solid #4CAF50';
+        area.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
+        const textarea = area.querySelector('textarea');
+        if (textarea) textarea.readOnly = false;
+    });
+    console.log('Admin edit mode: ON');
+}
+
+// ===== EXPANDABLE SECTIONS SYSTEM =====
+function setupExpandableSections() {
+    Object.entries(EXPANDABLE_SECTIONS).forEach(([linkId, sectionId]) => {
+        const link = document.getElementById(linkId);
+        const section = document.getElementById(sectionId);
+        
+        if (link && section) {
+            link.addEventListener('click', (e) => handleSectionToggle(e, sectionId));
+            
+            // Add close button if section exists
+            addCloseButton(section);
         }
     });
+}
+
+function handleSectionToggle(e, sectionId) {
+    e.preventDefault();
+    const section = document.getElementById(sectionId);
+    
+    // Toggle current section
+    const isHidden = section.style.display === 'none';
+    section.style.display = isHidden ? 'block' : 'none';
+    
+    // Load content if needed
+    if (isHidden && sectionId === 'policy-content') {
+        loadPrivacyPolicy();
+    }
+    
+    // Scroll to section if opening
+    if (isHidden) {
+        setTimeout(() => {
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    }
+}
+
+function addCloseButton(section) {
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'close-btn';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.addEventListener('click', () => {
+        section.style.display = 'none';
+    });
+    
+    const container = section.querySelector('.section-container');
+    if (container) {
+        container.style.position = 'relative';
+        container.prepend(closeBtn);
+    }
 }
 
 // ===== PRIVACY POLICY LOADER =====
 function loadPrivacyPolicy() {
+    const container = document.querySelector('.privacy-container');
+    if (!container || container.hasChildNodes()) return;
+    
     fetch('privacy.html')
         .then(response => response.text())
         .then(data => {
-            document.querySelector('.privacy-container').innerHTML = data;
+            container.innerHTML = data;
+            // Re-add close button after content loads
+            addCloseButton(document.getElementById('policy-content'));
         })
         .catch(error => {
             console.error('Error loading privacy policy:', error);
-            document.querySelector('.privacy-container').innerHTML = 
-                '<p>Privacy policy failed to load. Please check back later.</p>';
+            container.innerHTML = '<p>Privacy policy failed to load. Please check back later.</p>';
         });
 }
 
-// ===== TOGGLE PRIVACY =====
-function togglePrivacy() {
-    const privacySection = document.getElementById('privacy-content');
-    if (privacySection.style.display === 'none') {
-        loadPrivacyPolicy();
-        privacySection.style.display = 'block';
-        setTimeout(() => {
-            privacySection.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
-    } else {
-        privacySection.style.display = 'none';
-    }
-}
-
-// Toggle Section Visibility
-function setupExpandableSections() {
-    const sections = {
-        'shipping-link': 'shipping',
-        'policy-link': 'policy'
-    };
-
-    Object.entries(sections).forEach(([linkId, sectionId]) => {
-        const link = document.getElementById(linkId);
-        const section = document.getElementById(sectionId);
-
-        if (link && section) {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                // Toggle clicked section
-                section.style.display = section.style.display === 'none' ? 'block' : 'none';
-                
-                // Hide other expandable sections
-                Object.values(sections)
-                    .filter(id => id !== sectionId)
-                    .forEach(id => {
-                        document.getElementById(id).style.display = 'none';
-                    });
-                
-                // Smooth scroll to section
-                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            });
-        }
-    });
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', setupExpandableSections);
-
-// Initialize with event listener
-document.addEventListener('DOMContentLoaded', () => {
-    // Add click handler to privacy nav link
-    document.querySelector('a[href="#policy"]').addEventListener('click', (e) => {
-        e.preventDefault();
-        togglePrivacy();
-    });
-    
-    // Rest of your existing JS...
-});
-
-
-// ===== INITIALIZE =====
-document.addEventListener('DOMContentLoaded', () => {
-    protectSections();
-    
-    // Smooth scrolling for navigation
+// ===== SMOOTH SCROLLING =====
+function setupSmoothScrolling() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        // Skip if it's an expandable section link
+        if (Object.keys(EXPANDABLE_SECTIONS).some(id => anchor.id === id)) return;
+        
         anchor.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            
             e.preventDefault();
-            document.querySelector(this.getAttribute('href')).scrollIntoView({
-                behavior: 'smooth'
-            });
+            const target = document.querySelector(targetId);
+            if (target) target.scrollIntoView({ behavior: 'smooth' });
         });
     });
-});
+}
 
 
 
