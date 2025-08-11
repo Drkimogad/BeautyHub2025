@@ -1,28 +1,32 @@
-// Shopping Cart Logic
-let cartCount = 0;
-const cartIcon = document.querySelector('.fa-shopping-cart');
+// ===== PROTECTED ADMIN SECTIONS =====
+const PROTECTED_MODE = false; // Set to 'true' to enable editing
 
-// Add to Cart Button (example for future functionality)
-document.querySelectorAll('.product-card').forEach(card => {
-    card.addEventListener('click', () => {
-        cartCount++;
-        cartIcon.textContent = ` (${cartCount})`;
-        // Add animation feedback
-        card.classList.add('pulse');
-        setTimeout(() => card.classList.remove('pulse'), 500);
+function protectSections() {
+    const protectedAreas = document.querySelectorAll('.protected');
+    
+    protectedAreas.forEach(area => {
+        if (PROTECTED_MODE) {
+            area.style.borderLeft = '4px solid #4CAF50';
+            area.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
+            area.querySelector('textarea').readOnly = false;
+            console.log('Admin edit mode: ON');
+        } else {
+            area.querySelector('textarea').readOnly = true;
+        }
     });
-});
+}
 
-// Glitter effect on hover (enhanced)
-document.querySelectorAll('.product-card').forEach(card => {
-    card.addEventListener('mouseenter', () => {
-        const glitter = document.createElement('div');
-        glitter.innerHTML = '✨';
-        glitter.style.position = 'absolute';
-        glitter.style.top = '10px';
-        glitter.style.right = '10px';
-        glitter.style.fontSize = '1.5rem';
-        glitter.style.animation = 'glitter 1.5s infinite';
-        card.appendChild(glitter);
+// ===== INITIALIZE =====
+document.addEventListener('DOMContentLoaded', () => {
+    protectSections();
+    
+    // Smooth scrolling for navigation
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
     });
 });
