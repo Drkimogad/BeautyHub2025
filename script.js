@@ -105,5 +105,21 @@ document.addEventListener('DOMContentLoaded', () => {
 //    </div>
 //</section>
 
+// Simple slider functionality
+//let currentSlide = 0;
+//const slides = document.querySelectorAll('.slide');
+
+//function showSlide(n) {
+//    slides.forEach(slide => slide.classList.remove('active'));
+//    slides[n].classList.add('active');
+//}
+
+//function nextSlide() {
+//    currentSlide = (currentSlide + 1) % slides.length;
+//    showSlide(currentSlide);
+//}
+
+// Auto-rotate every 5 seconds
+//setInterval(nextSlide, 5000);
 
 
