@@ -16,6 +16,46 @@ function protectSections() {
     });
 }
 
+// ===== PRIVACY POLICY LOADER =====
+function loadPrivacyPolicy() {
+    fetch('privacy.html')
+        .then(response => response.text())
+        .then(data => {
+            document.querySelector('.privacy-container').innerHTML = data;
+        })
+        .catch(error => {
+            console.error('Error loading privacy policy:', error);
+            document.querySelector('.privacy-container').innerHTML = 
+                '<p>Privacy policy failed to load. Please check back later.</p>';
+        });
+}
+
+// ===== TOGGLE PRIVACY =====
+function togglePrivacy() {
+    const privacySection = document.getElementById('privacy-content');
+    if (privacySection.style.display === 'none') {
+        loadPrivacyPolicy();
+        privacySection.style.display = 'block';
+        setTimeout(() => {
+            privacySection.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+    } else {
+        privacySection.style.display = 'none';
+    }
+}
+
+// Initialize with event listener
+document.addEventListener('DOMContentLoaded', () => {
+    // Add click handler to privacy nav link
+    document.querySelector('a[href="#policy"]').addEventListener('click', (e) => {
+        e.preventDefault();
+        togglePrivacy();
+    });
+    
+    // Rest of your existing JS...
+});
+
+
 // ===== INITIALIZE =====
 document.addEventListener('DOMContentLoaded', () => {
     protectSections();
