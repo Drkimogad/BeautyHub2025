@@ -12,15 +12,14 @@
     <!-- Header/Navigation -->
     <header>
         <nav class="navbar">
-            <div class="logo">BeautyHub2025</div>
-            <div class="nav-links">
-                <a href="#">Home</a>
-                <a href="#products">Shop</a>
-                <a href="#contact">Contact</a>
-                <a href="#shipping">Shipping & Returns</a>
-                <a href="#policy">Privacy Policy</a>
-            </div>
-        </nav>
+    <div class="nav-links">
+        <a href="#">Home</a>
+        <a href="#products">Shop</a>
+        <a href="#contact">Contact</a>
+        <a href="#" id="shipping-link">Shipping & Returns</a>
+        <a href="#" id="policy-link">Privacy Policy</a>
+    </div>
+   </nav>
     </header>
 
     <!-- Hero Banner -->
@@ -87,17 +86,20 @@
     </div>
 </section>  
 
-    <!-- Shipping & Returns -->
-    <section id="shipping" class="shipping-section">
-        <h2 class="section-title">Shipping & Returns</h2>
-        <div class="shipping-info">
-            <textarea readonly>
-                Free shipping on orders over $50! 
-                Returns accepted within 30 days. 
-                Contact us for details.
-            </textarea>
+    <!-- Shipping & Returns (Hidden by Default) -->
+<section id="shipping" class="expandable-section" style="display: none;">
+    <div class="section-container">
+        <h2>Shipping & Returns</h2>
+        <div class="section-content">
+            <p>Free shipping on orders over $50! Returns accepted within 30 days.</p>
+            <ul>
+                <li>Standard shipping: 3-5 business days</li>
+                <li>Express shipping available</li>
+                <li>No returns on opened cosmetics</li>
+            </ul>
         </div>
-    </section>
+    </div>
+</section>
 
     <!-- Contact Socials -->
     <section id="contact" class="contact-section">
@@ -118,7 +120,7 @@
         </div>
     </section>
 
-    <!-- Privacy Policy -->
+    <!-- Privacy Policy (Hidden by Default) -->
 <section id="privacy-content" class="privacy-section" style="display: none;">
     <div class="privacy-container">
         <h2>Privacy Policy</h2>
