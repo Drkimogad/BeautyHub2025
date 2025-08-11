@@ -320,3 +320,41 @@ header {
         font-size: 0.9rem;
     }
 }
+
+
+/* Expandable Sections */
+.expandable-section {
+    background: var(--light-pink);
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s ease-out;
+}
+
+.expandable-section[style*="display: block"] {
+    padding: 2rem 0;
+    max-height: 1000px;
+}
+
+.section-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+/* Close Button (Optional) */
+.section-content {
+    position: relative;
+}
+
+.close-btn {
+    position: absolute;
+    top: -10px;
+    right: 0;
+    background: var(--purple);
+    color: white;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    border-radius: 50%;
+    cursor: pointer;
+}
