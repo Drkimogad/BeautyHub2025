@@ -44,6 +44,40 @@ function togglePrivacy() {
     }
 }
 
+// Toggle Section Visibility
+function setupExpandableSections() {
+    const sections = {
+        'shipping-link': 'shipping',
+        'policy-link': 'policy'
+    };
+
+    Object.entries(sections).forEach(([linkId, sectionId]) => {
+        const link = document.getElementById(linkId);
+        const section = document.getElementById(sectionId);
+
+        if (link && section) {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Toggle clicked section
+                section.style.display = section.style.display === 'none' ? 'block' : 'none';
+                
+                // Hide other expandable sections
+                Object.values(sections)
+                    .filter(id => id !== sectionId)
+                    .forEach(id => {
+                        document.getElementById(id).style.display = 'none';
+                    });
+                
+                // Smooth scroll to section
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        }
+    });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', setupExpandableSections);
+
 // Initialize with event listener
 document.addEventListener('DOMContentLoaded', () => {
     // Add click handler to privacy nav link
