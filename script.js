@@ -127,17 +127,26 @@ function handleSectionToggle(e, section) {
 }
 
 // ===== SMOOTH SCROLLING =====
+// ===== SMOOTH SCROLLING =====
 function setupSmoothScrolling() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        if (Object.keys(EXPANDABLE_SECTIONS).some(id => anchor.id === id)) return;
+        // Skip the shipping and policy links (handled separately)
+        if (anchor.id === 'shipping-link' || anchor.id === 'policy-link') return;
         
         anchor.addEventListener('click', function(e) {
             const targetId = this.getAttribute('href');
+            // Skip empty hash or privacy content (handled elsewhere)
             if (targetId === '#' || targetId === '#privacy-content') return;
             
             e.preventDefault();
             const target = document.querySelector(targetId);
-            if (target) target.scrollIntoView({ behavior: 'smooth' });
+            if (target) {
+                // Hide any open expandable sections before scrolling
+                document.getElementById('shipping').hidden = true;
+                document.getElementById('privacy-content').style.display = 'none';
+                
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
         });
     });
 }
