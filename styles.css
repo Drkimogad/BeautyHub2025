@@ -499,10 +499,11 @@ header {
 /* ===== PRIVACY SECTION ===== */
 .privacy-section {
     display: none; /* JS-controlled visibility */
-    background: var(--white);
+    background: #be1ec9;
     padding: 2rem 0;
     margin: 0 auto; /* Center container */
     max-width: 800px;
+    border: 2px solid var(--purple); 
     border-radius: 8px;
     position: relative; /* Crucial for absolute positioning */
     z-index: 99; /* Ensure it stays above other content */
@@ -511,11 +512,8 @@ header {
 .privacy-container {    
     padding: 2rem; /* Inner spacing */
     position: relative; /* For close button */
-    background: white; /* Match your theme */
+    background: #be1ec9; /* Match your theme */
     border-radius: 8px; /* Optional */
-}
-
-.privacy-container {
     position: relative;
     padding: 0 2rem;
     line-height: 1.7;
@@ -529,7 +527,7 @@ header {
     margin-top: 1rem;
     border: 2px solid var(--purple); 
     border-radius: 8px;
-    background: #feeee8;
+    background: #fcf7fc;
     font-family: inherit;
     font-size: 1rem;
     line-height: 1.8;
