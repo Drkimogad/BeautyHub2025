@@ -1,11 +1,5 @@
-
-
-// ===== GLOBAL CONSTANTS =====
-const PROTECTED_MODE = true; // 🚫 Set to 'true' ONLY during edits
-
 // ===== MAIN INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', () => {
-    protectSections();
     setupSmoothScrolling();
     initializeShippingSection();
     initializePrivacySection();
@@ -13,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ===== NAVIGATION HANDLERS =====
+// to toggle bet shipping section and privacy policy section 
 function setupNavigationHandlers() {
     // Shipping link handler
     const shippingLink = document.getElementById('shipping-link');
@@ -20,21 +15,30 @@ function setupNavigationHandlers() {
         shippingLink.addEventListener('click', function(e) {
             e.preventDefault();
             const shippingSection = document.getElementById('shipping');
-            shippingSection.hidden = !shippingSection.hidden;
+            const privacySection = document.getElementById('privacy-content');
             
-            // Hide privacy section if showing
-            document.getElementById('privacy-content').style.display = 'none';
+            // Toggle shipping section
+            const showShipping = shippingSection.style.display === 'none';
+            shippingSection.style.display = showShipping ? 'block' : 'none';
             
-            // Scroll to section if opening
-            if (!shippingSection.hidden) {
+            // Always hide privacy when showing shipping
+            privacySection.style.display = 'none';
+            
+            // Only scroll if we're showing the section
+            if (showShipping) {
                 setTimeout(() => {
-                    shippingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 100);
+                    shippingSection.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }, 10); // Minimal delay
             }
         });
     }
 
+//=====================================================
     // Privacy policy link handler
+//=====================================================
     const policyLink = document.getElementById('policy-link');
     if (policyLink) {
         policyLink.addEventListener('click', function(e) {
@@ -95,38 +99,6 @@ function initializePrivacySection() {
     }
 }
 
-// ===== PROTECTED ADMIN SECTIONS =====
-function protectSections() {
-    if (!PROTECTED_MODE) return;
-    
-    document.querySelectorAll('.protected').forEach(area => {
-        area.style.borderLeft = '4px solid #4CAF50';
-        area.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
-        const textarea = area.querySelector('textarea');
-        if (textarea) textarea.readOnly = false;
-    });
-    console.log('Admin edit mode: ON');
-}
-
-function handleSectionToggle(e, section) {
-    e.preventDefault();
-    
-    // Toggle section visibility
-    if (section.id === 'shipping') {
-        section.hidden = !section.hidden;
-    } else {
-        section.style.display = section.style.display === 'none' ? 'block' : 'none';
-    }
-    
-    // Scroll to section if opening
-    if (!section.hidden && section.style.display !== 'none') {
-        setTimeout(() => {
-            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-    }
-}
-
-// ===== SMOOTH SCROLLING =====
 // ===== SMOOTH SCROLLING =====
 function setupSmoothScrolling() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
