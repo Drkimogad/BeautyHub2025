@@ -115,7 +115,54 @@ function setupSmoothScrolling() {
     });
 }
 
+// ===== PRODUCT QUICK VIEW & RATINGS Modal =====
+document.addEventListener('DOMContentLoaded', () => {
+    // Quick View Modal
+    const quickViewButtons = document.querySelectorAll('.quick-view');
+    const modal = document.createElement('div');
+    modal.className = 'quick-view-modal';
+    document.body.appendChild(modal);
 
+    // Handle Quick View Clicks
+    quickViewButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const productCard = button.closest('.product-card');
+            const productImg = productCard.querySelector('.product-img').src;
+            const productTitle = productCard.querySelector('h3').textContent;
+            
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <img src="${productImg}" alt="${productTitle}">
+                    <h3>${productTitle}</h3>
+                    <button class="add-to-cart">Add to Cart</button>
+                </div>
+            `;
+            modal.style.display = 'flex';
+        });
+    });
+
+    // Close Modal
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal || e.target.classList.contains('close-modal')) {
+            modal.style.display = 'none';
+        }
+    });
+
+    // Star Rating Interaction
+    const ratings = document.querySelectorAll('.rating');
+    ratings.forEach(rating => {
+        rating.addEventListener('click', (e) => {
+            const stars = rating.querySelectorAll('span');
+            const clickedIndex = Array.from(stars).indexOf(e.target);
+            
+            stars.forEach((star, index) => {
+                star.textContent = index <= clickedIndex ? '★' : '☆';
+            });
+        });
+    });
+});
 
 
 
