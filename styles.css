@@ -424,23 +424,63 @@ header {
 /*  SHIPPING SECTIONS Problematic */
 /* Base shipping section - applies to BOTH states */
 .shipping-section {
-    position: relative;
-    overflow: visible;
-    padding: 2rem;
-    transition: all 0.3s ease-out;
+    position: relative; /* Anchor for absolute positioning */
+    background: var(--light-pink);
     margin: 1rem auto;
     max-width: 800px;
-    background: var(--light-pink);
-    display: none; /* Start hidden */
+    border-radius: 8px;
+    display: none; /* Initially hidden */
+    padding: 0; /* Reset padding */
 }
 
 .shipping-section[style*="display: block"] {
-    max-height: 1000px;
-    border-radius: 8px;
     display: block;
+    padding: 2rem; /* Only add padding when visible */
     animation: fadeIn 0.3s ease-out;
 }
 
+.section-container {
+    position: relative; /* New positioning context */
+    padding: 0; /* Remove default padding */
+}
+
+/* ===== CLOSE BUTTON ===== */
+.shipping-section .close-btn {
+    position: absolute;
+    top: 0.5rem; /* Adjust this value to move vertically */
+    right: 0.5rem; /* Adjust this value to move horizontally */
+    width: 30px;
+    height: 30px;
+    background: var(--pink);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transform: translate(0, 0); /* Reset any transforms */
+}
+
+.shipping-section .close-btn:hover {
+    background: var(--purple);
+    transform: rotate(90deg);
+}
+
+
+/* Animation */
+@keyframes fadeIn {
+    from { 
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 /* Section headers */
 .shipping-section h2 {
     color: var(--purple);
@@ -455,45 +495,6 @@ header {
     text-align: left;
     padding: 0;
 }
-
-/* Close button - unified solution */
-.shipping-section .close-btn {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    width: 30px;
-    height: 30px;
-    background: var(--pink);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    font-size: 1.2rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    transform: translateZ(0); /* GPU acceleration */
-    transition: transform 0.2s ease, background 0.2s ease;
-}
-
-.shipping-section .close-btn:hover {
-    background: var(--purple);
-    transform: translateZ(0) rotate(90deg); /* Combine transforms */
-}
-
-/* Animation */
-@keyframes fadeIn {
-    from { 
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to { 
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 
 /* ===== PRIVACY SECTION ===== */
 .privacy-section {
