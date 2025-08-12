@@ -49,7 +49,6 @@ body {
 /* ===== HEADER ===== */
 /* ===== HEADER & NAVIGATION ===== */
 header {
-    font-size: 4rem;   /* added to adjust⛔️⚠️*/
     background: linear-gradient(135deg, var(--purple), var(--pink));
     color: var(--white);
     padding: 1rem 0;
