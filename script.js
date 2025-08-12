@@ -44,20 +44,26 @@ function setupNavigationHandlers() {
         policyLink.addEventListener('click', function(e) {
             e.preventDefault();
             const privacySection = document.getElementById('privacy-content');
-            privacySection.style.display = privacySection.style.display === 'none' ? 'block' : 'none';
+            const shippingSection = document.getElementById('shipping');
             
-            // Hide shipping section if showing
-            document.getElementById('shipping').hidden = true;
+            // Toggle privacy section
+            const showPrivacy = privacySection.style.display === 'none';
+            privacySection.style.display = showPrivacy ? 'block' : 'none';
             
-            // Scroll to section if opening
-            if (privacySection.style.display === 'block') {
+            // Always hide shipping when showing privacy
+            shippingSection.style.display = 'none';
+            
+            if (showPrivacy) {
                 setTimeout(() => {
-                    privacySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 100);
+                    privacySection.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }, 10);
             }
         });
     }
-}
+
 
 // ===== SHIPPING SECTION =====
 function initializeShippingSection() {
