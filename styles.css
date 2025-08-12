@@ -491,6 +491,7 @@ header {
     font-size: 1rem;
 }
 /* ===== PRIVACY SECTION ===== */
+
 .privacy-section {
     display: none; /* JS-controlled visibility */
     background: var(--white);
@@ -498,7 +499,8 @@ header {
     margin: 0 auto; /* Center container */
     max-width: 800px;
     border-radius: 8px;
-    position: relative;
+    position: relative; /* Crucial for absolute positioning */
+    z-index: 99; /* Ensure it stays above other content */
 }
 
 .privacy-container {    
@@ -514,24 +516,28 @@ header {
     padding: 0 2rem;
     line-height: 1.7;
 }
+/* Update close button positioning */
 .privacy-container .close-btn {
     position: absolute;
     top: 15px;
     right: 15px;
-    width: 30px;
-    height: 30px;
+    z-index: 100;
     background: var(--pink);
     color: white;
     border: none;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     font-size: 1.2rem;
-    z-index: 10;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .policy-textarea {
     width: 100%;
     min-height: 300px;
-    padding: 1rem;
     margin-top: 1.5rem;
     border: 1px solid var(--light-pink);
     border-radius: 8px;
@@ -539,6 +545,8 @@ header {
     font-family: inherit;
     font-size: 0.95rem;
     line-height: 1.6;
+    padding-top: 2.5rem; /* Makes space for the button */
+
     resize: none;
     white-space: pre; /* Preserves your formatting */
     line-height: 1.6;
