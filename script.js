@@ -1,75 +1,57 @@
+
+
 // ===== GLOBAL CONSTANTS =====
 const PROTECTED_MODE = true; // 🚫 Set to 'true' ONLY during edits
 const EXPANDABLE_SECTIONS = {
     'shipping-link': 'shipping',
-    'policy-link': 'privacy-content' // Matches your HTML ID
+    'policy-link': 'privacy-content'
 };
 
 // ===== MAIN INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', () => {
     protectSections();
-    setupExpandableSections();
     setupSmoothScrolling();
+    initializeShippingSection();
+    initializePrivacySection();
 });
 
-// ===== PROTECTED ADMIN SECTIONS =====
-function protectSections() {
-    if (!PROTECTED_MODE) return;
+// ===== SHIPPING SECTION =====
+function initializeShippingSection() {
+    const shippingSection = document.getElementById('shipping');
+    if (!shippingSection) return;
     
-    document.querySelectorAll('.protected').forEach(area => {
-        area.style.borderLeft = '4px solid #4CAF50';
-        area.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
-        const textarea = area.querySelector('textarea');
-        if (textarea) textarea.readOnly = false;
+    // Add close button functionality
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'close-btn';
+    closeBtn.innerHTML = '×';
+    closeBtn.addEventListener('click', () => {
+        shippingSection.hidden = true;
     });
-    console.log('Admin edit mode: ON');
-}
-
-// ===== EXPANDABLE SECTIONS SYSTEM =====
-function setupExpandableSections() {
-    Object.entries(EXPANDABLE_SECTIONS).forEach(([linkId, sectionId]) => {
-        const link = document.getElementById(linkId);
-        const section = document.getElementById(sectionId);
-        
-        if (link && section) {
-            link.addEventListener('click', (e) => handleSectionToggle(e, section));
-        }
-    });
-}
-
-function handleSectionToggle(e, section) {
-    e.preventDefault();
-    const isHidden = section.style.display === 'none';
     
-    // Toggle current section
-    section.style.display = isHidden ? 'block' : 'none';
-    
-    // Add close button to shipping section when opening
-    if (isHidden && section.id === 'shipping') {
-        addCloseButton(section.querySelector('.section-content'));
-    }
-    
-    // Load privacy policy when opening
-    if (isHidden && section.id === 'privacy-content') {
-        loadPrivacyPolicy();
-    }
-    
-    // Scroll to section if opening
-    if (isHidden) {
-        setTimeout(() => {
-            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
+    const sectionContent = shippingSection.querySelector('.section-content');
+    if (sectionContent) {
+        sectionContent.style.position = 'relative';
+        sectionContent.prepend(closeBtn);
     }
 }
 
-// ===== PRIVACY POLICY LOADER =====
-function loadPrivacyPolicy() {
-    const container = document.querySelector('.privacy-container');
-    if (container.innerHTML.trim() === '') {
-        container.innerHTML = `
-            <h2>Privacy Policy</h2>
-            <textarea class="policy-textarea" readonly>
-                class="Last Updated: January 2025
+// ===== PRIVACY SECTION =====
+function initializePrivacySection() {
+    const privacySection = document.getElementById('privacy-content');
+    if (!privacySection) return;
+    
+    // Ensure the close button works
+    const closeBtn = privacySection.querySelector('.close-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            privacySection.style.display = 'none';
+        });
+    }
+    
+    // Initialize with default content if empty
+    const textarea = privacySection.querySelector('.policy-textarea');
+    if (textarea && !textarea.value.trim()) {
+        textarea.value = `Last Updated: January 2025
 
 1. INFORMATION WE COLLECT
 - Account details (name, email, password)
@@ -89,27 +71,39 @@ function loadPrivacyPolicy() {
 4. YOUR RIGHTS
 - Access your personal data
 - Request corrections
-- Delete your account" readonly>...
-            </textarea>
-        `;
+- Delete your account`;
     }
-    document.getElementById('privacy-content').style.display = 'block';
 }
 
-function addCloseButton(container) {
-    // Prevent duplicate buttons
-    if (container.querySelector('.close-btn')) return;
+// ===== PROTECTED ADMIN SECTIONS =====
+function protectSections() {
+    if (!PROTECTED_MODE) return;
     
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'close-btn';
-    closeBtn.innerHTML = '&times;';
-    closeBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        container.closest('.expandable-section').style.display = 'none';
+    document.querySelectorAll('.protected').forEach(area => {
+        area.style.borderLeft = '4px solid #4CAF50';
+        area.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
+        const textarea = area.querySelector('textarea');
+        if (textarea) textarea.readOnly = false;
     });
-    container.style.position = 'relative';
-    container.prepend(closeBtn);
+    console.log('Admin edit mode: ON');
+}
+
+function handleSectionToggle(e, section) {
+    e.preventDefault();
+    
+    // Toggle section visibility
+    if (section.id === 'shipping') {
+        section.hidden = !section.hidden;
+    } else {
+        section.style.display = section.style.display === 'none' ? 'block' : 'none';
+    }
+    
+    // Scroll to section if opening
+    if (!section.hidden && section.style.display !== 'none') {
+        setTimeout(() => {
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    }
 }
 
 // ===== SMOOTH SCROLLING =====
@@ -127,6 +121,8 @@ function setupSmoothScrolling() {
         });
     });
 }
+
+// [Rest of your existing code...]
 
 // ===== PRODUCT QUICK VIEW & RATINGS Modal =====
 document.addEventListener('DOMContentLoaded', () => {
