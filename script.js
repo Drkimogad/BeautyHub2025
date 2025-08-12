@@ -44,7 +44,12 @@ function handleSectionToggle(e, section) {
     // Toggle current section
     section.style.display = isHidden ? 'block' : 'none';
     
-    // Special handling for privacy policy
+    // Add close button to shipping section when opening
+    if (isHidden && section.id === 'shipping') {
+        addCloseButton(section.querySelector('.section-content'));
+    }
+    
+    // Load privacy policy when opening
     if (isHidden && section.id === 'privacy-content') {
         loadPrivacyPolicy();
     }
@@ -79,12 +84,16 @@ function loadPrivacyPolicy() {
 }
 
 function addCloseButton(container) {
+    // Prevent duplicate buttons
+    if (container.querySelector('.close-btn')) return;
+    
     const closeBtn = document.createElement('button');
     closeBtn.className = 'close-btn';
     closeBtn.innerHTML = '&times;';
     closeBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        document.getElementById('privacy-content').style.display = 'none';
+        e.stopPropagation();
+        container.closest('.expandable-section').style.display = 'none';
     });
     container.style.position = 'relative';
     container.prepend(closeBtn);
