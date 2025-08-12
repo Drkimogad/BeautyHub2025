@@ -273,12 +273,13 @@ header {
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 #contact-heading.section-title {
-    text-align: left;
-    margin-left: 1rem;
-    justify-content: flex-start;
-    padding-left: 0;
+    text-align: center; /* Center the text */
+    margin: 0 auto; /* Center the container */
+    padding: 0;
     border-left: none;
     border-right: none;
+    display: block; /* Override any flex/grid alignment */
+    width: fit-content; /* Shrink-wrap to content */
 }
 .contact-section {
     padding: 2rem;
@@ -421,34 +422,48 @@ header {
 /*======================*/
 /* Expandable Sections */
 /*=======================*/
+/* ===== EXPANDABLE SECTIONS (SHIPPING & PRIVACY) ===== */
 .expandable-section {
     background: var(--light-pink);
     padding: 0;
     max-height: 0;
     overflow: hidden;
     transition: all 0.3s ease-out;
+    margin: 1rem auto;
+    max-width: 800px;
 }
 
 .expandable-section[style*="display: block"] {
-    padding: 2rem 0;
+    padding: 2rem;
     max-height: 1000px;
+    position: relative;
+    border-radius: 8px;
 }
 
-.section-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 0 2rem;
+/* ===== SECTION HEADERS ===== */
+.expandable-section h2 {
+    color: var(--purple);
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    text-align: left; /* Left-aligned headers */
+    padding-right: 40px; /* Space for close button */
+}
+
+/* ===== SHIPPING CONTENT ===== */
+.shipping-section .section-content {
+    text-align: left;
+    padding: 0;
 }
 
 /* ===== CLOSE BUTTON ===== */
-.close-btn {
+.expandable-section .close-btn {
     position: absolute;
-    top: 15px;
-    right: 15px;
+    top: 20px;
+    right: 20px;
     width: 32px;
     height: 32px;
     background: var(--pink);
-    color: var(--white);
+    color: white;
     border: none;
     border-radius: 50%;
     font-size: 1.3rem;
@@ -457,39 +472,21 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 10;
     transition: all 0.2s;
-    z-index: 100;
 }
 
-.close-btn:hover {
+.expandable-section .close-btn:hover {
     background: var(--purple);
     transform: rotate(90deg);
 }
-/* ===== EXPANDABLE SECTION ANIMATION ===== */
-.privacy-section[style*="display: block"] {
-    animation: fadeIn 0.3s ease-out;
-}
 
+/* ===== ANIMATION ===== */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
-/* ===== SHIPPING & RETURNS ===== */
-.shipping-section {
-    padding: 2rem;
-    max-width: 800px;
-    margin: 2rem auto;
-}
 
-.shipping-info textarea {
-    width: 100%;
-    padding: 1rem;
-    border: 1px solid var(--light-pink);
-    border-radius: 8px;
-    resize: none;
-    background-color: var(--white);
-    font-size: 1rem;
-}
 /* ===== PRIVACY SECTION ===== */
 
 .privacy-section {
@@ -535,22 +532,20 @@ header {
     justify-content: center;
 }
 
-.policy-textarea {
+/* ===== PRIVACY TEXTAREA ===== */
+.privacy-section .policy-textarea {
     width: 100%;
     min-height: 300px;
-    margin-top: 1.5rem;
+    padding: 1.5rem;
+    margin-top: 1rem;
     border: 1px solid var(--light-pink);
     border-radius: 8px;
     background: white;
     font-family: inherit;
     font-size: 0.95rem;
     line-height: 1.6;
-    padding-top: 2.5rem; /* Makes space for the button */
-
     resize: none;
-    white-space: pre; /* Preserves your formatting */
-    line-height: 1.6;
-    font-family: Arial, sans-serif;
+    white-space: pre-wrap;
 }
 
 
