@@ -162,34 +162,13 @@
             </div>
         </section>
 
-<!-- Add this inside your privacy-section -->
-<section id="privacy-content" style="display: none;">
+<section id="privacy-content" class="privacy-section" style="display: none;">
     <div class="privacy-container">
-        <button class="close-btn">×</button>
+        <button class="close-btn" onclick="this.closest('.privacy-section').style.display='none'">×</button>
         <h2>Privacy Policy</h2>
-        <textarea class="policy-textarea" readonly>1. INFORMATION WE COLLECT
-- Account details (name, email, password)
-- Order history and payment information
-- Customer support communications
-
-2. HOW WE USE YOUR DATA
-- Process orders and transactions
-- Improve our products and services
-- Send important account notifications
-
-3. DATA PROTECTION
-- SSL encrypted transactions
-- Regular security audits
-- Strict access controls
-
-4. YOUR RIGHTS
-- Access your personal data
-- Request corrections
-- Delete your account" readonly>...
-    </textarea>
+        <textarea class="policy-textarea" readonly><!-- Your policy text --></textarea>
     </div>
 </section>
-
 
     <footer class="main-footer">
         <p>&copy; <span id="current-year">2025</span> BeautyHub2025. All rights reserved.</p>
