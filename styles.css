@@ -499,7 +499,7 @@ header {
 /* ===== PRIVACY SECTION ===== */
 .privacy-section {
     display: none; /* JS-controlled visibility */
-    background: #be1ec9;
+    background: #f2cedf;
     padding: 2rem 0;
     margin: 0 auto; /* Center container */
     max-width: 800px;
