@@ -74,18 +74,14 @@ function initializeShippingSection() {
     const closeBtn = document.createElement('button');
     closeBtn.className = 'close-btn';
     closeBtn.innerHTML = '×';
-    
-    // Modern event listener approach
-    closeBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+    closeBtn.addEventListener('click', () => {
         shippingSection.style.display = 'none';
-    }, { capture: true }); // Important for event handling
+    });
     
-    const sectionContent = shippingSection.querySelector('.section-content');
-    if (sectionContent) {
-        sectionContent.style.position = 'relative';
-        sectionContent.prepend(closeBtn);
+    // Append to section-container instead of section-content
+    const container = shippingSection.querySelector('.section-container');
+    if (container) {
+        container.prepend(closeBtn); // Add as first child
     }
 }
 
