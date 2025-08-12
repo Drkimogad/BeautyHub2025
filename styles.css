@@ -421,20 +421,21 @@ header {
 
 /*=======================*/
 /* ===== SHIPPING SECTIONS  ===== */
+/* Base shipping section - applies to BOTH states */
 .shipping-section {
-    background: var(--light-pink);
-    padding: 0;
-    max-height: 0;
-    overflow: hidden;
+    position: relative; /* Establishes positioning context */
+    overflow: hidden; /* Contains absolutely positioned children */
     transition: all 0.3s ease-out;
     margin: 1rem auto;
     max-width: 800px;
+    background: var(--light-pink);
+    will-change: max-height; /* Improves animation performance */
 }
 
+/* Open state */
 .shipping-section[style*="display: block"] {
     padding: 2rem;
     max-height: 1000px;
-    position: relative;
     border-radius: 8px;
 }
 
@@ -454,11 +455,11 @@ header {
 }
 
 /* ===== CLOSE BUTTON DOR BOTH SHIPPING AND PRIVACY FOR CONSISTENCY ===== */ 
-/*  SECTION HAS SHIPPING AND RETURNS AND PRIVACY POLICY */
+/* Close button - works in BOTH states */
 .shipping-section .close-btn {
     position: absolute;
-    top: 15px;
-    right: 15px;
+    top: 1rem; /* Matches container padding */
+    right: 1rem; /* Matches container padding */
     z-index: 100;
     background: var(--pink);
     color: white;
@@ -471,6 +472,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
+    transform: translateZ(0); /* Ensures proper rendering */
 }
 
 .shipping-section .close-btn:hover {
@@ -519,7 +521,7 @@ header {
     margin-top: 1rem;
     border: 2px solid var(--purple); 
     border-radius: 8px;
-    background: white;
+    background: #feeee8;
     font-family: inherit;
     font-size: 1rem;
     line-height: 1.8;
