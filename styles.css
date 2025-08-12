@@ -458,8 +458,8 @@ header {
 /* ===== CLOSE BUTTON ===== */
 .expandable-section .close-btn {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 2px;  /* Changed from 20px (moves UP) */
+    right: 2px; /* Changed from 20px (moves RIGHT) */
     width: 32px;
     height: 32px;
     background: var(--pink);
