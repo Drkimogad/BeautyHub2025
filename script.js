@@ -1,8 +1,8 @@
 // ===== GLOBAL CONSTANTS =====
-const PROTECTED_MODE = true; // ⛔️ Set to 'true' to enable editing temporarily 
+const PROTECTED_MODE = true; // 🚫 Set to 'true' ONLY during edits
 const EXPANDABLE_SECTIONS = {
     'shipping-link': 'shipping',
-    'policy-link': 'policy-content'
+    'policy-link': 'privacy-content' // Matches your HTML ID
 };
 
 // ===== MAIN INITIALIZATION =====
@@ -32,24 +32,20 @@ function setupExpandableSections() {
         const section = document.getElementById(sectionId);
         
         if (link && section) {
-            link.addEventListener('click', (e) => handleSectionToggle(e, sectionId));
-            
-            // Add close button if section exists
-            addCloseButton(section);
+            link.addEventListener('click', (e) => handleSectionToggle(e, section));
         }
     });
 }
 
-function handleSectionToggle(e, sectionId) {
+function handleSectionToggle(e, section) {
     e.preventDefault();
-    const section = document.getElementById(sectionId);
+    const isHidden = section.style.display === 'none';
     
     // Toggle current section
-    const isHidden = section.style.display === 'none';
     section.style.display = isHidden ? 'block' : 'none';
     
-    // Load content if needed
-    if (isHidden && sectionId === 'policy-content') {
+    // Special handling for privacy policy
+    if (isHidden && section.id === 'privacy-content') {
         loadPrivacyPolicy();
     }
     
@@ -61,54 +57,47 @@ function handleSectionToggle(e, sectionId) {
     }
 }
 
-function addCloseButton(section) {
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'close-btn';
-    closeBtn.innerHTML = '&times;';
-    closeBtn.addEventListener('click', () => {
-        section.style.display = 'none';
-    });
-    
-    const container = section.querySelector('.section-container');
-    if (container) {
-        container.style.position = 'relative';
-        container.prepend(closeBtn);
-    }
-}
-
 // ===== PRIVACY POLICY LOADER =====
 function loadPrivacyPolicy() {
     const container = document.querySelector('.privacy-container');
     if (!container || container.innerHTML.trim() !== '') return;
     
     fetch('privacy.html')
-        .then(response => response.text())
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to load');
+            return response.text();
+        })
         .then(data => {
             container.innerHTML = data;
-            // Add close button
-            const closeBtn = document.createElement('button');
-            closeBtn.className = 'close-btn';
-            closeBtn.innerHTML = '&times;';
-            closeBtn.addEventListener('click', () => {
-                document.getElementById('privacy-content').style.display = 'none';
-            });
-            container.prepend(closeBtn);
+            addCloseButton(container);
         })
         .catch(error => {
             console.error('Error loading privacy policy:', error);
-            container.innerHTML = '<p>Privacy policy failed to load. Please check back later.</p>';
+            container.innerHTML = '<p>Privacy policy unavailable. Please try again later.</p>';
+            addCloseButton(container);
         });
+}
+
+function addCloseButton(container) {
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'close-btn';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('privacy-content').style.display = 'none';
+    });
+    container.style.position = 'relative';
+    container.prepend(closeBtn);
 }
 
 // ===== SMOOTH SCROLLING =====
 function setupSmoothScrolling() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        // Skip if it's an expandable section link
         if (Object.keys(EXPANDABLE_SECTIONS).some(id => anchor.id === id)) return;
         
         anchor.addEventListener('click', function(e) {
             const targetId = this.getAttribute('href');
-            if (targetId === '#') return;
+            if (targetId === '#' || targetId === '#privacy-content') return;
             
             e.preventDefault();
             const target = document.querySelector(targetId);
