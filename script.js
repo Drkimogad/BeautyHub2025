@@ -33,11 +33,12 @@ function setupNavigationHandlers() {
                     });
                 }, 10); // Minimal delay
             }
-        });
-    }
+        }); // closes the listener
+   } // closes the if 
+} // closes the handler 
 
 //=====================================================
-    // Privacy policy link handler
+    // Privacy policy link handler lives inside the handler
 //=====================================================
     const policyLink = document.getElementById('policy-link');
     if (policyLink) {
