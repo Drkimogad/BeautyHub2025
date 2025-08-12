@@ -163,12 +163,11 @@
         </section>
 
 <!-- Add this inside your privacy-section -->
-<div class="privacy-container">
-    <h2>Privacy Policy</h2>
-    <button class="close-btn" onclick="document.getElementById('privacy-content').style.display='none'">×</button>
-    <textarea class="Last Updated: January 2025
-
-1. INFORMATION WE COLLECT
+<section id="privacy-content" style="display: none;">
+    <div class="privacy-container">
+        <button class="close-btn">×</button>
+        <h2>Privacy Policy</h2>
+        <textarea class="policy-textarea" readonly>1. INFORMATION WE COLLECT
 - Account details (name, email, password)
 - Order history and payment information
 - Customer support communications
@@ -186,9 +185,11 @@
 4. YOUR RIGHTS
 - Access your personal data
 - Request corrections
-- Delete your account" readonly>...</textarea>
-</div>
-    </main>
+- Delete your account" readonly>...
+    </textarea>
+    </div>
+</section>
+
 
     <footer class="main-footer">
         <p>&copy; <span id="current-year">2025</span> BeautyHub2025. All rights reserved.</p>
