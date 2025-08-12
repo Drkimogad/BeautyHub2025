@@ -450,45 +450,12 @@ header {
 }
 
 /* ===== SHIPPING CONTENT ===== */
-.shipping-section .section-content {
+.expandable-section .section-content {
     text-align: left;
     padding: 0;
 }
 
-/* ===== CLOSE BUTTON ===== */
-.shipping-section .close-btn {
-    position: absolute;
-    top: 2px;  /* Changed from 20px (moves UP) */
-    right: 2px; /* Changed from 20px (moves RIGHT) */
-    width: 32px;
-    height: 32px;
-    background: var(--pink);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    font-size: 1.3rem;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-    transition: all 0.2s;
-}
-
-.expandable-section .close-btn:hover {
-    background: var(--purple);
-    transform: rotate(90deg);
-}
-
-/* ===== ANIMATION ===== */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
 /* ===== PRIVACY SECTION ===== */
-
 .privacy-section {
     display: none; /* JS-controlled visibility */
     background: var(--white);
@@ -507,14 +474,31 @@ header {
     border-radius: 8px; /* Optional */
 }
 
-
 .privacy-container {
     position: relative;
     padding: 0 2rem;
     line-height: 1.7;
 }
-/* Update close button positioning */
-.privacy-container .close-btn {
+
+/* ===== PRIVACY TEXTAREA ===== */
+.privacy-section .policy-textarea {
+    width: 100%;
+    min-height: 300px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    border: 1px solid var(--light-pink);
+    border-radius: 8px;
+    background: white;
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    resize: none;
+    white-space: pre-wrap;
+}
+
+/* ===== CLOSE BUTTON DOR BOTH SHIPPING AND PRIVACY FOR CONSISTENCY ===== */ 
+/* EXPANDABLE SECTION HAS SHIPPING AND RETURNS AND PRIVACY POLICY */
+.expandable-section .close-btn {
     position: absolute;
     top: 15px;
     right: 15px;
@@ -532,20 +516,15 @@ header {
     justify-content: center;
 }
 
-/* ===== PRIVACY TEXTAREA ===== */
-.privacy-section .policy-textarea {
-    width: 100%;
-    min-height: 300px;
-    padding: 1.5rem;
-    margin-top: 1rem;
-    border: 1px solid var(--light-pink);
-    border-radius: 8px;
-    background: white;
-    font-family: inherit;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    resize: none;
-    white-space: pre-wrap;
+.expandable-section .close-btn:hover {
+    background: var(--purple);
+    transform: rotate(90deg);
+}
+
+/* ===== ANIMATION ===== */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 
