@@ -136,27 +136,20 @@ header {
     position: relative;
 }
 
-.section-title {
-    text-align: center;
+#products-heading.section-title {
+    text-align: left;
     font-size: 2.5rem;
     color: var(--purple);
     margin-bottom: 3rem;
+    margin-left: 1rem;
     position: relative;
-    display: inline-block;
-    left: 50%;
-    transform: translateX(-50%);
+    display: block; /* Changed from inline-block */
+    transform: none; /* Removed translateX */
 }
 
 .section-title::after {
-    content: "";
-    position: absolute;
-    bottom: -15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100px;
-    height: 4px;
-    background: linear-gradient(90deg, var(--purple), var(--pink));
-    border-radius: 2px;
+    left: 0; /* Changed from 50% */
+    transform: none; /* Removed translateX */
 }
 
 .product-grid {
@@ -267,22 +260,7 @@ header {
     }
 }
 
-/* ===== SHIPPING & RETURNS ===== */
-.shipping-section {
-    padding: 2rem;
-    max-width: 800px;
-    margin: 2rem auto;
-}
 
-.shipping-info textarea {
-    width: 100%;
-    padding: 1rem;
-    border: 1px solid var(--light-pink);
-    border-radius: 8px;
-    resize: none;
-    background-color: var(--white);
-    font-size: 1rem;
-}
 
 /* ===== CONTACT SOCIALS ===== */
 /* ===== SOCIALS CONTAINER ===== */
@@ -293,6 +271,14 @@ header {
     max-width: 800px;
     margin: 0 auto;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+#contact-heading.section-title {
+    text-align: left;
+    margin-left: 1rem;
+    justify-content: flex-start;
+    padding-left: 0;
+    border-left: none;
+    border-right: none;
 }
 .contact-section {
     padding: 2rem;
@@ -454,61 +440,6 @@ header {
     padding: 0 2rem;
 }
 
-/* Close Button (Optional) */
-.section-content {
-    position: relative;
-}
-
-/* ===== EXPANDABLE SECTION ANIMATION ===== */
-.privacy-section[style*="display: block"] {
-    animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* ===== PRIVACY SECTION ===== */
-.privacy-section {
-    display: none; /* JS-controlled visibility */
-    background: var(--white);
-    padding: 2rem 0;
-    margin: 1rem auto;
-    max-width: 800px;
-    border-radius: 8px;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-    position: relative;
-}
-
-.privacy-container {
-    position: relative;
-    padding: 0 2rem;
-    line-height: 1.7;
-}
-.privacy-container .close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 10;
-}
-.policy-textarea {
-    width: 100%;
-    min-height: 300px;
-    padding: 1rem;
-    margin-top: 1rem;
-    border: 1px solid var(--light-pink);
-    border-radius: 8px;
-    background: white;
-    font-family: inherit;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    resize: none;
-    white-space: pre; /* Preserves your formatting */
-    line-height: 1.6;
-    font-family: Arial, sans-serif;
-}
-
 /* ===== CLOSE BUTTON ===== */
 .close-btn {
     position: absolute;
@@ -534,6 +465,87 @@ header {
     background: var(--purple);
     transform: rotate(90deg);
 }
+/* ===== EXPANDABLE SECTION ANIMATION ===== */
+.privacy-section[style*="display: block"] {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+/* ===== SHIPPING & RETURNS ===== */
+.shipping-section {
+    padding: 2rem;
+    max-width: 800px;
+    margin: 2rem auto;
+}
+
+.shipping-info textarea {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid var(--light-pink);
+    border-radius: 8px;
+    resize: none;
+    background-color: var(--white);
+    font-size: 1rem;
+}
+/* ===== PRIVACY SECTION ===== */
+.privacy-section {
+    display: none; /* JS-controlled visibility */
+    background: var(--white);
+    padding: 2rem 0;
+    margin: 0 auto; /* Center container */
+    max-width: 800px;
+    border-radius: 8px;
+    position: relative;
+}
+
+.privacy-container {    
+    padding: 2rem; /* Inner spacing */
+    position: relative; /* For close button */
+    background: white; /* Match your theme */
+    border-radius: 8px; /* Optional */
+}
+
+
+.privacy-container {
+    position: relative;
+    padding: 0 2rem;
+    line-height: 1.7;
+}
+.privacy-container .close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 30px;
+    height: 30px;
+    background: var(--pink);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    z-index: 10;
+}
+
+.policy-textarea {
+    width: 100%;
+    min-height: 300px;
+    padding: 1rem;
+    margin-top: 1.5rem;
+    border: 1px solid var(--light-pink);
+    border-radius: 8px;
+    background: white;
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    resize: none;
+    white-space: pre; /* Preserves your formatting */
+    line-height: 1.6;
+    font-family: Arial, sans-serif;
+}
+
+
 /*======================
 /* Quick View Modal */
 /*====================*/
