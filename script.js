@@ -71,13 +71,16 @@ function initializeShippingSection() {
     const shippingSection = document.getElementById('shipping');
     if (!shippingSection) return;
     
-    // Add close button functionality
     const closeBtn = document.createElement('button');
     closeBtn.className = 'close-btn';
     closeBtn.innerHTML = '×';
-    closeBtn.addEventListener('click', () => {
-        shippingSection.hidden = true;
-    });
+    
+    // Modern event listener approach
+    closeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        shippingSection.style.display = 'none';
+    }, { capture: true }); // Important for event handling
     
     const sectionContent = shippingSection.querySelector('.section-content');
     if (sectionContent) {
