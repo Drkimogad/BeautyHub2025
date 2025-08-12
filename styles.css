@@ -456,7 +456,7 @@ header {
 }
 
 /* ===== CLOSE BUTTON ===== */
-.expandable-section .close-btn {
+.shipping-section .close-btn {
     position: absolute;
     top: 2px;  /* Changed from 20px (moves UP) */
     right: 2px; /* Changed from 20px (moves RIGHT) */
