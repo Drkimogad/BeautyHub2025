@@ -419,11 +419,9 @@ header {
     }
 }
 
-/*======================*/
-/* Expandable Sections */
 /*=======================*/
-/* ===== EXPANDABLE SECTIONS (SHIPPING) ===== */
-.expandable-section {
+/* ===== SHIPPING SECTIONS  ===== */
+.shipping-section {
     background: var(--light-pink);
     padding: 0;
     max-height: 0;
@@ -433,7 +431,7 @@ header {
     max-width: 800px;
 }
 
-.expandable-section[style*="display: block"] {
+.shipping-section[style*="display: block"] {
     padding: 2rem;
     max-height: 1000px;
     position: relative;
@@ -441,7 +439,7 @@ header {
 }
 
 /* ===== SECTION HEADERS ===== */
-.expandable-section h2 {
+.shipping-section h2 {
     color: var(--purple);
     font-size: 1.8rem;
     margin-bottom: 1.5rem;
@@ -450,10 +448,43 @@ header {
 }
 
 /* ===== SHIPPING CONTENT ===== */
-.expandable-section .section-content {
+.shipping-section .section-content {
     text-align: left;
     padding: 0;
 }
+
+/* ===== CLOSE BUTTON DOR BOTH SHIPPING AND PRIVACY FOR CONSISTENCY ===== */ 
+/*  SECTION HAS SHIPPING AND RETURNS AND PRIVACY POLICY */
+.shipping-section .close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 100;
+    background: var(--pink);
+    color: white;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.shipping-section .close-btn:hover {
+    background: var(--purple);
+    transform: rotate(90deg);
+}
+
+/* ===== ANIMATION ===== */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+
 
 /* ===== PRIVACY SECTION ===== */
 .privacy-section {
@@ -486,19 +517,17 @@ header {
     min-height: 300px;
     padding: 1.5rem;
     margin-top: 1rem;
-    border: 1px solid var(--light-pink);
+    border: 2px solid var(--purple); 
     border-radius: 8px;
     background: white;
     font-family: inherit;
-    font-size: 0.95rem;
-    line-height: 1.6;
+    font-size: 1rem;
+    line-height: 1.8;
     resize: none;
     white-space: pre-wrap;
 }
 
-/* ===== CLOSE BUTTON DOR BOTH SHIPPING AND PRIVACY FOR CONSISTENCY ===== */ 
-/* EXPANDABLE SECTION HAS SHIPPING AND RETURNS AND PRIVACY POLICY */
-.expandable-section .close-btn {
+.privacy-section .close-btn {
     position: absolute;
     top: 15px;
     right: 15px;
@@ -516,17 +545,10 @@ header {
     justify-content: center;
 }
 
-.expandable-section .close-btn:hover {
+.privacy-section .close-btn:hover {
     background: var(--purple);
     transform: rotate(90deg);
 }
-
-/* ===== ANIMATION ===== */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
 
 /*======================
 /* Quick View Modal */
