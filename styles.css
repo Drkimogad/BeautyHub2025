@@ -447,10 +447,10 @@ header {
 /* ===== CLOSE BUTTON ===== */
 .shipping-section .close-btn {
     position: absolute;
-    top: 0.5rem; /* Adjust this value to move vertically */
-    right: 0.5rem; /* Adjust this value to move horizontally */
-    width: 30px;
-    height: 30px;
+    top: 0.2rem; /* Adjust this value to move vertically */
+    right: 0.52rem; /* Adjust this value to move horizontally */
+    width: 25px;
+    height: 25px;
     background: var(--pink);
     color: white;
     border: none;
