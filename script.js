@@ -1,5 +1,5 @@
 // ===== GLOBAL CONSTANTS =====
-const PROTECTED_MODE = false; // Set to 'true' to enable editing
+const PROTECTED_MODE = true; // ⛔️ Set to 'true' to enable editing temporarily 
 const EXPANDABLE_SECTIONS = {
     'shipping-link': 'shipping',
     'policy-link': 'policy-content'
@@ -79,14 +79,20 @@ function addCloseButton(section) {
 // ===== PRIVACY POLICY LOADER =====
 function loadPrivacyPolicy() {
     const container = document.querySelector('.privacy-container');
-    if (!container || container.hasChildNodes()) return;
+    if (!container || container.innerHTML.trim() !== '') return;
     
     fetch('privacy.html')
         .then(response => response.text())
         .then(data => {
             container.innerHTML = data;
-            // Re-add close button after content loads
-            addCloseButton(document.getElementById('policy-content'));
+            // Add close button
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'close-btn';
+            closeBtn.innerHTML = '&times;';
+            closeBtn.addEventListener('click', () => {
+                document.getElementById('privacy-content').style.display = 'none';
+            });
+            container.prepend(closeBtn);
         })
         .catch(error => {
             console.error('Error loading privacy policy:', error);
