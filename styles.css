@@ -419,22 +419,22 @@ header {
     }
 }
 
+
 /*=======================*/
-/* ===== SHIPPING SECTIONS  ===== */
+/* ===== SHIPPING SECTIONS Problematic ===== */
 /* Base shipping section - applies to BOTH states */
 .shipping-section {
-    position: relative; /* Establishes positioning context */
-    overflow: hidden; /* Contains absolutely positioned children */
+    position: relative; /* Essential for absolute positioning */
+    overflow: visible; /* Prevents button clipping */
+    padding: 2rem; /* Constant padding (remove from open state) */
     transition: all 0.3s ease-out;
     margin: 1rem auto;
     max-width: 800px;
     background: var(--light-pink);
-    will-change: max-height; /* Improves animation performance */
 }
 
 /* Open state */
 .shipping-section[style*="display: block"] {
-    padding: 2rem;
     max-height: 1000px;
     border-radius: 8px;
 }
@@ -456,23 +456,14 @@ header {
 
 /* ===== CLOSE BUTTON DOR BOTH SHIPPING AND PRIVACY FOR CONSISTENCY ===== */ 
 /* Close button - works in BOTH states */
+/* Close button - fixed positioning */
 .shipping-section .close-btn {
     position: absolute;
     top: 1rem; /* Matches container padding */
     right: 1rem; /* Matches container padding */
-    z-index: 100;
-    background: var(--pink);
-    color: white;
-    border: none;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    font-size: 1.2rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transform: translateZ(0); /* Ensures proper rendering */
+    z-index: 1000; /* Higher than default */
+    transform: translateZ(0); /* Forces GPU rendering */
+    pointer-events: auto; /* Ensures clickability */
 }
 
 .shipping-section .close-btn:hover {
