@@ -377,6 +377,22 @@ header {
     padding: 0 2rem;
     line-height: 1.7;
 }
+.policy-textarea {
+    width: 100%;
+    min-height: 300px;
+    padding: 1rem;
+    margin-top: 1rem;
+    border: 1px solid var(--light-pink);
+    border-radius: 8px;
+    background: white;
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    resize: none;
+    white-space: pre; /* Preserves your formatting */
+    line-height: 1.6;
+    font-family: Arial, sans-serif;
+}
 
 /* ===== CLOSE BUTTON ===== */
 .close-btn {
@@ -404,3 +420,9 @@ header {
     transform: rotate(90deg);
 }
 
+
+.section-content[contenteditable="true"] {
+    outline: 2px dashed var(--gold);
+    padding: 1rem;
+    margin: 0.5rem 0;
+}
