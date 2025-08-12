@@ -65,22 +65,35 @@ function handleSectionToggle(e, section) {
 // ===== PRIVACY POLICY LOADER =====
 function loadPrivacyPolicy() {
     const container = document.querySelector('.privacy-container');
-    if (!container || container.innerHTML.trim() !== '') return;
-    
-    fetch('privacy.html')
-        .then(response => {
-            if (!response.ok) throw new Error('Failed to load');
-            return response.text();
-        })
-        .then(data => {
-            container.innerHTML = data;
-            addCloseButton(container);
-        })
-        .catch(error => {
-            console.error('Error loading privacy policy:', error);
-            container.innerHTML = '<p>Privacy policy unavailable. Please try again later.</p>';
-            addCloseButton(container);
-        });
+    if (container.innerHTML.trim() === '') {
+        container.innerHTML = `
+            <h2>Privacy Policy</h2>
+            <textarea class="policy-textarea" readonly>
+                class="Last Updated: January 2025
+
+1. INFORMATION WE COLLECT
+- Account details (name, email, password)
+- Order history and payment information
+- Customer support communications
+
+2. HOW WE USE YOUR DATA
+- Process orders and transactions
+- Improve our products and services
+- Send important account notifications
+
+3. DATA PROTECTION
+- SSL encrypted transactions
+- Regular security audits
+- Strict access controls
+
+4. YOUR RIGHTS
+- Access your personal data
+- Request corrections
+- Delete your account" readonly>...
+            </textarea>
+        `;
+    }
+    document.getElementById('privacy-content').style.display = 'block';
 }
 
 function addCloseButton(container) {
