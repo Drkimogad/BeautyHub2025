@@ -49,6 +49,7 @@ body {
 /* ===== HEADER ===== */
 /* ===== HEADER & NAVIGATION ===== */
 header {
+    font-size: 4rem;   /* added to adjust⛔️⚠️*/
     background: linear-gradient(135deg, var(--purple), var(--pink));
     color: var(--white);
     padding: 1rem 0;
@@ -241,20 +242,6 @@ header {
     border-left: 4px solid var(--purple);
 }
 
-/* ===== PRIVACY SECTION ===== */
-.privacy-section {
-    padding: 2rem;
-    background: var(--white);
-    border-top: 1px solid var(--light-pink);
-}
-
-.privacy-container {
-    max-width: 800px;
-    margin: 0 auto;
-    line-height: 1.8;
-}
-
-
 /* ===== HERO BANNER ===== */
 .hero {
     position: relative;
@@ -338,8 +325,9 @@ header {
     }
 }
 
-
+/*======================*/
 /* Expandable Sections */
+/*=======================*/
 .expandable-section {
     background: var(--light-pink);
     padding: 0;
@@ -364,22 +352,56 @@ header {
     position: relative;
 }
 
+/* ===== EXPANDABLE SECTION ANIMATION ===== */
+.privacy-section[style*="display: block"] {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== PRIVACY SECTION ===== */
+.privacy-section {
+    display: none; /* JS-controlled visibility */
+    background: var(--white);
+    padding: 2rem 0;
+    margin: 1rem auto;
+    max-width: 800px;
+    border-radius: 8px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.privacy-container {
+    padding: 0 2rem;
+    line-height: 1.7;
+}
+
+/* ===== CLOSE BUTTON ===== */
 .close-btn {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 15px;
+    right: 15px;
+    width: 32px;
+    height: 32px;
     background: var(--pink);
-    color: white;
+    color: var(--white);
     border: none;
-    width: 30px;
-    height: 30px;
     border-radius: 50%;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
+    font-weight: bold;
     cursor: pointer;
-    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 100;
 }
 
 .close-btn:hover {
     background: var(--purple);
-    transform: scale(1.1);
+    transform: rotate(90deg);
 }
+
