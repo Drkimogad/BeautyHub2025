@@ -2,10 +2,6 @@
 
 // ===== GLOBAL CONSTANTS =====
 const PROTECTED_MODE = true; // 🚫 Set to 'true' ONLY during edits
-const EXPANDABLE_SECTIONS = {
-    'shipping-link': 'shipping',
-    'policy-link': 'privacy-content'
-};
 
 // ===== MAIN INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,7 +9,51 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSmoothScrolling();
     initializeShippingSection();
     initializePrivacySection();
+    setupNavigationHandlers(); // Add this new function
 });
+
+// ===== NAVIGATION HANDLERS =====
+function setupNavigationHandlers() {
+    // Shipping link handler
+    const shippingLink = document.getElementById('shipping-link');
+    if (shippingLink) {
+        shippingLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            const shippingSection = document.getElementById('shipping');
+            shippingSection.hidden = !shippingSection.hidden;
+            
+            // Hide privacy section if showing
+            document.getElementById('privacy-content').style.display = 'none';
+            
+            // Scroll to section if opening
+            if (!shippingSection.hidden) {
+                setTimeout(() => {
+                    shippingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+        });
+    }
+
+    // Privacy policy link handler
+    const policyLink = document.getElementById('policy-link');
+    if (policyLink) {
+        policyLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            const privacySection = document.getElementById('privacy-content');
+            privacySection.style.display = privacySection.style.display === 'none' ? 'block' : 'none';
+            
+            // Hide shipping section if showing
+            document.getElementById('shipping').hidden = true;
+            
+            // Scroll to section if opening
+            if (privacySection.style.display === 'block') {
+                setTimeout(() => {
+                    privacySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+        });
+    }
+}
 
 // ===== SHIPPING SECTION =====
 function initializeShippingSection() {
@@ -51,27 +91,7 @@ function initializePrivacySection() {
     // Initialize with default content if empty
     const textarea = privacySection.querySelector('.policy-textarea');
     if (textarea && !textarea.value.trim()) {
-        textarea.value = `Last Updated: January 2025
-
-1. INFORMATION WE COLLECT
-- Account details (name, email, password)
-- Order history and payment information
-- Customer support communications
-
-2. HOW WE USE YOUR DATA
-- Process orders and transactions
-- Improve our products and services
-- Send important account notifications
-
-3. DATA PROTECTION
-- SSL encrypted transactions
-- Regular security audits
-- Strict access controls
-
-4. YOUR RIGHTS
-- Access your personal data
-- Request corrections
-- Delete your account`;
+        textarea.value = `Last Updated: January 2025\n\n1. INFORMATION WE COLLECT\n- Account details (name, email, password)\n- Order history and payment information\n- Customer support communications\n\n2. HOW WE USE YOUR DATA\n- Process orders and transactions\n- Improve our products and services\n- Send important account notifications\n\n3. DATA PROTECTION\n- SSL encrypted transactions\n- Regular security audits\n- Strict access controls\n\n4. YOUR RIGHTS\n- Access your personal data\n- Request corrections\n- Delete your account`;
     }
 }
 
