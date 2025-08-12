@@ -35,70 +35,100 @@
             </div>
         </section>
 
-        <section id="products" class="products" aria-labelledby="products-heading">
-            <h2 id="products-heading" class="section-title">Glam Collection</h2>
-            <div class="product-grid">
-                <article class="product-card">
-                    <img src="https://drkimogad.github.io/BeautyHub2025/gallery/perfumes.jpg" 
-                         alt="Luxury perfume bottle with gold details" 
-                         class="product-img"
-                         width="440" height="440"
-                         loading="lazy">
-                    <div class="product-info">
-                        <h3>Signature Perfumes</h3>
-                        <p>Elegant scents that linger like a memory.</p>
-                        <span class="price starts from ">R300</span>
-                    </div>
-                    <button class="quick-view">Quick View</button>
-                    <div class="rating">★★★★☆</div>
-                </article>
 
-                <article class="product-card">
-                    <img src="https://drkimogad.github.io/BeautyHub2025/gallery/lashes.jpg" 
-                         alt="False eyelashes on a pink background" 
-                         class="product-img"
-                         width="440" height="440"
-                         loading="lazy">
-                    <div class="product-info">
-                        <h3>Glam Lashes</h3>
-                        <p>Dramatic or natural—find your perfect flutter.</p>
-                        <span class="price starts from">R49.99</span>
-                    </div>
-                    <button class="quick-view">Quick View</button>
-                    <div class="rating">★★★★☆</div>
-                </article>
-
-                <article class="product-card">
-                    <img src="https://drkimogad.github.io/BeautyHub2025/gallery/skincare.jpg" 
-                         alt="Skincare products arranged neatly" 
-                         class="product-img"
-                         width="344" height="344"
-                         loading="lazy">
-                    <div class="product-info">
-                        <h3>Radiant Skincare</h3>
-                        <p>Glow from within with our nourishing formulas.</p>
-                        <span class="price starts from">R99.99</span>
-                    </div>
-                    <button class="quick-view">Quick View</button>
-                    <div class="rating">★★★★☆</div>
-                </article>
-
-                <article class="product-card">
-                    <img src="https://drkimogad.github.io/BeautyHub2025/gallery/wigs.jpg" 
-                         alt="High-quality wig on a stand" 
-                         class="product-img"
-                         width="344" height="344"
-                         loading="lazy">
-                    <div class="product-info">
-                        <h3>Luxury Wigs</h3>
-                        <p>Silky, voluminous hair for every mood.</p>
-                        <span class="price starts from">R599.99</span>
-                    </div>
-                </article>
+       <section id="products" class="products" aria-labelledby="products-heading">
+    <h2 id="products-heading" class="section-title">Glam Collection</h2>
+    <div class="product-grid">
+        <!-- Product 1 -->
+        <article class="product-card">
+            <div class="product-badge">NEW</div>
+            <img src="https://drkimogad.github.io/BeautyHub2025/gallery/perfumes.jpg" 
+                 alt="Luxury perfume bottle with gold details" 
+                 class="product-img"
+                 width="440" height="440"
+                 loading="lazy">
+            <div class="product-info">
+                <h3>Signature Perfumes</h3>
+                <p>Elegant scents that linger like a memory.</p>
+                <span class="price">From R300</span>
+                <div class="rating" data-rating="4">★★★★☆</div>
             </div>
-            <button class="quick-view">Quick View</button>
-            <div class="rating">★★★★☆</div>
-        </section>
+            <button class="quick-view" 
+                    data-product="Signature Perfumes" 
+                    data-price="R300"
+                    data-img="https://drkimogad.github.io/BeautyHub2025/gallery/perfumes.jpg">
+                Quick View
+            </button>
+        </article>
+
+        <!-- Product 2 -->
+        <article class="product-card">
+            <img src="https://drkimogad.github.io/BeautyHub2025/gallery/lashes.jpg" 
+                 alt="False eyelashes on a pink background" 
+                 class="product-img"
+                 width="440" height="440"
+                 loading="lazy">
+            <div class="product-info">
+                <h3>Glam Lashes</h3>
+                <p>Dramatic or natural—find your perfect flutter.</p>
+                <span class="price">From R49.99</span>
+                <div class="rating" data-rating="4">★★★★☆</div>
+            </div>
+            <button class="quick-view"
+                    data-product="Glam Lashes"
+                    data-price="R49.99"
+                    data-img="https://drkimogad.github.io/BeautyHub2025/gallery/lashes.jpg">
+                Quick View
+            </button>
+        </article>
+
+        <!-- Product 3 -->
+        <article class="product-card">
+            <div class="product-badge">BESTSELLER</div>
+            <img src="https://drkimogad.github.io/BeautyHub2025/gallery/skincare.jpg" 
+                 alt="Skincare products arranged neatly" 
+                 class="product-img"
+                 width="344" height="344"
+                 loading="lazy">
+            <div class="product-info">
+                <h3>Radiant Skincare</h3>
+                <p>Glow from within with our nourishing formulas.</p>
+                <span class="price">From R99.99</span>
+                <div class="rating" data-rating="4.5">★★★★½☆</div>
+            </div>
+            <button class="quick-view"
+                    data-product="Radiant Skincare"
+                    data-price="R99.99"
+                    data-img="https://drkimogad.github.io/BeautyHub2025/gallery/skincare.jpg">
+                Quick View
+            </button>
+        </article>
+
+        <!-- Product 4 -->
+        <article class="product-card">
+            <img src="https://drkimogad.github.io/BeautyHub2025/gallery/wigs.jpg" 
+                 alt="High-quality wig on a stand" 
+                 class="product-img"
+                 width="344" height="344"
+                 loading="lazy">
+            <div class="product-info">
+                <h3>Luxury Wigs</h3>
+                <p>Silky, voluminous hair for every mood.</p>
+                <span class="price">From R599.99</span>
+                <div class="rating" data-rating="5">★★★★★</div>
+            </div>
+            <button class="quick-view"
+                    data-product="Luxury Wigs"
+                    data-price="R599.99"
+                    data-img="https://drkimogad.github.io/BeautyHub2025/gallery/wigs.jpg">
+                Quick View
+            </button>
+        </article>
+    </div>
+       </section>
+
+
+        
 
         <section id="shipping" class="expandable-section" hidden aria-labelledby="shipping-heading">
             <div class="section-container">
