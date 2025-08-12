@@ -244,8 +244,13 @@ header {
 /* ===== HERO BANNER ===== */
 .hero {
     position: relative;
-    height: 70vh;
+    height: 50vh;
+    min-height: 400px; /* Prevents extreme squashing */
     background-size: cover;
+    
+    background-size: 90%; /* Shows more of the image (values <100% zoom out) */
+    background-position: center 40%; /* Centers the visible area vertically */
+    
     background-position: center;
     display: flex;
     align-items: center;
