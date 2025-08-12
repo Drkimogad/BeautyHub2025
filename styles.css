@@ -653,5 +653,24 @@ header {
     }
 }
 
+@media (min-width: 1025px) {
+  .modal-content {
+    width: 50vw;
+    max-width: 600px; /* Prevents overly wide modals */
+    max-height: 80vh;
+  }
+  .modal-content img {
+    max-height: 50vh;
+  }
+}
 
+/* Smooth scaling for all devices */
+.modal-content {
+  transition: all 0.3s ease-out;
+}
 
+/* Better button spacing */
+.add-to-cart {
+  margin-top: 1.5rem;
+  min-width: 150px; /* Prevents awkwardly narrow buttons */
+}
