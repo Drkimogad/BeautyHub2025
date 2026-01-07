@@ -8,8 +8,7 @@
     
     <!-- PWA -->
     <meta name="theme-color" content="#667eea">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     
     <!-- Styles & Fonts -->
@@ -22,8 +21,6 @@
 <header>
     <div class="header-content">
         <h1 class="logo">BeautyHub2025</h1>
-        <!-- Header actions container for JS-injected buttons -->
-        <div class="header-actions"></div>
     </div>
     <nav class="navbar" aria-label="Main navigation">
         <div class="nav-links">
@@ -32,12 +29,64 @@
             <a href="#contact" class="nav-item">Contact</a>
             <a href="#" class="nav-item" id="shipping-link">Shipping & Returns</a>
             <a href="#" class="nav-item" id="policy-link">Privacy Policy</a>
+            <!-- Cart Button -->
+            <button id="cart-toggle" class="nav-item cart-nav-btn" style="
+                background: none;
+                border: none;
+                color: inherit;
+                font: inherit;
+                cursor: pointer;
+                padding: 0.5rem 1rem;
+                position: relative;
+            ">
+                <i class="fas fa-shopping-cart"></i>
+                <span id="cart-count" style="
+                    position: absolute;
+                    top: -5px;
+                    right: 0;
+                    background: #e91e63;
+                    color: white;
+                    border-radius: 50%;
+                    width: 18px;
+                    height: 18px;
+                    font-size: 0.7rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                ">0</span>
+            </button>
+            <!-- Admin Button -->
+            <button id="admin-btn" class="nav-item admin-nav-btn" style="
+                background: none;
+                border: none;
+                color: inherit;
+                font: inherit;
+                cursor: pointer;
+                padding: 0.5rem 1rem;
+                position: relative;
+            ">
+                <i class="fas fa-user-shield"></i>
+                <span id="admin-badge" style="
+                    position: absolute;
+                    top: -5px;
+                    right: 0;
+                    background: #ff4757;
+                    color: white;
+                    border-radius: 50%;
+                    width: 18px;
+                    height: 18px;
+                    font-size: 0.7rem;
+                    display: none;
+                    align-items: center;
+                    justify-content: center;
+                "></span>
+            </button>
         </div>
     </nav>
 </header>
 
     <main id="main-content">
-        <!-- Hero section stays in HTML -->
+        <!-- Hero section -->
         <section class="hero" style="background-image: url('https://drkimogad.github.io/BeautyHub2025/gallery/herobanner.jpg')">
             <div class="hero-content">
                 <h1>BeautyHub2025</h1>
@@ -49,7 +98,23 @@
         <!-- Products container (will be filled by products.js) -->
         <div id="products-container"></div>
         
-        <!-- Contact section stays in HTML -->
+        <!-- Shipping & Returns Section -->
+        <section id="shipping" class="shipping-section" style="display: none;" aria-labelledby="shipping-heading">
+            <div class="section-container">
+                <button class="close-btn" onclick="this.closest('.shipping-section').style.display='none'">×</button>
+                <h2 id="shipping-heading">Shipping & Returns</h2>
+                <div class="section-content">
+                    <p>Free shipping on orders over R500! Returns accepted within 30 days.</p>
+                    <ul>
+                        <li>Standard shipping: 3-5 business days</li>
+                        <li>Express shipping available</li>
+                        <li>No returns on opened cosmetics</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact section -->
         <section id="contact" class="contact-section" aria-labelledby="contact-heading">
             <h2 id="contact-heading" class="section-title">Contact Us</h2>
             <div class="social-grid">
@@ -65,6 +130,35 @@
                 <a href="https://tiktok.com/@yourhandle" class="social-link" aria-label="Follow us on TikTok">
                     <i class="fab fa-tiktok" aria-hidden="true"></i>
                 </a>
+            </div>
+        </section>
+
+        <!-- Privacy Policy Section -->
+        <section id="privacy-content" class="privacy-section" style="display: none;">
+            <div class="privacy-container">
+                <button class="close-btn" onclick="this.closest('.privacy-section').style.display='none'">×</button>
+                <h2>Privacy Policy</h2>
+                <textarea class="policy-textarea" readonly>Last Updated: January 2025
+
+1. INFORMATION WE COLLECT
+- Account details (name, email, password)
+- Order history and payment information
+- Customer support communications
+
+2. HOW WE USE YOUR DATA
+- Process orders and transactions
+- Improve our products and services
+- Send important account notifications
+
+3. DATA PROTECTION
+- SSL encrypted transactions
+- Regular security audits
+- Strict access controls
+
+4. YOUR RIGHTS
+- Access your personal data
+- Request corrections
+- Delete your account</textarea>
             </div>
         </section>
     </main>
