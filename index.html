@@ -19,21 +19,22 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <div class="header-content">
-            <h1 class="logo">BeautyHub2025</h1>
-            <!-- Header actions will be injected by JS -->
+<header>
+    <div class="header-content">
+        <h1 class="logo">BeautyHub2025</h1>
+        <!-- Header actions container for JS-injected buttons -->
+        <div class="header-actions"></div>
+    </div>
+    <nav class="navbar" aria-label="Main navigation">
+        <div class="nav-links">
+            <a href="#" class="nav-item" aria-current="page">Home</a>
+            <a href="#products" class="nav-item">Shop</a>
+            <a href="#contact" class="nav-item">Contact</a>
+            <a href="#" class="nav-item" id="shipping-link">Shipping & Returns</a>
+            <a href="#" class="nav-item" id="policy-link">Privacy Policy</a>
         </div>
-        <nav class="navbar" aria-label="Main navigation">
-            <div class="nav-links">
-                <a href="#" class="nav-item" aria-current="page">Home</a>
-                <a href="#products" class="nav-item">Shop</a>
-                <a href="#contact" class="nav-item">Contact</a>
-                <a href="#" class="nav-item" id="shipping-link">Shipping & Returns</a>
-                <a href="#" class="nav-item" id="policy-link">Privacy Policy</a>
-            </div>
-        </nav>
-    </header>
+    </nav>
+</header>
 
     <main id="main-content">
         <!-- Hero section stays in HTML -->
