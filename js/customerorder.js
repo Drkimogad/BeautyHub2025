@@ -1,6 +1,6 @@
 // customerorder.js - Customer Order Form & Submission
 const CustomerOrderManager = (function() {
-    // DOM Elements (will be initialized)
+    // DOM Elements
     let checkoutModal = null;
     let checkoutForm = null;
     
@@ -10,8 +10,12 @@ const CustomerOrderManager = (function() {
         setupEventListeners();
     }
     
-    // Create checkout modal HTML
+    // ===== MODAL CREATION =====
     function createCheckoutModal() {
+        // Remove existing modal if present
+        const existingModal = document.getElementById('checkout-modal');
+        if (existingModal) existingModal.remove();
+        
         // Create modal container
         checkoutModal = document.createElement('div');
         checkoutModal.id = 'checkout-modal';
@@ -49,6 +53,14 @@ const CustomerOrderManager = (function() {
                     border: none;
                     font-size: 1.5rem;
                     cursor: pointer;
+                    color: #666;
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    transition: background 0.2s;
                 ">&times;</button>
                 
                 <h2 style="margin-top: 0; color: #333;">Place Your Order</h2>
@@ -173,6 +185,7 @@ const CustomerOrderManager = (function() {
                         font-size: 1rem;
                         cursor: pointer;
                         font-weight: bold;
+                        transition: background 0.2s;
                     ">
                         <i class="fas fa-paper-plane" style="margin-right: 0.5rem;"></i>
                         Place Order
@@ -186,11 +199,11 @@ const CustomerOrderManager = (function() {
         checkoutForm = document.getElementById('checkout-form');
     }
     
-    // Open checkout modal
+    // ===== MODAL CONTROLS =====
     function openCheckout() {
         if (!checkoutModal) return;
         
-        // Get cart items from CartManager (cart.js)
+        // Check cart system
         if (typeof BeautyHubCart === 'undefined') {
             showError('Cart system not available');
             return;
@@ -210,19 +223,24 @@ const CustomerOrderManager = (function() {
         // Show modal
         checkoutModal.style.display = 'flex';
         document.getElementById('customer-name').focus();
-        
-        // Prevent body scroll
         document.body.style.overflow = 'hidden';
     }
     
-    // Update order summary in modal
+    function closeCheckout() {
+        if (!checkoutModal) return;
+        
+        checkoutModal.style.display = 'none';
+        document.body.style.overflow = '';
+        clearError();
+        resetForm();
+    }
+    
     function updateOrderSummary(cartItems, total) {
         const summaryContainer = document.getElementById('checkout-items-summary');
         const totalElement = document.getElementById('checkout-total-summary');
         
         if (!summaryContainer || !totalElement) return;
         
-        // Build items list
         let html = '';
         cartItems.forEach(item => {
             html += `
@@ -241,17 +259,7 @@ const CustomerOrderManager = (function() {
         totalElement.textContent = `R${total.toFixed(2)}`;
     }
     
-    // Close checkout modal
-    function closeCheckout() {
-        if (!checkoutModal) return;
-        
-        checkoutModal.style.display = 'none';
-        document.body.style.overflow = '';
-        clearError();
-        resetForm();
-    }
-    
-    // Validate form
+    // ===== FORM HANDLING =====
     function validateForm(formData) {
         const errors = [];
         
@@ -267,7 +275,6 @@ const CustomerOrderManager = (function() {
             errors.push('Shipping address is required');
         }
         
-        // Get cart items
         const cartItems = BeautyHubCart.getCartItems();
         if (cartItems.length === 0) {
             errors.push('Cart is empty');
@@ -276,7 +283,6 @@ const CustomerOrderManager = (function() {
         return errors;
     }
     
-    // Submit order
     function submitOrder(event) {
         event.preventDefault();
         
@@ -315,6 +321,11 @@ const CustomerOrderManager = (function() {
             // Clear cart
             BeautyHubCart.clearCart();
             
+            // Dispatch order created event
+            if (typeof AppManager !== 'undefined') {
+                AppManager.dispatchOrderCreated();
+            }
+            
             // Close modal after delay
             setTimeout(() => {
                 closeCheckout();
@@ -324,7 +335,7 @@ const CustomerOrderManager = (function() {
         }
     }
     
-    // Show success message
+    // ===== UI FEEDBACK =====
     function showSuccess() {
         const form = document.getElementById('checkout-form');
         if (!form) return;
@@ -354,19 +365,15 @@ const CustomerOrderManager = (function() {
         `;
     }
     
-    // Show error message
     function showError(message) {
         const errorDiv = document.getElementById('checkout-error');
         if (errorDiv) {
             errorDiv.innerHTML = message;
             errorDiv.style.display = 'block';
-            
-            // Scroll to error
             errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }
     
-    // Clear error
     function clearError() {
         const errorDiv = document.getElementById('checkout-error');
         if (errorDiv) {
@@ -374,19 +381,18 @@ const CustomerOrderManager = (function() {
         }
     }
     
-    // Reset form
     function resetForm() {
         if (checkoutForm) {
             checkoutForm.reset();
         }
     }
     
-    // Setup event listeners
+    // ===== EVENT HANDLERS =====
     function setupEventListeners() {
-        // Close modal when clicking X
+        // Close modal
         document.addEventListener('click', function(e) {
             if (e.target.id === 'close-checkout' || 
-                e.target.id === 'checkout-modal' && e.target.classList.contains('checkout-modal')) {
+                (e.target.id === 'checkout-modal' && e.target.classList.contains('checkout-modal'))) {
                 closeCheckout();
             }
         });
@@ -404,7 +410,7 @@ const CustomerOrderManager = (function() {
         }
     }
     
-    // Public API
+    // ===== PUBLIC API =====
     return {
         init,
         openCheckout,
@@ -417,36 +423,4 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => CustomerOrderManager.init());
 } else {
     CustomerOrderManager.init();
-}
-
-
-// this needs proper placement 
-// In customerorder.js, modify the submitOrder function:
-function submitOrder(event) {
-    event.preventDefault();
-    
-    // ... existing code ...
-    
-    // Create order via OrdersManager
-    const order = OrdersManager.createOrder(formData);
-    
-    if (order) {
-        // Success - show confirmation
-        showSuccess();
-        
-        // Clear cart
-        BeautyHubCart.clearCart();
-        
-        // Dispatch order created event
-        if (typeof AppManager !== 'undefined') {
-            AppManager.dispatchOrderCreated();
-        }
-        
-        // Close modal after delay
-        setTimeout(() => {
-            closeCheckout();
-        }, 2000);
-    } else {
-        showError('Failed to place order. Please try again.');
-    }
 }
