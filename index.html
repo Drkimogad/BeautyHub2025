@@ -232,9 +232,23 @@
 <!-- Before closing </body> -->
 <script src="js/products.js"></script>
 <script src="js/cart.js"></script>
+        <script src="js/customerorder.js"></script>
 <script src="js/orders.js"></script>
 <script src="js/admin.js"></script>
 <script src="js/main.js"></script>  <!-- Depends on all above -->
+
+<script>
+    // Connect cart checkout button to customerorder.js
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkoutBtn = document.getElementById('checkout-btn');
+        if (checkoutBtn) {
+            checkoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                CustomerOrderManager.openCheckout();
+            });
+        }
+    });
+</script>
         
 </body>
 </html>
