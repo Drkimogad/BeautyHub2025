@@ -222,26 +222,6 @@ const ProductsManager = (function() {
                             </div>
                         </div>
                         
-                        <button class="add-to-cart-quick" 
-                                data-product-id="${product.id}"
-                                data-product-name="${product.name}"
-                                data-product-price="${product.price}"
-                                data-product-img="${product.imageUrl}"
-                                style="
-                                    width: 100%;
-                                    padding: 1rem;
-                                    background: #e91e63;
-                                    color: white;
-                                    border: none;
-                                    border-radius: 8px;
-                                    font-size: 1rem;
-                                    font-weight: bold;
-                                    cursor: pointer;
-                                    margin-bottom: 1rem;
-                                ">
-                            <i class="fas fa-shopping-cart"></i> Add to Cart
-                        </button>
-                        
                         <div style="font-size: 0.9rem; color: #666;">
                             <p><i class="fas fa-shipping-fast"></i> Free shipping on orders over R500</p>
                             <p><i class="fas fa-undo"></i> 30-day return policy</p>
@@ -263,23 +243,7 @@ const ProductsManager = (function() {
                 modal.style.display = 'none';
                 document.body.style.overflow = '';
             });
-        }
-        
-        if (addToCartBtn) {
-            addToCartBtn.addEventListener('click', function() {
-                if (typeof BeautyHubCart !== 'undefined') {
-                    BeautyHubCart.addToCart(
-                        this.dataset.productId,
-                        this.dataset.productName,
-                        this.dataset.productPrice,
-                        this.dataset.productImg,
-                        1
-                    );
-                    modal.style.display = 'none';
-                    document.body.style.overflow = '';
-                }
-            });
-        }
+        }        
     }
     
     // Public API
