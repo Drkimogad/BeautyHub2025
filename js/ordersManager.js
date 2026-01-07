@@ -758,8 +758,8 @@ const OrdersManager = (function() {
 })();
 
 // Auto-initialize
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => OrdersManager.init());
-} else {
-    OrdersManager.init();
-}
+//if (document.readyState === 'loading') {
+//    document.addEventListener('DOMContentLoaded', () => OrdersManager.init());
+//} else {
+//    OrdersManager.init();
+//}
