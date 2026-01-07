@@ -25,6 +25,12 @@
             <div class="nav-links">
                 <a href="#" class="nav-item" aria-current="page">Home</a>
                 <a href="#products" class="nav-item">Shop</a>
+                <!-- Add this in header -->
+             <button id="cart-toggle" class="cart-btn">
+                <i class="fas fa-shopping-cart"></i>
+                <span id="cart-count" class="cart-count">0</span>
+            </button>
+
                 <a href="#contact" class="nav-item">Contact</a>
                 <a href="#" class="nav-item" id="shipping-link">Shipping & Returns</a>
                 <a href="#" class="nav-item" id="policy-link">Privacy Policy</a>
@@ -149,6 +155,25 @@
                 </div>
             </div>
         </section>
+        <!-- Add this before closing body -->
+<div id="cart-sidebar" class="cart-sidebar" style="display: none;">
+    <div class="cart-header">
+        <h3>Your Cart</h3>
+        <button id="close-cart" class="close-cart">&times;</button>
+    </div>
+    <div class="cart-items" id="cart-items-container">
+        <div class="empty-cart">Your cart is empty</div>
+    </div>
+    <div class="cart-footer">
+        <div class="cart-total">
+            <strong>Total: <span id="cart-total">R0.00</span></strong>
+        </div>
+        <button id="checkout-btn" class="checkout-btn" disabled>
+            Proceed to Checkout
+        </button>
+    </div>
+</div>
+
 
         <section id="contact" class="contact-section" aria-labelledby="contact-heading">
             <h2 id="contact-heading" class="section-title">Contact Us</h2>
