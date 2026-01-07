@@ -291,8 +291,8 @@ const ProductsManager = (function() {
 })();
 
 // Auto-initialize
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => ProductsManager.init());
-} else {
-    ProductsManager.init();
-}
+//if (document.readyState === 'loading') {
+//    document.addEventListener('DOMContentLoaded', () => ProductsManager.init());
+//} else {
+//    ProductsManager.init();
+// }
