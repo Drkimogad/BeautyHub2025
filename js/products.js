@@ -6,40 +6,40 @@ const ProductsManager = (function() {
             id: "p001",
             name: "Signature Perfumes",
             description: "Elegant scents that linger like a memory.",
-            price: 300,
+            price: R 300,
             category: "perfumes",
             stock: 15,
-            imageUrl: "https://drkimogad.github.io/BeautyHub2025/gallery/perfumes.jpg",
+            imageUrl: "gallery/perfumes.jpg",
             badge: "NEW"
         },
         {
             id: "p002",
             name: "Glam Lashes",
             description: "Dramatic or natural—find your perfect flutter.",
-            price: 49.99,
+            price: R 49.99,
             category: "lashes",
             stock: 42,
-            imageUrl: "https://drkimogad.github.io/BeautyHub2025/gallery/lashes.jpg",
+            imageUrl: "gallery/lashes.jpg",
             badge: null
         },
         {
             id: "p003",
             name: "Radiant Skincare",
             description: "Glow from within with our nourishing formulas.",
-            price: 99.99,
+            price: R 99.99,
             category: "skincare",
             stock: 28,
-            imageUrl: "https://drkimogad.github.io/BeautyHub2025/gallery/skincare.jpg",
+            imageUrl: "gallery/skincare.jpg",
             badge: "BESTSELLER"
         },
         {
             id: "p004",
             name: "Luxury Wigs",
             description: "Silky, voluminous hair for every mood.",
-            price: 599.99,
+            price: R 599.99,
             category: "wigs",
             stock: 12,
-            imageUrl: "https://drkimogad.github.io/BeautyHub2025/gallery/wigs.jpg",
+            imageUrl: "gallery/wigs.jpg",
             badge: null
         }
     ];
@@ -236,7 +236,6 @@ const ProductsManager = (function() {
         
         // Add event listeners
         const closeBtn = modal.querySelector('.close-quick-view');
-        const addToCartBtn = modal.querySelector('.add-to-cart-quick');
         
         if (closeBtn) {
             closeBtn.addEventListener('click', () => {
