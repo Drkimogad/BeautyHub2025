@@ -447,8 +447,8 @@ const BeautyHubCart = (function() {
 })();
 
 // Auto-initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => BeautyHubCart.init());
-} else {
-    BeautyHubCart.init();
-}
+//if (document.readyState === 'loading') {
+ //   document.addEventListener('DOMContentLoaded', () => BeautyHubCart.init());
+//} else {
+//    BeautyHubCart.init();
+//}
