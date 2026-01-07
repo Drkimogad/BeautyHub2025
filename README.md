@@ -33,3 +33,5 @@ OrdersManager.js
 └── LOCALSTORAGE STRUCTURE:
     ├── beautyhub_orders: [all orders array]
     └── beautyhub_order_id_counter: last used ID
+
+auto initialization was causing a problem. it had to be removed. only main.js currently handls all initializations
