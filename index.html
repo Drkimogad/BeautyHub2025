@@ -179,5 +179,27 @@
         // Simple current year injection
         document.getElementById('current-year').textContent = new Date().getFullYear();
     </script>
+    
+    <!-- Add this right before closing </body> -->
+<script>
+    // Direct admin button event listener
+    document.addEventListener('DOMContentLoaded', function() {
+        const adminBtn = document.getElementById('admin-btn');
+        if (adminBtn) {
+            adminBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (typeof AdminManager !== 'undefined') {
+                    if (AdminManager.isAuthenticated && AdminManager.isAuthenticated()) {
+                        AdminManager.openDashboard();
+                    } else {
+                        AdminManager.openAdminLogin();
+                    }
+                }
+            });
+        }
+    });
+</script>
 </body>
 </html>
