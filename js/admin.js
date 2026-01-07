@@ -1096,11 +1096,11 @@ const AdminManager = (function() {
 })();
 
 // Auto-initialize
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => AdminManager.init());
-} else {
-    AdminManager.init();
-}
+//if (document.readyState === 'loading') {
+//    document.addEventListener('DOMContentLoaded', () => AdminManager.init());
+//} else {
+//    AdminManager.init();
+//}
 
 // Media Queries CSS (Add to styles.css)
 const adminMediaQueries = `
