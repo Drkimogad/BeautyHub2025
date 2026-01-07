@@ -261,6 +261,234 @@ function setupCheckoutButton() {
             }
         });
     }
+
+
+    
+   // THIS IS THE FINAL LAYOUT NEEDED  
+    // cart.js - Shopping Cart Functionality (Updated with HTML)
+const BeautyHubCart = (function() {
+    // ... (keep all existing cart functions) ...
+    
+    // Create cart sidebar HTML
+    function createCartSidebar() {
+        // Remove existing cart if present
+        const existingCart = document.getElementById('cart-sidebar');
+        if (existingCart) existingCart.remove();
+        
+        // Create cart container
+        const cartSidebar = document.createElement('div');
+        cartSidebar.id = 'cart-sidebar';
+        cartSidebar.className = 'cart-sidebar';
+        cartSidebar.style.cssText = `
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 350px;
+            height: 100%;
+            background: white;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            transition: right 0.3s;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        `;
+        
+        cartSidebar.innerHTML = `
+            <div class="cart-header" style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1rem;
+                border-bottom: 1px solid #eee;
+                flex-shrink: 0;
+            ">
+                <h3 style="margin: 0;">Your Cart</h3>
+                <button id="close-cart" class="close-cart" style="
+                    background: none;
+                    border: none;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    color: #666;
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    transition: background 0.2s;
+                ">&times;</button>
+            </div>
+            
+            <div class="cart-items" id="cart-items-container" style="
+                flex: 1;
+                overflow-y: auto;
+                padding: 1rem;
+            ">
+                <div class="empty-cart">Your cart is empty</div>
+            </div>
+            
+            <div class="cart-footer" style="
+                padding: 1rem;
+                border-top: 1px solid #eee;
+                flex-shrink: 0;
+            ">
+                <div class="cart-total" style="
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 1rem;
+                    font-size: 1.1rem;
+                ">
+                    <strong>Total:</strong>
+                    <strong id="cart-total">R0.00</strong>
+                </div>
+                <button id="checkout-btn" class="checkout-btn" disabled style="
+                    width: 100%;
+                    padding: 1rem;
+                    background: #4CAF50;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 1rem;
+                    font-weight: bold;
+                    transition: background 0.2s;
+                ">
+                    Proceed to Checkout
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(cartSidebar);
+    }
+    
+    // Create cart button in header
+    function createCartButton() {
+        // Remove existing cart button if present
+        const existingBtn = document.getElementById('cart-toggle');
+        if (existingBtn) existingBtn.remove();
+        
+        // Find header actions container or create one
+        let headerActions = document.querySelector('.header-actions');
+        if (!headerActions) {
+            headerActions = document.createElement('div');
+            headerActions.className = 'header-actions';
+            headerActions.style.cssText = `
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                margin-left: auto;
+            `;
+            
+            const header = document.querySelector('header .header-content');
+            if (header) {
+                header.appendChild(headerActions);
+            } else {
+                document.querySelector('header').appendChild(headerActions);
+            }
+        }
+        
+        // Create cart button
+        const cartBtn = document.createElement('button');
+        cartBtn.id = 'cart-toggle';
+        cartBtn.className = 'cart-btn';
+        cartBtn.style.cssText = `
+            position: relative;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #333;
+            padding: 0.5rem;
+        `;
+        cartBtn.innerHTML = `
+            <i class="fas fa-shopping-cart"></i>
+            <span id="cart-count" class="cart-count" style="
+                position: absolute;
+                top: 0;
+                right: 0;
+                background: #e91e63;
+                color: white;
+                border-radius: 50%;
+                width: 20px;
+                height: 20px;
+                font-size: 0.8rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            ">0</span>
+        `;
+        
+        headerActions.appendChild(cartBtn);
+    }
+    
+    // Initialize (updated)
+    function init() {
+        loadCart();
+        createCartSidebar();
+        createCartButton();
+        updateCartUI();
+        setupEventListeners();
+    }
+    
+    // Toggle cart visibility
+    function toggleCart() {
+        const cartSidebar = document.getElementById('cart-sidebar');
+        if (cartSidebar) {
+            if (parseInt(cartSidebar.style.right) < 0) {
+                cartSidebar.style.right = '0';
+                document.body.style.overflow = 'hidden';
+            } else {
+                cartSidebar.style.right = '-400px';
+                document.body.style.overflow = '';
+            }
+        }
+    }
+    
+    // Close cart
+    function closeCart() {
+        const cartSidebar = document.getElementById('cart-sidebar');
+        if (cartSidebar) {
+            cartSidebar.style.right = '-400px';
+            document.body.style.overflow = '';
+        }
+    }
+    
+    // Setup event listeners (updated)
+    function setupEventListeners() {
+        // Cart toggle
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'cart-toggle' || 
+                e.target.closest('#cart-toggle')) {
+                toggleCart();
+            }
+            
+            if (e.target.id === 'close-cart' || 
+                e.target.closest('#close-cart')) {
+                closeCart();
+            }
+        });
+        
+        // ... (rest of existing event listeners) ...
+    }
+    
+    // ... (rest of existing cart functions) ...
+    
+    return {
+        init,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        getCartItems,
+        getCartTotal,
+        getCartCount,
+        updateCartUI,
+        toggleCart,
+        closeCart
+    };
+})();
+
+// ... (auto-initialize code) ...
 }
 
 // Call this in init() function
