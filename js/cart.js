@@ -7,7 +7,7 @@ const BeautyHubCart = (function() {
     function init() {
         loadCart();
         createCartSidebar();
-        createCartButton();
+        //createCartButton();
         updateCartUI();
         setupEventListeners();
         setupCheckoutButton();
