@@ -1090,7 +1090,8 @@ const AdminManager = (function() {
         openDashboard,
         closeDashboard,
         updateAdminButtonVisibility,
-        isAuthenticated: () => isAuthenticated
+        isAuthenticated: () => isAuthenticated,
+        handleLogin
     };
 })();
 
