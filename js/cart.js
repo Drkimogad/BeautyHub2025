@@ -393,42 +393,45 @@ const BeautyHubCart = (function() {
         }
     }
     
-    function setupEventListeners() {
-        // Cart toggle
-        document.addEventListener('click', function(e) {
-            if (e.target.id === 'cart-toggle' || e.target.closest('#cart-toggle')) {
-                toggleCart();
-            }
-            
-            if (e.target.id === 'close-cart' || e.target.closest('#close-cart')) {
-                closeCart();
-            }
-        });
-        
-        // Cart item operations
-        document.addEventListener('click', function(e) {
-            const productId = e.target.dataset.id;
-            if (!productId) return;
-            
-            if (e.target.classList.contains('minus')) {
-                const item = cartItems.find(item => item.productId === productId);
-                if (item) {
-                    updateQuantity(productId, item.quantity - 1);
-                }
-            }
-            
-            if (e.target.classList.contains('plus')) {
-                const item = cartItems.find(item => item.productId === productId);
-                if (item) {
-                    updateQuantity(productId, item.quantity + 1);
-                }
-            }
-            
-            if (e.target.classList.contains('remove-btn')) {
-                removeFromCart(productId);
-            }
-        });
+function setupEventListeners() {
+    // Remove existing listeners first to prevent duplicates
+    document.removeEventListener('click', cartClickHandler);
+    
+    // Cart toggle
+    document.addEventListener('click', cartClickHandler);
+}
+
+// Separate handler function to make removal possible
+function cartClickHandler(e) {
+    if (e.target.id === 'cart-toggle' || e.target.closest('#cart-toggle')) {
+        toggleCart();
     }
+    
+    if (e.target.id === 'close-cart' || e.target.closest('#close-cart')) {
+        closeCart();
+    }
+    
+    const productId = e.target.dataset.id;
+    if (!productId) return;
+    
+    if (e.target.classList.contains('minus')) {
+        const item = cartItems.find(item => item.productId === productId);
+        if (item) {
+            updateQuantity(productId, item.quantity - 1);
+        }
+    }
+    
+    if (e.target.classList.contains('plus')) {
+        const item = cartItems.find(item => item.productId === productId);
+        if (item) {
+            updateQuantity(productId, item.quantity + 1);
+        }
+    }
+    
+    if (e.target.classList.contains('remove-btn')) {
+        removeFromCart(productId);
+    }
+}
     
     // ===== PUBLIC API =====
     return {
