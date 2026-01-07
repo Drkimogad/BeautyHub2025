@@ -341,3 +341,33 @@ if (document.readyState === 'loading') {
 } else {
     AppManager.init();
 }
+
+
+
+// In main.js, update initialization order:
+function init() {
+    console.log('BeautyHub2025 PWA Initializing...');
+    
+    // Initialize in correct dependency order
+    if (typeof ProductsManager !== 'undefined') {
+        ProductsManager.init();  // First: products need to render
+    }
+    
+    if (typeof BeautyHubCart !== 'undefined') {
+        BeautyHubCart.init();    // Second: cart depends on products
+    }
+    
+    if (typeof OrdersManager !== 'undefined') {
+        OrdersManager.init();    // Third: orders depends on cart
+    }
+    
+    if (typeof CustomerOrderManager !== 'undefined') {
+        CustomerOrderManager.init(); // Fourth: checkout depends on orders
+    }
+    
+    if (typeof AdminManager !== 'undefined') {
+        AdminManager.init();     // Fifth: admin depends on everything
+    }
+    
+    // ... rest of init code ...
+}
