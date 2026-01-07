@@ -179,3 +179,165 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+
+// new code
+// main.js - Main application coordinator
+const AppManager = (function() {
+    // Initialize all modules
+    function init() {
+        console.log('BeautyHub2025 PWA Initializing...');
+        
+        // Check module dependencies
+        if (typeof BeautyHubCart === 'undefined') {
+            console.error('cart.js not loaded');
+            return;
+        }
+        
+        if (typeof OrdersManager === 'undefined') {
+            console.error('ordersManager.js not loaded');
+            return;
+        }
+        
+        if (typeof CustomerOrderManager === 'undefined') {
+            console.error('customerorder.js not loaded');
+            return;
+        }
+        
+        if (typeof AdminManager === 'undefined') {
+            console.error('admin.js not loaded');
+            return;
+        }
+        
+        // Initialize modules that need it
+        BeautyHubCart.init();
+        OrdersManager.init();
+        CustomerOrderManager.init();
+        AdminManager.init();
+        
+        // Connect cart checkout button
+        connectCheckoutButton();
+        
+        // Update admin badge on order changes
+        setupOrderListeners();
+        
+        // Setup PWA features
+        setupPWA();
+        
+        console.log('BeautyHub2025 PWA Initialized');
+    }
+    
+    // Connect cart checkout button to customerorder.js
+    function connectCheckoutButton() {
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkoutBtn = document.getElementById('checkout-btn');
+            if (checkoutBtn) {
+                checkoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    CustomerOrderManager.openCheckout();
+                });
+            }
+        });
+    }
+    
+    // Listen for order changes to update admin badge
+    function setupOrderListeners() {
+        // Monitor localStorage for order changes
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'beautyhub_orders') {
+                updateAdminBadge();
+            }
+        });
+        
+        // Custom event for order creation
+        document.addEventListener('orderCreated', function() {
+            updateAdminBadge();
+        });
+    }
+    
+    // Update admin badge
+    function updateAdminBadge() {
+        if (typeof AdminManager !== 'undefined') {
+            AdminManager.updateAdminButtonVisibility();
+        }
+    }
+    
+    // PWA setup
+    function setupPWA() {
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                    console.log('ServiceWorker registration successful');
+                }, function(err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+        
+        // Add to homescreen prompt
+        let deferredPrompt;
+        const addBtn = document.createElement('button');
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install button
+            addBtn.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: #667eea;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 20px;
+                cursor: pointer;
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            `;
+            addBtn.innerHTML = '<i class="fas fa-download"></i> Install App';
+            document.body.appendChild(addBtn);
+            
+            addBtn.addEventListener('click', () => {
+                addBtn.style.display = 'none';
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted install');
+                    }
+                    deferredPrompt = null;
+                });
+            });
+        });
+        
+        // Detect if app is running as PWA
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            console.log('Running as PWA');
+        }
+    }
+    
+    // Dispatch order created event
+    function dispatchOrderCreated() {
+        const event = new CustomEvent('orderCreated');
+        document.dispatchEvent(event);
+    }
+    
+    // Public API
+    return {
+        init,
+        updateAdminBadge,
+        dispatchOrderCreated
+    };
+})();
+
+// Auto-initialize
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => AppManager.init());
+} else {
+    AppManager.init();
+}
