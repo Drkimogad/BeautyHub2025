@@ -3,14 +3,17 @@ const BeautyHubCart = (function() {
     // Cart state
     let cartItems = [];
     
-    // Initialize cart from localStorage
+    // Initialize cart system
     function init() {
         loadCart();
+        createCartSidebar();
+        createCartButton();
         updateCartUI();
         setupEventListeners();
+        setupCheckoutButton();
     }
     
-    // Load cart from localStorage
+    // ===== CART STORAGE FUNCTIONS =====
     function loadCart() {
         const saved = localStorage.getItem('beautyhub_cart');
         if (saved) {
@@ -22,12 +25,11 @@ const BeautyHubCart = (function() {
         }
     }
     
-    // Save cart to localStorage
     function saveCart() {
         localStorage.setItem('beautyhub_cart', JSON.stringify(cartItems));
     }
     
-    // Add product to cart
+    // ===== CART OPERATIONS =====
     function addToCart(productId, productName, price, imageUrl, quantity = 1) {
         const existing = cartItems.find(item => item.productId === productId);
         
@@ -49,14 +51,12 @@ const BeautyHubCart = (function() {
         showAddedNotification(productName);
     }
     
-    // Remove item from cart
     function removeFromCart(productId) {
         cartItems = cartItems.filter(item => item.productId !== productId);
         saveCart();
         updateCartUI();
     }
     
-    // Update item quantity
     function updateQuantity(productId, newQuantity) {
         if (newQuantity < 1) {
             removeFromCart(productId);
@@ -71,205 +71,27 @@ const BeautyHubCart = (function() {
         }
     }
     
-    // Get cart total
-    function getCartTotal() {
-        return cartItems.reduce((total, item) => {
-            return total + (item.price * item.quantity);
-        }, 0);
-    }
-    
-    // Get cart count
-    function getCartCount() {
-        return cartItems.reduce((count, item) => count + item.quantity, 0);
-    }
-    
-    // Clear cart
     function clearCart() {
         cartItems = [];
         saveCart();
         updateCartUI();
     }
     
-    // Get all cart items (for checkout)
     function getCartItems() {
         return [...cartItems];
     }
     
-    // Update cart UI
-    function updateCartUI() {
-        const cartCount = document.getElementById('cart-count');
-        const cartTotal = document.getElementById('cart-total');
-        const checkoutTotal = document.getElementById('checkout-total');
-        const cartItemsContainer = document.getElementById('cart-items-container');
-        const checkoutItems = document.getElementById('checkout-items');
-        
-        // Update cart count
-        if (cartCount) {
-            cartCount.textContent = getCartCount();
-        }
-        
-        // Update cart total
-        const total = getCartTotal().toFixed(2);
-        if (cartTotal) {
-            cartTotal.textContent = `R${total}`;
-        }
-        if (checkoutTotal) {
-            checkoutTotal.textContent = `R${total}`;
-        }
-        
-        // Update cart items list
-        if (cartItemsContainer) {
-            if (cartItems.length === 0) {
-                cartItemsContainer.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
-                return;
-            }
-            
-            let html = '';
-            cartItems.forEach(item => {
-                html += `
-                <div class="cart-item" data-id="${item.productId}">
-                    <img src="${item.imageUrl}" alt="${item.productName}" width="50" height="50">
-                    <div class="cart-item-details">
-                        <h4>${item.productName}</h4>
-                        <p>R${item.price.toFixed(2)} × ${item.quantity}</p>
-                    </div>
-                    <div class="cart-item-controls">
-                        <button class="qty-btn minus" data-id="${item.productId}">−</button>
-                        <span class="qty-display">${item.quantity}</span>
-                        <button class="qty-btn plus" data-id="${item.productId}">+</button>
-                        <button class="remove-btn" data-id="${item.productId}">×</button>
-                    </div>
-                </div>`;
-            });
-            cartItemsContainer.innerHTML = html;
-        }
-        
-        // Update checkout items
-        if (checkoutItems && cartItems.length > 0) {
-            let html = '<div class="checkout-items-list">';
-            cartItems.forEach(item => {
-                html += `
-                <div class="checkout-item">
-                    <span>${item.productName} (${item.quantity})</span>
-                    <span>R${(item.price * item.quantity).toFixed(2)}</span>
-                </div>`;
-            });
-            html += '</div>';
-            checkoutItems.innerHTML = html;
-        }
-        
-        // Enable/disable checkout button
-        const checkoutBtn = document.getElementById('checkout-btn');
-        if (checkoutBtn) {
-            checkoutBtn.disabled = cartItems.length === 0;
-        }
+    function getCartTotal() {
+        return cartItems.reduce((total, item) => {
+            return total + (item.price * item.quantity);
+        }, 0);
     }
     
-    // Show added notification
-    function showAddedNotification(productName) {
-        // Create notification if doesn't exist
-        let notification = document.getElementById('cart-notification');
-        if (!notification) {
-            notification = document.createElement('div');
-            notification.id = 'cart-notification';
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #4CAF50;
-                color: white;
-                padding: 1rem;
-                border-radius: 4px;
-                z-index: 10000;
-                display: none;
-            `;
-            document.body.appendChild(notification);
-        }
-        
-        notification.innerHTML = `✓ Added ${productName} to cart`;
-        notification.style.display = 'block';
-        
-        setTimeout(() => {
-            notification.style.display = 'none';
-        }, 3000);
+    function getCartCount() {
+        return cartItems.reduce((count, item) => count + item.quantity, 0);
     }
     
-    // Setup event listeners
-    function setupEventListeners() {
-        // Delegate cart item events
-        document.addEventListener('click', function(e) {
-            const productId = e.target.dataset.id;
-            
-            if (!productId) return;
-            
-            if (e.target.classList.contains('minus')) {
-                const item = cartItems.find(item => item.productId === productId);
-                if (item) {
-                    updateQuantity(productId, item.quantity - 1);
-                }
-            }
-            
-            if (e.target.classList.contains('plus')) {
-                const item = cartItems.find(item => item.productId === productId);
-                if (item) {
-                    updateQuantity(productId, item.quantity + 1);
-                }
-            }
-            
-            if (e.target.classList.contains('remove-btn')) {
-                removeFromCart(productId);
-            }
-        });
-    }
-    
-    // Public API
-    return {
-        init,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        getCartItems,
-        getCartTotal,
-        getCartCount,
-        updateCartUI
-    };
-})();
-
-// Auto-initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => BeautyHubCart.init());
-} else {
-    BeautyHubCart.init();
-}
-
-
-// THIS NEEDS PROPER PLACEMENT
-// In cart.js, add this function and modify the checkout button event listener
-function setupCheckoutButton() {
-    const checkoutBtn = document.getElementById('checkout-btn');
-    if (checkoutBtn) {
-        checkoutBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Check if CustomerOrderManager is available
-            if (typeof CustomerOrderManager !== 'undefined') {
-                CustomerOrderManager.openCheckout();
-            } else {
-                console.error('CustomerOrderManager not loaded');
-                alert('Checkout system is not available. Please refresh the page.');
-            }
-        });
-    }
-
-
-    
-   // THIS IS THE FINAL LAYOUT NEEDED  
-    // cart.js - Shopping Cart Functionality (Updated with HTML)
-const BeautyHubCart = (function() {
-    // ... (keep all existing cart functions) ...
-    
-    // Create cart sidebar HTML
+    // ===== UI CREATION =====
     function createCartSidebar() {
         // Remove existing cart if present
         const existingCart = document.getElementById('cart-sidebar');
@@ -361,13 +183,12 @@ const BeautyHubCart = (function() {
         document.body.appendChild(cartSidebar);
     }
     
-    // Create cart button in header
     function createCartButton() {
         // Remove existing cart button if present
         const existingBtn = document.getElementById('cart-toggle');
         if (existingBtn) existingBtn.remove();
         
-        // Find header actions container or create one
+        // Find or create header actions container
         let headerActions = document.querySelector('.header-actions');
         if (!headerActions) {
             headerActions = document.createElement('div');
@@ -421,16 +242,119 @@ const BeautyHubCart = (function() {
         headerActions.appendChild(cartBtn);
     }
     
-    // Initialize (updated)
-    function init() {
-        loadCart();
-        createCartSidebar();
-        createCartButton();
-        updateCartUI();
-        setupEventListeners();
+    // ===== UI UPDATES =====
+    function updateCartUI() {
+        const cartCount = document.getElementById('cart-count');
+        const cartTotal = document.getElementById('cart-total');
+        const cartItemsContainer = document.getElementById('cart-items-container');
+        const checkoutBtn = document.getElementById('checkout-btn');
+        
+        // Update cart count
+        if (cartCount) {
+            cartCount.textContent = getCartCount();
+        }
+        
+        // Update cart total
+        const total = getCartTotal().toFixed(2);
+        if (cartTotal) {
+            cartTotal.textContent = `R${total}`;
+        }
+        
+        // Update cart items list
+        if (cartItemsContainer) {
+            if (cartItems.length === 0) {
+                cartItemsContainer.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
+                if (checkoutBtn) checkoutBtn.disabled = true;
+                return;
+            }
+            
+            let html = '';
+            cartItems.forEach(item => {
+                html += `
+                <div class="cart-item" data-id="${item.productId}" style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 0.75rem 0;
+                    border-bottom: 1px solid #f5f5f5;
+                ">
+                    <img src="${item.imageUrl}" alt="${item.productName}" style="
+                        width: 50px;
+                        height: 50px;
+                        object-fit: cover;
+                        border-radius: 4px;
+                    ">
+                    <div class="cart-item-details" style="flex: 1; padding: 0 1rem;">
+                        <h4 style="margin: 0 0 0.25rem 0;">${item.productName}</h4>
+                        <p style="margin: 0; color: #666;">R${item.price.toFixed(2)} × ${item.quantity}</p>
+                    </div>
+                    <div class="cart-item-controls" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <button class="qty-btn minus" data-id="${item.productId}" style="
+                            width: 25px;
+                            height: 25px;
+                            border: 1px solid #ddd;
+                            background: white;
+                            cursor: pointer;
+                            border-radius: 4px;
+                        ">−</button>
+                        <span class="qty-display" style="min-width: 20px; text-align: center;">${item.quantity}</span>
+                        <button class="qty-btn plus" data-id="${item.productId}" style="
+                            width: 25px;
+                            height: 25px;
+                            border: 1px solid #ddd;
+                            background: white;
+                            cursor: pointer;
+                            border-radius: 4px;
+                        ">+</button>
+                        <button class="remove-btn" data-id="${item.productId}" style="
+                            background: #ff5252;
+                            color: white;
+                            border: none;
+                            width: 25px;
+                            height: 25px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                        ">×</button>
+                    </div>
+                </div>`;
+            });
+            cartItemsContainer.innerHTML = html;
+        }
+        
+        // Enable/disable checkout button
+        if (checkoutBtn) {
+            checkoutBtn.disabled = cartItems.length === 0;
+        }
     }
     
-    // Toggle cart visibility
+    function showAddedNotification(productName) {
+        let notification = document.getElementById('cart-notification');
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.id = 'cart-notification';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #4CAF50;
+                color: white;
+                padding: 1rem;
+                border-radius: 4px;
+                z-index: 10000;
+                display: none;
+            `;
+            document.body.appendChild(notification);
+        }
+        
+        notification.innerHTML = `✓ Added ${productName} to cart`;
+        notification.style.display = 'block';
+        
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 3000);
+    }
+    
+    // ===== CART INTERACTION =====
     function toggleCart() {
         const cartSidebar = document.getElementById('cart-sidebar');
         if (cartSidebar) {
@@ -444,7 +368,6 @@ const BeautyHubCart = (function() {
         }
     }
     
-    // Close cart
     function closeCart() {
         const cartSidebar = document.getElementById('cart-sidebar');
         if (cartSidebar) {
@@ -453,26 +376,61 @@ const BeautyHubCart = (function() {
         }
     }
     
-    // Setup event listeners (updated)
+    // ===== EVENT HANDLERS =====
+    function setupCheckoutButton() {
+        const checkoutBtn = document.getElementById('checkout-btn');
+        if (checkoutBtn) {
+            checkoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                if (typeof CustomerOrderManager !== 'undefined') {
+                    CustomerOrderManager.openCheckout();
+                } else {
+                    console.error('CustomerOrderManager not loaded');
+                    alert('Checkout system is not available. Please refresh the page.');
+                }
+            });
+        }
+    }
+    
     function setupEventListeners() {
         // Cart toggle
         document.addEventListener('click', function(e) {
-            if (e.target.id === 'cart-toggle' || 
-                e.target.closest('#cart-toggle')) {
+            if (e.target.id === 'cart-toggle' || e.target.closest('#cart-toggle')) {
                 toggleCart();
             }
             
-            if (e.target.id === 'close-cart' || 
-                e.target.closest('#close-cart')) {
+            if (e.target.id === 'close-cart' || e.target.closest('#close-cart')) {
                 closeCart();
             }
         });
         
-        // ... (rest of existing event listeners) ...
+        // Cart item operations
+        document.addEventListener('click', function(e) {
+            const productId = e.target.dataset.id;
+            if (!productId) return;
+            
+            if (e.target.classList.contains('minus')) {
+                const item = cartItems.find(item => item.productId === productId);
+                if (item) {
+                    updateQuantity(productId, item.quantity - 1);
+                }
+            }
+            
+            if (e.target.classList.contains('plus')) {
+                const item = cartItems.find(item => item.productId === productId);
+                if (item) {
+                    updateQuantity(productId, item.quantity + 1);
+                }
+            }
+            
+            if (e.target.classList.contains('remove-btn')) {
+                removeFromCart(productId);
+            }
+        });
     }
     
-    // ... (rest of existing cart functions) ...
-    
+    // ===== PUBLIC API =====
     return {
         init,
         addToCart,
@@ -488,13 +446,9 @@ const BeautyHubCart = (function() {
     };
 })();
 
-// ... (auto-initialize code) ...
-}
-
-// Call this in init() function
-function init() {
-    loadCart();
-    updateCartUI();
-    setupEventListeners();
-    setupCheckoutButton(); // Add this line
+// Auto-initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => BeautyHubCart.init());
+} else {
+    BeautyHubCart.init();
 }
