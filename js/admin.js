@@ -1,4 +1,5 @@
 // admin.js - Admin Authentication & Dashboard
+
 const AdminManager = (function() {
     // Configuration
     const CONFIG = {
