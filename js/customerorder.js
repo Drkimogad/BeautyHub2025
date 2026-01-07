@@ -419,8 +419,8 @@ const CustomerOrderManager = (function() {
 })();
 
 // Auto-initialize
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => CustomerOrderManager.init());
-} else {
-    CustomerOrderManager.init();
-}
+//if (document.readyState === 'loading') {
+//    document.addEventListener('DOMContentLoaded', () => CustomerOrderManager.init());
+//} else {
+//    CustomerOrderManager.init();
+//}
