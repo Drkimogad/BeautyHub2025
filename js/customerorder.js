@@ -418,3 +418,35 @@ if (document.readyState === 'loading') {
 } else {
     CustomerOrderManager.init();
 }
+
+
+// this needs proper placement 
+// In customerorder.js, modify the submitOrder function:
+function submitOrder(event) {
+    event.preventDefault();
+    
+    // ... existing code ...
+    
+    // Create order via OrdersManager
+    const order = OrdersManager.createOrder(formData);
+    
+    if (order) {
+        // Success - show confirmation
+        showSuccess();
+        
+        // Clear cart
+        BeautyHubCart.clearCart();
+        
+        // Dispatch order created event
+        if (typeof AppManager !== 'undefined') {
+            AppManager.dispatchOrderCreated();
+        }
+        
+        // Close modal after delay
+        setTimeout(() => {
+            closeCheckout();
+        }, 2000);
+    } else {
+        showError('Failed to place order. Please try again.');
+    }
+}
