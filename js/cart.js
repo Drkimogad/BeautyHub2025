@@ -242,3 +242,31 @@ if (document.readyState === 'loading') {
 } else {
     BeautyHubCart.init();
 }
+
+
+// THIS NEEDS PROPER PLACEMENT
+// In cart.js, add this function and modify the checkout button event listener
+function setupCheckoutButton() {
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Check if CustomerOrderManager is available
+            if (typeof CustomerOrderManager !== 'undefined') {
+                CustomerOrderManager.openCheckout();
+            } else {
+                console.error('CustomerOrderManager not loaded');
+                alert('Checkout system is not available. Please refresh the page.');
+            }
+        });
+    }
+}
+
+// Call this in init() function
+function init() {
+    loadCart();
+    updateCartUI();
+    setupEventListeners();
+    setupCheckoutButton(); // Add this line
+}
