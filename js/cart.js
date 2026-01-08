@@ -1,4 +1,5 @@
 // cart.js - Shopping Cart Functionality
+
 const BeautyHubCart = (function() {
     // Cart state
     let cartItems = [];
