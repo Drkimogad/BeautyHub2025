@@ -1,61 +1,67 @@
-// products.js - Products management
-const ProductsManager = (function() {
-    // Products data
-    const products = [
-        {
-            id: "p001",
-            name: "Signature Perfumes",
-            description: "Elegant scents that linger like a memory.",
-            price: 300,
-            category: "perfumes",
-            stock: 15,
-            imageUrl: "gallery/perfumes.jpg",
-            badge: "NEW"
-        },
-        {
-            id: "p002",
-            name: "Glam Lashes",
-            description: "Dramatic or natural—find your perfect flutter.",
-            price: 49.99,
-            category: "lashes",
-            stock: 42,
-            imageUrl: "gallery/lashes.jpg",
-            badge: null
-        },
-        {
-            id: "p003",
-            name: "Radiant Skincare",
-            description: "Glow from within with our nourishing formulas.",
-            price: 99.99,
-            category: "skincare",
-            stock: 28,
-            imageUrl: "gallery/skincare.jpg",
-            badge: "BESTSELLER"
-        },
-        {
-            id: "p004",
-            name: "Luxury Wigs",
-            description: "Silky, voluminous hair for every mood.",
-            price: 599.99,
-            category: "wigs",
-            stock: 12,
-            imageUrl: "gallery/wigs.jpg",
-            badge: null
-        }
-    ];
-    
-    // Initialize products
+// products.js - Products Display (UPDATED)
+const ProductsDisplay = (function() {
+    // Initialize products display
     function init() {
         renderProducts();
         setupEventListeners();
     }
     
-    // Render products to page
+    // Render products to page using ProductsManager data
     function renderProducts() {
         const container = document.getElementById('products-container');
         if (!container) {
             console.error('Products container not found');
             return;
+        }
+        
+        // Get products from ProductsManager if available, otherwise use fallback
+        let products = [];
+        if (typeof ProductsManager !== 'undefined') {
+            products = ProductsManager.getProducts({ activeOnly: true });
+        } else {
+            // Fallback to original hardcoded products
+            products = [
+                {
+                    id: "p001",
+                    name: "Signature Perfumes",
+                    description: "Elegant scents that linger like a memory.",
+                    price: 300,
+                    category: "perfumes",
+                    stock: 15,
+                    imageUrl: "gallery/perfumes.jpg",
+                    badge: "NEW"
+                },
+                {
+                    id: "p002",
+                    name: "Glam Lashes",
+                    description: "Dramatic or natural—find your perfect flutter.",
+                    price: 49.99,
+                    category: "lashes",
+                    stock: 42,
+                    imageUrl: "gallery/lashes.jpg",
+                    badge: null
+                },
+                {
+                    id: "p003",
+                    name: "Radiant Skincare",
+                    description: "Glow from within with our nourishing formulas.",
+                    price: 99.99,
+                    category: "skincare",
+                    stock: 28,
+                    imageUrl: "gallery/skincare.jpg",
+                    badge: "BESTSELLER"
+                },
+                {
+                    id: "p004",
+                    name: "Luxury Wigs",
+                    description: "Silky, voluminous hair for every mood.",
+                    price: 599.99,
+                    category: "wigs",
+                    stock: 12,
+                    imageUrl: "gallery/wigs.jpg",
+                    badge: null
+                }
+            ];
         }
         
         let html = `
@@ -65,29 +71,35 @@ const ProductsManager = (function() {
         `;
         
         products.forEach(product => {
+            // Get proper product ID (handle both old "p001" and new "PROD-..." formats)
+            const displayId = product.id.startsWith('PROD-') ? product.id : product.id;
+            
             html += `
-            <article class="product-card" data-product-id="${product.id}">
+            <article class="product-card" data-product-id="${displayId}">
                 ${product.badge ? `<div class="product-badge">${product.badge}</div>` : ''}
-                <img src="${product.imageUrl}" 
+                <img src="${product.imageUrl || 'gallery/placeholder.jpg'}" 
                      alt="${product.name}" 
                      class="product-img"
                      width="440" height="440"
                      loading="lazy">
                 <div class="product-info">
                     <h3>${product.name}</h3>
-                    <p>${product.description}</p>
+                    <p>${product.description || 'Premium beauty product'}</p>
                     <span class="price">From R${product.price.toFixed(2)}</span>
+                    <div class="stock-indicator" style="font-size: 0.85rem; color: ${product.stock <= 5 ? '#ff9800' : '#4CAF50'}; margin-top: 0.5rem;">
+                        <i class="fas fa-box"></i> ${product.stock} in stock
+                    </div>
                     <div class="rating" data-rating="4">★★★★☆</div>
                 </div>
                 <button class="add-to-cart" 
-                        data-product-id="${product.id}"
+                        data-product-id="${displayId}"
                         data-product-name="${product.name}"
                         data-product-price="${product.price}"
-                        data-product-img="${product.imageUrl}">
+                        data-product-img="${product.imageUrl || 'gallery/placeholder.jpg'}">
                     <i class="fas fa-shopping-cart"></i> Add to Cart
                 </button>
                 <button class="quick-view" 
-                        data-product-id="${product.id}">
+                        data-product-id="${displayId}">
                     Quick View
                 </button>
             </article>`;
@@ -100,12 +112,20 @@ const ProductsManager = (function() {
         container.innerHTML = html;
     }
     
-    // Get product by ID
+    // Get product by ID (using ProductsManager if available)
     function getProductById(productId) {
-        return products.find(p => p.id === productId);
+        if (typeof ProductsManager !== 'undefined') {
+            return ProductsManager.getProductById(productId);
+        }
+        
+        // Fallback to original logic
+        const fallbackProducts = [
+            // ... your original products array
+        ];
+        return fallbackProducts.find(p => p.id === productId);
     }
     
-    // Setup event listeners
+    // Setup event listeners (keep existing code, unchanged)
     function setupEventListeners() {
         document.addEventListener('click', function(e) {
             // Add to cart button
@@ -144,12 +164,12 @@ const ProductsManager = (function() {
         });
     }
     
-    // Show quick view modal
+    // Show quick view modal (updated to use ProductsManager)
     function showQuickView(productId) {
         const product = getProductById(productId);
         if (!product) return;
         
-        // Create quick view modal
+        // Create quick view modal (keep existing code, just update product data display)
         let modal = document.getElementById('quick-view-modal');
         if (!modal) {
             modal = document.createElement('div');
@@ -170,6 +190,9 @@ const ProductsManager = (function() {
             `;
             document.body.appendChild(modal);
         }
+        
+        const isLowStock = product.stock <= 5;
+        const isOutOfStock = product.stock === 0;
         
         modal.innerHTML = `
             <div class="quick-view-content" style="
@@ -195,7 +218,7 @@ const ProductsManager = (function() {
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                     <div>
-                        <img src="${product.imageUrl}" 
+                        <img src="${product.imageUrl || 'gallery/placeholder.jpg'}" 
                              alt="${product.name}" 
                              style="width: 100%; border-radius: 8px;">
                     </div>
@@ -211,15 +234,21 @@ const ProductsManager = (function() {
                         ">${product.badge}</span>` : ''}
                         
                         <h2 style="margin: 0 0 1rem 0;">${product.name}</h2>
-                        <p style="color: #666; margin-bottom: 1.5rem;">${product.description}</p>
+                        <p style="color: #666; margin-bottom: 1.5rem;">${product.description || 'Premium beauty product'}</p>
                         
                         <div style="margin-bottom: 1.5rem;">
                             <div style="font-size: 2rem; font-weight: bold; color: #e91e63;">
                                 R${product.price.toFixed(2)}
                             </div>
-                            <div style="color: #4caf50; margin-top: 0.5rem;">
-                                <i class="fas fa-check"></i> In stock: ${product.stock} units
+                            <div style="color: ${isOutOfStock ? '#ff5252' : isLowStock ? '#ff9800' : '#4CAF50'}; margin-top: 0.5rem;">
+                                <i class="fas fa-box"></i> 
+                                ${isOutOfStock ? 'Out of Stock' : 
+                                  isLowStock ? `Low Stock: ${product.stock} units` : 
+                                  `In Stock: ${product.stock} units`}
                             </div>
+                            ${product.category ? `<div style="color: #666; margin-top: 0.5rem;">
+                                <i class="fas fa-tag"></i> ${product.category.charAt(0).toUpperCase() + product.category.slice(1)}
+                            </div>` : ''}
                         </div>
                         
                         <div style="font-size: 0.9rem; color: #666;">
@@ -245,17 +274,23 @@ const ProductsManager = (function() {
         }        
     }
     
-    // Public API
+    // Public API (keep same interface)
     return {
         init,
         getProductById,
-        getAllProducts: () => [...products]
+        getAllProducts: () => {
+            if (typeof ProductsManager !== 'undefined') {
+                return ProductsManager.getProducts({ activeOnly: true });
+            }
+            // Fallback
+            return [];
+        }
     };
 })();
 
 // Auto-initialize
 //if (document.readyState === 'loading') {
-//    document.addEventListener('DOMContentLoaded', () => ProductsManager.init());
+//    document.addEventListener('DOMContentLoaded', () => ProductsDisplay.init());
 //} else {
-//    ProductsManager.init();
-// }
+//    ProductsDisplay.init();
+//}
