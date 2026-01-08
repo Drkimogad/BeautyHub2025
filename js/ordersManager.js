@@ -11,12 +11,13 @@ const OrdersManager = (function() {
     // ============================================
     /*
     ORDER_SCHEMA:
-    {
-      id: string,                     // Auto-generated order ID
-      customerName: string,           // Required
-      customerPhone: string,          // Required
-      customerWhatsApp: string,       // Optional
-      customerEmail: string,          // Optional
+{
+  id: string,                     // Auto-generated order ID
+  firstName: string,              // Required
+  surname: string,                // Required
+  customerPhone: string,          // Required
+  customerWhatsApp: string,       // Optional
+  customerEmail: string,          // Optional
       shippingAddress: string,        // Required
       items: [                        // Array of cart items
         {
@@ -106,9 +107,10 @@ const OrdersManager = (function() {
         const now = new Date().toISOString();
         
         const newOrder = {
-            id: orderId,
-            customerName: customerData.customerName.trim(),
-            customerPhone: customerData.customerPhone.trim(),
+    id: orderId,
+    firstName: customerData.firstName.trim(),
+    surname: customerData.surname.trim(),
+    customerPhone: customerData.customerPhone.trim(),
             customerWhatsApp: customerData.customerWhatsApp?.trim() || '',
             customerEmail: customerData.customerEmail?.trim() || '',
             shippingAddress: customerData.shippingAddress.trim(),
@@ -269,11 +271,12 @@ function renderOrders(statusFilter = 'pending', containerId = 'pending-orders') 
             </div>
             
             <div class="order-customer-detailed">
-                <div class="customer-info">
-                    <div><strong>${order.customerName}</strong></div>
-                    <div>${order.customerPhone}</div>
-                    ${order.customerEmail ? `<div>${order.customerEmail}</div>` : ''}
-                </div>
+    <div class="customer-info">
+        <div><strong>${order.firstName} ${order.surname}</strong></div>
+        <div>${order.customerPhone}</div>
+        ${order.customerEmail ? `<div>${order.customerEmail}</div>` : ''}
+    </div>
+                
                 <div class="shipping-info">
                     <div><strong>Shipping Address:</strong></div>
                     <div class="address-text">${order.shippingAddress}</div>
@@ -370,11 +373,12 @@ function renderCompletedOrders(containerId = 'completed-orders-list') {
             </div>
             
             <div class="order-customer-detailed">
-                <div class="customer-info">
-                    <div><strong>${order.customerName}</strong></div>
-                    <div>${order.customerPhone}</div>
-                    ${order.customerEmail ? `<div>${order.customerEmail}</div>` : ''}
-                </div>
+    <div class="customer-info">
+        <div><strong>${order.firstName} ${order.surname}</strong></div>
+        <div>${order.customerPhone}</div>
+        ${order.customerEmail ? `<div>${order.customerEmail}</div>` : ''}
+    </div>
+                
                 <div class="shipping-info">
                     <div><strong>Shipping Address:</strong></div>
                     <div class="address-text">${order.shippingAddress}</div>
@@ -491,7 +495,7 @@ function renderCompletedOrders(containerId = 'completed-orders-list') {
                     <div>
                         <h3 style="margin-top: 0;">Customer Information</h3>
                         <div style="margin-bottom: 0.5rem;">
-                            <strong>Name:</strong> ${order.customerName}
+                          <strong>Name:</strong> ${order.firstName} ${order.surname}
                         </div>
                         <div style="margin-bottom: 0.5rem;">
                             <strong>Phone:</strong> ${order.customerPhone}
@@ -833,7 +837,7 @@ function renderCompletedOrders(containerId = 'completed-orders-list') {
                 
                 <div class="order-info">
                     <p><strong>Order Date:</strong> ${orderDate}</p>
-                    <p><strong>Customer Name:</strong> ${order.customerName}</p>
+                    <p><strong>Customer Name:</strong> ${order.firstName} ${order.surname}</p>
                     <p><strong>Phone:</strong> ${order.customerPhone}</p>
                     <p><strong>Shipping Address:</strong> ${order.shippingAddress}</p>
                     <p><strong>Shipping Date:</strong> ${shippingDate}</p>
