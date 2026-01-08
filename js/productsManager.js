@@ -80,7 +80,7 @@ const ProductsManager = (function() {
                 price: 300.00,
                 originalPrice: 300.00,
                 stock: 15,
-                imageUrl: 'gallery/perfume.jpg',
+                imageUrl: 'gallery/perfumes.jpg',
                 gallery: [],
                 tags: ['new', 'featured'],
                 specifications: {
