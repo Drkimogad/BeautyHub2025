@@ -415,8 +415,7 @@ const AdminManager = (function() {
                             Analytics <span class="tab-count">(Soon)</span>
                         </button>
                     </div>
-                    
-                    <!-- Tab Content -->
+                                        <!-- Tab Content -->
                     <div class="tab-content" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
                         <!-- Orders Tab -->
                         <div id="orders-tab-content" class="tab-pane active" style="
@@ -425,6 +424,7 @@ const AdminManager = (function() {
                             display: flex;
                             flex-direction: column;
                         ">
+                            <!-- Single Row Header with All Buttons -->
                             <div style="
                                 display: flex;
                                 justify-content: space-between;
@@ -433,14 +433,23 @@ const AdminManager = (function() {
                                 flex-wrap: wrap;
                                 gap: 1rem;
                             ">
-                                <h2 style="margin: 0; color: #333;">Order Management</h2>
+                                <h2 style="margin: 0; color: #333; flex-shrink: 0;">Order Management</h2>
                                 
-                                <div style="display: flex; gap: 0.75rem;">
+                                <div style="
+                                    display: flex;
+                                    gap: 0.5rem;
+                                    align-items: center;
+                                    flex-wrap: wrap;
+                                    justify-content: flex-end;
+                                    flex: 1;
+                                    min-width: 0;
+                                ">
+                                    <!-- Action Buttons -->
                                     <button id="refresh-orders" class="action-btn" style="
                                         background: white;
                                         color: #667eea;
                                         border: 2px solid #667eea;
-                                        padding: 0.5rem 1rem;  /* changed*/
+                                        padding: 0.5rem 1rem;
                                         border-radius: 8px;
                                         font-size: 0.9rem;
                                         font-weight: 600;
@@ -448,6 +457,8 @@ const AdminManager = (function() {
                                         display: flex;
                                         align-items: center;
                                         gap: 0.5rem;
+                                        white-space: nowrap;
+                                        flex-shrink: 0;
                                     ">
                                         <i class="fas fa-sync-alt"></i>
                                         Refresh
@@ -457,7 +468,7 @@ const AdminManager = (function() {
                                         background: white;
                                         color: #4caf50;
                                         border: 2px solid #4caf50;
-                                        padding: 0.75rem 1.5rem;
+                                        padding: 0.5rem 1rem;
                                         border-radius: 8px;
                                         font-size: 0.9rem;
                                         font-weight: 600;
@@ -465,79 +476,80 @@ const AdminManager = (function() {
                                         display: flex;
                                         align-items: center;
                                         gap: 0.5rem;
+                                        white-space: nowrap;
+                                        flex-shrink: 0;
                                     ">
                                         <i class="fas fa-download"></i>
                                         Export
                                     </button>
+                                    
+                                    <!-- Status Filters (now in same row) -->
+                                    <button class="status-filter active" data-status="pending" style="
+                                        background: #ff9800;
+                                        color: white;
+                                        border: none;
+                                        padding: 0.5rem 1rem;
+                                        border-radius: 8px;
+                                        font-size: 0.9rem;
+                                        font-weight: 600;
+                                        cursor: pointer;
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 0.5rem;
+                                        white-space: nowrap;
+                                        flex-shrink: 0;
+                                    ">
+                                        <i class="fas fa-clock"></i>
+                                        Pending <span class="filter-count">(0)</span>
+                                    </button>
+                                    
+                                    <button class="status-filter" data-status="paid" style="
+                                        background: #2196f3;
+                                        color: white;
+                                        border: none;
+                                        padding: 0.5rem 1rem;
+                                        border-radius: 8px;
+                                        font-size: 0.9rem;
+                                        font-weight: 600;
+                                        cursor: pointer;
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 0.5rem;
+                                        white-space: nowrap;
+                                        flex-shrink: 0;
+                                    ">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        Paid <span class="filter-count">(0)</span>
+                                    </button>
+                                    
+                                    <button class="status-filter" data-status="shipped" style="
+                                        background: #4caf50;
+                                        color: white;
+                                        border: none;
+                                        padding: 0.5rem 1rem;
+                                        border-radius: 8px;
+                                        font-size: 0.9rem;
+                                        font-weight: 600;
+                                        cursor: pointer;
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 0.5rem;
+                                        white-space: nowrap;
+                                        flex-shrink: 0;
+                                    ">
+                                        <i class="fas fa-truck"></i>
+                                        Shipped <span class="filter-count">(0)</span>
+                                    </button>
                                 </div>
                             </div>
                             
-                            <!-- Status Filters -->
-                            <div class="status-filters" style="
-                                display: flex;
-                                gap: 0.5rem;
-                                margin-bottom: 1.5rem;
-                                flex-wrap: wrap;
-                            ">
-                                <button class="status-filter active" data-status="pending" style="
-                                    background: #ff9800;
-                                    color: white;
-                                    border: none;
-                                    padding: 0.75rem 1.5rem;
-                                    border-radius: 8px;
-                                    font-size: 0.9rem;
-                                    font-weight: 600;
-                                    cursor: pointer;
-                                    display: flex;
-                                    align-items: center;
-                                    gap: 0.5rem;
-                                ">
-                                    <i class="fas fa-clock"></i>
-                                    Pending <span class="filter-count">(0)</span>
-                                </button>
-                                
-                                <button class="status-filter" data-status="paid" style="
-                                    background: #2196f3;
-                                    color: white;
-                                    border: none;
-                                    padding: 0.75rem 1.5rem;
-                                    border-radius: 8px;
-                                    font-size: 0.9rem;
-                                    font-weight: 600;
-                                    cursor: pointer;
-                                    display: flex;
-                                    align-items: center;
-                                    gap: 0.5rem;
-                                ">
-                                    <i class="fas fa-money-bill-wave"></i>
-                                    Paid <span class="filter-count">(0)</span>
-                                </button>
-                                
-                                <button class="status-filter" data-status="shipped" style="
-                                    background: #4caf50;
-                                    color: white;
-                                    border: none;
-                                    padding: 0.75rem 1.5rem;
-                                    border-radius: 8px;
-                                    font-size: 0.9rem;
-                                    font-weight: 600;
-                                    cursor: pointer;
-                                    display: flex;
-                                    align-items: center;
-                                    gap: 0.5rem;
-                                ">
-                                    <i class="fas fa-truck"></i>
-                                    Shipped <span class="filter-count">(0)</span>
-                                </button>
-                            </div>
-                            
-                            <!-- Orders Container -->
+                            <!-- Orders Container (Now has more space) -->
                             <div id="dashboard-orders-container" style="
                                 flex: 1;
                                 overflow-y: auto;
                                 background: white;
                                 border-radius: 12px;
-                                padding: 1.5rem;
+                                padding: 1rem;
                                 border: 2px solid #f0f0f0;
                             ">
                                 <div class="no-orders" style="
@@ -587,7 +599,7 @@ const AdminManager = (function() {
                 <!-- Footer -->
                 <div class="dashboard-footer" style="
                     background: #f8f9fa;
-                    padding: 1.5rem 2rem;
+                    padding: 1rem 2rem;
                     border-top: 1px solid #e0e0e0;
                     display: flex;
                     justify-content: space-between;
@@ -619,6 +631,8 @@ const AdminManager = (function() {
         
         document.body.appendChild(dashboardModal);
     }
+                    
+
     
     // Update admin button visibility
     function updateAdminButtonVisibility() {
