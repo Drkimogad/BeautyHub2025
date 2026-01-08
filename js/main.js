@@ -33,7 +33,8 @@ const AppManager = (function() {
             BeautyHubCart: typeof BeautyHubCart !== 'undefined',
             OrdersManager: typeof OrdersManager !== 'undefined',
             CustomerOrderManager: typeof CustomerOrderManager !== 'undefined',
-            AdminManager: typeof AdminManager !== 'undefined'
+            AdminManager: typeof AdminManager !== 'undefined',
+            CustomerSearchManager: typeof CustomerSearchManager !== 'undefined'
         };
         
         // Log missing modules
