@@ -243,7 +243,7 @@ const CustomerOrderManager = (function() {
         
         // Show modal
         checkoutModal.style.display = 'flex';
-        document.getElementById('customer-name').focus();
+        document.getElementById('customer-firstname').focus(); // CHANGED
         document.body.style.overflow = 'hidden';
     }
     
