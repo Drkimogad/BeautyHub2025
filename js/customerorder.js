@@ -5,11 +5,16 @@ const CustomerOrderManager = (function() {
     let checkoutModal = null;
     let checkoutForm = null;
     
-    // Initialize order system
+    // Initialize order system MODIFIED
     function init() {
-        createCheckoutModal();
-        setupEventListeners();
+    createCheckoutModal();
+    setupEventListeners();
+    
+    // Initialize customer search if available
+    if (typeof CustomerSearchManager !== 'undefined') {
+        CustomerSearchManager.init();
     }
+}
     
     // ===== MODAL CREATION =====
     function createCheckoutModal() {
