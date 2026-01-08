@@ -72,18 +72,33 @@ const CustomerOrderManager = (function() {
                 <h2 style="margin-top: 0; color: #333;">Place Your Order</h2>
                 
                 <form id="checkout-form">
-                    <div style="margin-bottom: 1rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
-                            Full Name *
-                        </label>
-                        <input type="text" id="customer-name" required style="
-                            width: 100%;
-                            padding: 0.75rem;
-                            border: 1px solid #ddd;
-                            border-radius: 4px;
-                            box-sizing: border-box;
-                        ">
-                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+    <div>
+        <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
+            First Name *
+        </label>
+        <input type="text" id="customer-firstname" required style="
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        ">
+    </div>
+    
+    <div>
+        <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
+            Surname *
+        </label>
+        <input type="text" id="customer-surname" required style="
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        ">
+    </div>
+</div>
                     
                     <div style="margin-bottom: 1rem;">
                         <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
@@ -293,16 +308,18 @@ const CustomerOrderManager = (function() {
         event.preventDefault();
         
         // Get form data
-        const formData = {
-            customerName: document.getElementById('customer-name').value,
-            customerPhone: document.getElementById('customer-phone').value,
-            customerWhatsApp: document.getElementById('customer-whatsapp').value,
-            customerEmail: document.getElementById('customer-email').value,
-            shippingAddress: document.getElementById('shipping-address').value,
-            orderNotes: document.getElementById('order-notes').value,
-            cartItems: BeautyHubCart.getCartItems(),
-            totalAmount: BeautyHubCart.getCartTotal()
-        };
+        // Get form data
+const formData = {
+    firstName: document.getElementById('customer-firstname').value,
+    surname: document.getElementById('customer-surname').value,
+    customerPhone: document.getElementById('customer-phone').value,
+    customerWhatsApp: document.getElementById('customer-whatsapp').value,
+    customerEmail: document.getElementById('customer-email').value,
+    shippingAddress: document.getElementById('shipping-address').value,
+    orderNotes: document.getElementById('order-notes').value,
+    cartItems: BeautyHubCart.getCartItems(),
+    totalAmount: BeautyHubCart.getCartTotal()
+};
         
         // Validate
         const errors = validateForm(formData);
