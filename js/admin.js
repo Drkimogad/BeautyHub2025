@@ -394,21 +394,21 @@ const AdminManager = (function() {
                         </button>
                         
                         <button class="dashboard-tab" data-tab="products" style="
-                            background: white;
-                            color: #666;
-                            border: 2px solid #e0e0e0;
-                            padding: 0.875rem 1.75rem;
-                            border-radius: 8px;
-                            font-size: 1rem;
-                            font-weight: 600;
-                            cursor: pointer;
-                            display: flex;
-                            align-items: center;
-                            gap: 0.75rem;
-                        ">
-                            <i class="fas fa-boxes"></i>
-                            Products <span class="tab-count">(Soon)</span>
-                        </button>
+    background: white;
+    color: #666;
+    border: 2px solid #e0e0e0;
+    padding: 0.875rem 1.75rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+">
+    <i class="fas fa-boxes"></i>
+    Products Management
+</button>
                         
                         <button class="dashboard-tab" data-tab="analytics" style="
                             background: white;
