@@ -772,7 +772,7 @@ const AdminManager = (function() {
                                 ">${order.id}</span>
                             </div>
                             
-                            <h3 style="margin: 0 0 0.5rem 0; color: #333;">${order.customerName}</h3>
+                        <h3 style="margin: 0 0 0.5rem 0; color: #333;">${order.firstName} ${order.surname}</h3>
                             <div style="color: #666; font-size: 0.9rem;">
                                 <i class="fas fa-phone" style="margin-right: 0.5rem;"></i>
                                 ${order.customerPhone}
