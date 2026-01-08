@@ -36,6 +36,13 @@ const AdminManager = (function() {
         createDashboardModal();
         setupEventListeners();
         updateAdminButtonVisibility();
+        // Listens for new orders from ANY tab
+      window.addEventListener('storage', function(e) {
+    if (e.key === 'beautyhub_orders' && dashboardModal.style.display === 'flex') {
+        loadDashboardData(); // Updates modal only when open
+        console.log('Auto-refreshed dashboard: New order detected');
+    }
+});
     }
     
     // Check for existing valid session
