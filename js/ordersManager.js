@@ -220,129 +220,196 @@ const OrdersManager = (function() {
         }
     }
     
-    // Render orders in admin panel
-    function renderOrders(statusFilter = 'pending', containerId = 'pending-orders') {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-        
-        const filteredOrders = getOrders(statusFilter);
-        
-        if (filteredOrders.length === 0) {
-            container.innerHTML = '<div class="no-orders">No orders found</div>';
-            return;
-        }
-        
-        let html = '';
-        filteredOrders.forEach(order => {
-            const orderDate = new Date(order.createdAt).toLocaleDateString();
-            const orderTime = new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            
-            html += `
-            <div class="order-card" data-order-id="${order.id}">
-                <div class="order-header">
-                    <div class="order-id">${order.id}</div>
-                    <div class="order-date">${orderDate} ${orderTime}</div>
-                </div>
-                
-                <div class="order-customer">
-                    <strong>${order.customerName}</strong>
-                    <span>${order.customerPhone}</span>
-                </div>
-                
-                <div class="order-summary">
-                    <span>${order.items.length} item(s)</span>
-                    <span class="order-total">R${order.totalAmount.toFixed(2)}</span>
-                </div>
-                
-                <div class="order-status">
-                    <span class="status-badge status-${order.status}">${order.status.toUpperCase()}</span>
-                </div>
-                
-                <div class="order-actions">
-                    <button class="action-btn mark-paid ${order.status === 'paid' || order.status === 'shipped' ? 'disabled' : ''}" 
-                            data-order-id="${order.id}"
-                            ${order.status === 'paid' || order.status === 'shipped' ? 'disabled' : ''}>
-                        ${order.status === 'paid' ? '✓ Paid' : 'Mark as Paid'}
-                    </button>
-                    
-                    <button class="action-btn mark-shipped ${order.status === 'shipped' ? 'disabled' : ''}" 
-                            data-order-id="${order.id}"
-                            ${order.status === 'shipped' ? 'disabled' : ''}>
-                        ${order.status === 'shipped' ? '✓ Shipped' : 'Mark as Shipped'}
-                    </button>
-                    
-                    <button class="action-btn delete-order" data-order-id="${order.id}">
-                        Delete
-                    </button>
-                    
-                    <button class="action-btn view-details" data-order-id="${order.id}">
-                        Details
-                    </button>
-                </div>
-            </div>`;
-        });
-        
-        container.innerHTML = html;
+// Render orders in admin panel UPDATED
+function renderOrders(statusFilter = 'pending', containerId = 'pending-orders') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    const filteredOrders = getOrders(statusFilter);
+    
+    if (filteredOrders.length === 0) {
+        container.innerHTML = '<div class="no-orders">No orders found</div>';
+        return;
     }
     
-    // Render completed orders
-    function renderCompletedOrders(containerId = 'completed-orders-list') {
-        const container = document.getElementById(containerId);
-        if (!container) return;
+    let html = '';
+    filteredOrders.forEach(order => {
+        const orderDate = new Date(order.createdAt).toLocaleDateString();
+        const orderTime = new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         
-        const completedOrders = getOrders('shipped');
-        
-        if (completedOrders.length === 0) {
-            container.innerHTML = '<div class="no-orders">No completed orders</div>';
-            return;
-        }
-        
-        let html = '';
-        completedOrders.forEach(order => {
-            const orderDate = new Date(order.createdAt).toLocaleDateString();
-            const shippingDate = order.shippingDate 
-                ? new Date(order.shippingDate).toLocaleDateString()
-                : 'Not set';
-            
-            html += `
-            <div class="completed-order-card" data-order-id="${order.id}">
-                <div class="completed-order-header">
-                    <div class="order-id">${order.id}</div>
-                    <div class="shipping-date">
-                        <i class="fas fa-truck"></i> ${shippingDate}
+        // Build items list with images
+        let itemsHtml = '';
+        order.items.forEach(item => {
+            itemsHtml += `
+            <div class="detailed-item">
+                <img src="${item.imageUrl || 'gallery/placeholder.jpg'}" 
+                     alt="${item.productName}"
+                     class="item-image-small">
+                <div class="item-details">
+                    <div class="item-name">${item.productName}</div>
+                    <div class="item-meta">
+                        <span class="item-quantity">×${item.quantity}</span>
+                        <span class="item-price">R${item.price.toFixed(2)} each</span>
                     </div>
                 </div>
-                
-                <div class="completed-order-info">
-                    <div class="customer-info">
-                        <div><strong>${order.customerName}</strong></div>
-                        <div>${order.customerPhone}</div>
-                    </div>
-                    
-                    <div class="order-stats">
-                        <div>${order.items.length} items</div>
-                        <div class="total-amount">R${order.totalAmount.toFixed(2)}</div>
-                    </div>
-                </div>
-                
-                <div class="completed-order-actions">
-                    <button class="action-btn view-details" data-order-id="${order.id}">
-                        <i class="fas fa-eye"></i> View Details
-                    </button>
-                    
-                    <button class="action-btn print-order" data-order-id="${order.id}">
-                        <i class="fas fa-print"></i> Print
-                    </button>
-                    
-                    <button class="action-btn delete-order" data-order-id="${order.id}">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
+                <div class="item-total">R${(item.price * item.quantity).toFixed(2)}</div>
             </div>`;
         });
         
-        container.innerHTML = html;
+        html += `
+        <div class="order-card-detailed" data-order-id="${order.id}">
+            <div class="order-header-detailed">
+                <div class="order-id-date">
+                    <h3>${order.id}</h3>
+                    <div class="order-timestamp">${orderDate} ${orderTime}</div>
+                </div>
+                <div class="order-status-detailed">
+                    <span class="status-badge status-${order.status}">${order.status.toUpperCase()}</span>
+                </div>
+            </div>
+            
+            <div class="order-customer-detailed">
+                <div class="customer-info">
+                    <div><strong>${order.customerName}</strong></div>
+                    <div>${order.customerPhone}</div>
+                    ${order.customerEmail ? `<div>${order.customerEmail}</div>` : ''}
+                </div>
+                <div class="shipping-info">
+                    <div><strong>Shipping Address:</strong></div>
+                    <div class="address-text">${order.shippingAddress}</div>
+                </div>
+            </div>
+            
+            <div class="order-items-detailed">
+                <h4>Order Items:</h4>
+                ${itemsHtml}
+                <div class="order-total-detailed">
+                    <span>Total Amount:</span>
+                    <span class="total-amount">R${order.totalAmount.toFixed(2)}</span>
+                </div>
+            </div>
+            
+            ${order.notes ? `
+            <div class="order-notes">
+                <strong>Customer Notes:</strong>
+                <div class="notes-text">${order.notes}</div>
+            </div>` : ''}
+            
+            <div class="order-actions-detailed">
+                ${order.status === 'pending' ? `
+                <button class="action-btn mark-paid" data-order-id="${order.id}">
+                    Mark as Paid
+                </button>` : ''}
+                
+                ${order.status !== 'shipped' ? `
+                <button class="action-btn mark-shipped" data-order-id="${order.id}">
+                    Mark as Shipped
+                </button>` : ''}
+                
+                <button class="action-btn delete-order" data-order-id="${order.id}">
+                    Delete
+                </button>
+            </div>
+        </div>`;
+    });
+    
+    container.innerHTML = html;
+}
+    
+// Render completed orders UPDATED
+function renderCompletedOrders(containerId = 'completed-orders-list') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    const completedOrders = getOrders('shipped');
+    
+    if (completedOrders.length === 0) {
+        container.innerHTML = '<div class="no-orders">No completed orders</div>';
+        return;
     }
+    
+    let html = '';
+    completedOrders.forEach(order => {
+        const orderDate = new Date(order.createdAt).toLocaleDateString();
+        const shippingDate = order.shippingDate 
+            ? new Date(order.shippingDate).toLocaleDateString()
+            : 'Not set';
+        
+        // Build items list with images (same as above)
+        let itemsHtml = '';
+        order.items.forEach(item => {
+            itemsHtml += `
+            <div class="detailed-item">
+                <img src="${item.imageUrl || 'gallery/placeholder.jpg'}" 
+                     alt="${item.productName}"
+                     class="item-image-small">
+                <div class="item-details">
+                    <div class="item-name">${item.productName}</div>
+                    <div class="item-meta">
+                        <span class="item-quantity">×${item.quantity}</span>
+                        <span class="item-price">R${item.price.toFixed(2)} each</span>
+                    </div>
+                </div>
+                <div class="item-total">R${(item.price * item.quantity).toFixed(2)}</div>
+            </div>`;
+        });
+        
+        html += `
+        <div class="order-card-detailed" data-order-id="${order.id}">
+            <div class="order-header-detailed">
+                <div class="order-id-date">
+                    <h3>${order.id}</h3>
+                    <div class="order-timestamp">
+                        <span>Ordered: ${orderDate}</span>
+                        <span class="shipped-date">Shipped: ${shippingDate}</span>
+                    </div>
+                </div>
+                <div class="order-status-detailed">
+                    <span class="status-badge status-shipped">SHIPPED</span>
+                </div>
+            </div>
+            
+            <div class="order-customer-detailed">
+                <div class="customer-info">
+                    <div><strong>${order.customerName}</strong></div>
+                    <div>${order.customerPhone}</div>
+                    ${order.customerEmail ? `<div>${order.customerEmail}</div>` : ''}
+                </div>
+                <div class="shipping-info">
+                    <div><strong>Shipping Address:</strong></div>
+                    <div class="address-text">${order.shippingAddress}</div>
+                </div>
+            </div>
+            
+            <div class="order-items-detailed">
+                <h4>Order Items:</h4>
+                ${itemsHtml}
+                <div class="order-total-detailed">
+                    <span>Total Amount:</span>
+                    <span class="total-amount">R${order.totalAmount.toFixed(2)}</span>
+                </div>
+            </div>
+            
+            ${order.notes ? `
+            <div class="order-notes">
+                <strong>Customer Notes:</strong>
+                <div class="notes-text">${order.notes}</div>
+            </div>` : ''}
+            
+            <div class="order-actions-detailed">
+                <button class="action-btn view-details" data-order-id="${order.id}">
+                    <i class="fas fa-eye"></i> View Details
+                </button>
+                
+                <button class="action-btn delete-order" data-order-id="${order.id}">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>`;
+    });
+    
+    container.innerHTML = html;
+}
     
     // Show order details modal
     function showOrderDetails(orderId) {
@@ -363,7 +430,7 @@ const OrdersManager = (function() {
                 width: 100%;
                 height: 100%;
                 background: rgba(0,0,0,0.5);
-                z-index: 1003;
+                z-index: 9999;  /* HIGHEST Z-INDEX TO APPEAR ABOVE EVERYTHING*/
                 align-items: center;
                 justify-content: center;
             `;
