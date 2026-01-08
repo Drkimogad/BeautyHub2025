@@ -1,4 +1,5 @@
 // productsManager.js - Product CRUD & Management System
+
 const ProductsManager = (function() {
     // Configuration
     const CONFIG = {
