@@ -545,11 +545,24 @@ function cartClickHandler(e) {
         removeFromCart(productId);
     }
 }
+
+    function removeFromCart(productId) {
+    const initialLength = cartItems.length;
+    cartItems = cartItems.filter(item => item.productId !== productId);
+    
+    if (cartItems.length < initialLength) {
+        saveCart();
+        updateCartUI();
+        return true;
+    }
+    return false;
+}
     
     // ===== PUBLIC API =====
     return {
         init,
         addToCart,
+        removeFromCart, // ADD THIS LINE
         removeFromCart,
         updateQuantity,
         clearCart,
