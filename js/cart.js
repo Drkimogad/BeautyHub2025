@@ -31,45 +31,158 @@ const BeautyHubCart = (function() {
     
     // ===== CART OPERATIONS =====
     function addToCart(productId, productName, price, imageUrl, quantity = 1) {
-        const existing = cartItems.find(item => item.productId === productId);
+    // Check stock availability if InventoryManager is available
+    if (typeof InventoryManager !== 'undefined') {
+        const stockCheck = InventoryManager.checkStockBeforeAddToCart(productId, quantity);
         
-        if (existing) {
-            existing.quantity += quantity;
-        } else {
-            cartItems.push({
-                productId,
-                productName,
-                price: parseFloat(price),
-                imageUrl,
-                quantity,
-                addedAt: new Date().toISOString()
-            });
+        if (!stockCheck.available) {
+            // Show error notification
+            let errorNotification = document.getElementById('cart-error-notification');
+            if (!errorNotification) {
+                errorNotification = document.createElement('div');
+                errorNotification.id = 'cart-error-notification';
+                errorNotification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #ff5252;
+                    color: white;
+                    padding: 1rem;
+                    border-radius: 4px;
+                    z-index: 10000;
+                    display: none;
+                `;
+                document.body.appendChild(errorNotification);
+            }
+            
+            errorNotification.innerHTML = `
+                <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i>
+                ${productName}: ${stockCheck.reason}
+            `;
+            errorNotification.style.display = 'block';
+            
+            setTimeout(() => {
+                errorNotification.style.display = 'none';
+            }, 3000);
+            
+            return; // Don't add to cart
+        }
+    }
+    
+    // If inventory check passed or InventoryManager not available, proceed
+    const existing = cartItems.find(item => item.productId === productId);
+    
+    if (existing) {
+        // Check if adding more exceeds stock
+        if (typeof InventoryManager !== 'undefined') {
+            const newTotalQuantity = existing.quantity + quantity;
+            const stockCheck = InventoryManager.checkStockBeforeAddToCart(productId, newTotalQuantity);
+            
+            if (!stockCheck.available) {
+                // Show error for existing item
+                let errorNotification = document.getElementById('cart-error-notification');
+                if (!errorNotification) {
+                    errorNotification = document.createElement('div');
+                    errorNotification.id = 'cart-error-notification';
+                    errorNotification.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: #ff5252;
+                        color: white;
+                        padding: 1rem;
+                        border-radius: 4px;
+                        z-index: 10000;
+                        display: none;
+                    `;
+                    document.body.appendChild(errorNotification);
+                }
+                
+                errorNotification.innerHTML = `
+                    <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i>
+                    Cannot add more ${productName}. Available: ${stockCheck.availableStock}
+                `;
+                errorNotification.style.display = 'block';
+                
+                setTimeout(() => {
+                    errorNotification.style.display = 'none';
+                }, 3000);
+                
+                return;
+            }
         }
         
-        saveCart();
-        updateCartUI();
-        showAddedNotification(productName);
+        existing.quantity += quantity;
+    } else {
+        cartItems.push({
+            productId,
+            productName,
+            price: parseFloat(price),
+            imageUrl,
+            quantity,
+            addedAt: new Date().toISOString()
+        });
     }
     
-    function removeFromCart(productId) {
-        cartItems = cartItems.filter(item => item.productId !== productId);
-        saveCart();
-        updateCartUI();
-    }
-    
+    saveCart();
+    updateCartUI();
+    showAddedNotification(productName);
+}
+
     function updateQuantity(productId, newQuantity) {
-        if (newQuantity < 1) {
-            removeFromCart(productId);
+    if (newQuantity < 1) {
+        removeFromCart(productId);
+        return;
+    }
+    
+    // Check stock if increasing quantity
+    const item = cartItems.find(item => item.productId === productId);
+    if (item && newQuantity > item.quantity && typeof InventoryManager !== 'undefined') {
+        const additionalQuantity = newQuantity - item.quantity;
+        const stockCheck = InventoryManager.checkStockBeforeAddToCart(productId, additionalQuantity);
+        
+        if (!stockCheck.available) {
+            // Show error
+            let errorNotification = document.getElementById('cart-error-notification');
+            if (!errorNotification) {
+                errorNotification = document.createElement('div');
+                errorNotification.id = 'cart-error-notification';
+                errorNotification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #ff5252;
+                    color: white;
+                    padding: 1rem;
+                    border-radius: 4px;
+                    z-index: 10000;
+                    display: none;
+                `;
+                document.body.appendChild(errorNotification);
+            }
+            
+            errorNotification.innerHTML = `
+                <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i>
+                Cannot increase quantity. Available: ${stockCheck.availableStock}
+            `;
+            errorNotification.style.display = 'block';
+            
+            setTimeout(() => {
+                errorNotification.style.display = 'none';
+            }, 3000);
+            
             return;
         }
-        
-        const item = cartItems.find(item => item.productId === productId);
-        if (item) {
-            item.quantity = newQuantity;
-            saveCart();
-            updateCartUI();
-        }
     }
+    
+    if (item) {
+        item.quantity = newQuantity;
+        saveCart();
+        updateCartUI();
+    }
+}
+    
+
     
     function clearCart() {
         cartItems = [];
