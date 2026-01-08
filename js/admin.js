@@ -352,7 +352,7 @@ const AdminManager = (function() {
                     overflow: hidden;
                     display: flex;
                     flex-direction: column;
-                    padding: 2rem;
+                    padding: 1rem;
                     background: #f8f9fa;
                 ">
                     <!-- Tabs Navigation -->
@@ -440,7 +440,7 @@ const AdminManager = (function() {
                                         background: white;
                                         color: #667eea;
                                         border: 2px solid #667eea;
-                                        padding: 0.75rem 1.5rem;
+                                        padding: 0.5rem 1rem;  /* changed*/
                                         border-radius: 8px;
                                         font-size: 0.9rem;
                                         font-weight: 600;
@@ -733,150 +733,133 @@ const AdminManager = (function() {
             };
             
             html += `
-                <div class="dashboard-order-card" data-order-id="${order.id}" style="
-                    background: white;
-                    border: 2px solid #f0f0f0;
+<div class="dashboard-order-card" data-order-id="${order.id}" style="
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    transition: transform 0.2s;
+">
+    <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+    ">
+        <div style="flex: 1;">
+            <div style="
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-bottom: 0.5rem;
+            ">
+                <span style="
+                    background: ${statusColors[order.status] || '#666'};
+                    color: white;
+                    padding: 0.2rem 0.6rem;
                     border-radius: 12px;
-                    padding: 1.5rem;
-                    transition: transform 0.2s, box-shadow 0.2s;
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                ">${order.status.toUpperCase()}</span>
+                
+                <span style="
+                    font-weight: 600;
+                    color: #333;
+                    font-size: 0.9rem;
+                ">${order.id}</span>
+                
+                <span style="
+                    color: #999;
+                    font-size: 0.8rem;
+                    margin-left: auto;
                 ">
-                    <div style="
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: flex-start;
-                        margin-bottom: 1rem;
-                    ">
-                        <div>
-                            <div style="
-                                display: flex;
-                                align-items: center;
-                                gap: 0.75rem;
-                                margin-bottom: 0.5rem;
-                            ">
-                                <span style="
-                                    background: ${statusColors[order.status] || '#666'};
-                                    color: white;
-                                    padding: 0.25rem 0.75rem;
-                                    border-radius: 20px;
-                                    font-size: 0.8rem;
-                                    font-weight: 600;
-                                ">${order.status.toUpperCase()}</span>
-                                
-                                <span style="
-                                    background: #f0f0f0;
-                                    color: #666;
-                                    padding: 0.25rem 0.75rem;
-                                    border-radius: 20px;
-                                    font-size: 0.8rem;
-                                    font-weight: 600;
-                                ">${order.id}</span>
-                            </div>
-                            
-                        <h3 style="margin: 0 0 0.5rem 0; color: #333;">${order.firstName} ${order.surname}</h3>
-                            <div style="color: #666; font-size: 0.9rem;">
-                                <i class="fas fa-phone" style="margin-right: 0.5rem;"></i>
-                                ${order.customerPhone}
-                            </div>
-                        </div>
-                        
-                        <div style="text-align: right;">
-                            <div style="
-                                font-size: 1.5rem;
-                                font-weight: 700;
-                                color: #e91e63;
-                                margin-bottom: 0.5rem;
-                            ">R${order.totalAmount.toFixed(2)}</div>
-                            <div style="color: #999; font-size: 0.85rem;">
-                                ${orderDate} ${orderTime}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="
-                        display: grid;
-                        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                        gap: 1rem;
-                        margin-bottom: 1.5rem;
-                    ">
-                        <div style="
-                            background: #f8f9fa;
-                            padding: 0.75rem;
-                            border-radius: 8px;
-                        ">
-                            <div style="font-size: 0.85rem; color: #666; margin-bottom: 0.25rem;">Items</div>
-                            <div style="font-weight: 600;">${order.items.length} product(s)</div>
-                        </div>
-                        
-                        ${order.shippingDate ? `
-                        <div style="
-                            background: #f8f9fa;
-                            padding: 0.75rem;
-                            border-radius: 8px;
-                        ">
-                            <div style="font-size: 0.85rem; color: #666; margin-bottom: 0.25rem;">Shipping</div>
-                            <div style="font-weight: 600;">${new Date(order.shippingDate).toLocaleDateString()}</div>
-                        </div>
-                        ` : ''}
-                    </div>
-                    
-                    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                        <button class="dashboard-action-btn view-order" data-order-id="${order.id}" style="
-                            background: #667eea;
-                            color: white;
-                            border: none;
-                            padding: 0.75rem 1.5rem;
-                            border-radius: 8px;
-                            font-size: 0.9rem;
-                            font-weight: 600;
-                            cursor: pointer;
-                            display: flex;
-                            align-items: center;
-                            gap: 0.5rem;
-                        ">
-                            <i class="fas fa-eye"></i>
-                            View Details
-                        </button>
-                        
-                        ${order.status === 'pending' ? `
-                        <button class="dashboard-action-btn mark-paid" data-order-id="${order.id}" style="
-                            background: #2196f3;
-                            color: white;
-                            border: none;
-                            padding: 0.75rem 1.5rem;
-                            border-radius: 8px;
-                            font-size: 0.9rem;
-                            font-weight: 600;
-                            cursor: pointer;
-                            display: flex;
-                            align-items: center;
-                            gap: 0.5rem;
-                        ">
-                            <i class="fas fa-money-bill-wave"></i>
-                            Mark as Paid
-                        </button>
-                        ` : ''}
-                        
-                        ${order.status === 'paid' || order.status === 'pending' ? `
-                        <button class="dashboard-action-btn mark-shipped" data-order-id="${order.id}" style="
-                            background: #4caf50;
-                            color: white;
-                            border: none;
-                            padding: 0.75rem 1.5rem;
-                            border-radius: 8px;
-                            font-size: 0.9rem;
-                            font-weight: 600;
-                            cursor: pointer;
-                            display: flex;
-                            align-items: center;
-                            gap: 0.5rem;
-                        ">
-                            <i class="fas fa-truck"></i>
-                            Mark as Shipped
-                        </button>
-                        ` : ''}
-                    </div>
+                    ${orderDate} ${orderTime}
+                </span>
+            </div>
+            
+            <div style="margin-bottom: 0.5rem;">
+                <div style="font-weight: 600; color: #333; margin-bottom: 0.25rem;">
+                    ${order.firstName} ${order.surname}
                 </div>
-            `;
+                <div style="color: #666; font-size: 0.85rem;">
+                    <i class="fas fa-phone" style="margin-right: 0.25rem;"></i>
+                    ${order.customerPhone}
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: right; margin-left: 1rem;">
+            <div style="
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: #e91e63;
+                margin-bottom: 0.25rem;
+            ">R${order.totalAmount.toFixed(2)}</div>
+            <div style="color: #666; font-size: 0.8rem;">
+                ${order.items.length} item${order.items.length !== 1 ? 's' : ''}
+            </div>
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <button class="dashboard-action-btn view-order" data-order-id="${order.id}" style="
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        ">
+            <i class="fas fa-eye"></i>
+            Details
+        </button>
+        
+        ${order.status === 'pending' ? `
+        <button class="dashboard-action-btn mark-paid" data-order-id="${order.id}" style="
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        ">
+            <i class="fas fa-money-bill-wave"></i>
+            Paid
+        </button>
+        ` : ''}
+        
+        ${order.status === 'paid' || order.status === 'pending' ? `
+        <button class="dashboard-action-btn mark-shipped" data-order-id="${order.id}" style="
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        ">
+            <i class="fas fa-truck"></i>
+            Ship
+        </button>
+        ` : ''}
+    </div>
+</div>
+`;
         });
         
         html += '</div>';
