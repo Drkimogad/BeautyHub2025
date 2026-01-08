@@ -243,7 +243,12 @@ const CustomerOrderManager = (function() {
         
         // Show modal
         checkoutModal.style.display = 'flex';
-        document.getElementById('customer-firstname').focus(); // CHANGED
+//document.getElementById('customer-firstname').focus(); // CHANGED
+        // add check to avoid error
+        const firstNameField = document.getElementById('customer-firstname');
+        if (firstNameField) {
+        firstNameField.focus();
+         }
         document.body.style.overflow = 'hidden';
     }
     
@@ -310,8 +315,13 @@ if (!formData.surname?.trim()) {
     
     function submitOrder(event) {
         event.preventDefault();
+    // DEBUG: Check form values
+    console.log('DEBUG Form Values:', {
+        firstName: document.getElementById('customer-firstname').value,
+        surname: document.getElementById('customer-surname').value,
+        phone: document.getElementById('customer-phone').value
+    });
         
-        // Get form data
         // Get form data
 const formData = {
     firstName: document.getElementById('customer-firstname').value,
