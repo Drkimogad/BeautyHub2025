@@ -460,7 +460,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 100;
+    z-index: 99;
     transform: translate(0, 0); /* Reset any transforms */
 }
 
