@@ -80,7 +80,7 @@ const ProductsManager = (function() {
                 price: 300.00,
                 originalPrice: 300.00,
                 stock: 15,
-                imageUrl: 'gallery/perfume1.jpg',
+                imageUrl: 'gallery/perfume.jpg',
                 gallery: [],
                 tags: ['new', 'featured'],
                 specifications: {
@@ -100,7 +100,7 @@ const ProductsManager = (function() {
                 price: 49.99,
                 originalPrice: 49.99,
                 stock: 25,
-                imageUrl: 'gallery/lashes1.jpg',
+                imageUrl: 'gallery/lashes.jpg',
                 gallery: [],
                 tags: ['bestseller'],
                 specifications: {
@@ -120,7 +120,7 @@ const ProductsManager = (function() {
                 price: 99.99,
                 originalPrice: 99.99,
                 stock: 8,
-                imageUrl: 'gallery/skincare1.jpg',
+                imageUrl: 'gallery/skincare.jpg',
                 gallery: [],
                 tags: ['bestseller'],
                 specifications: {
@@ -140,7 +140,7 @@ const ProductsManager = (function() {
                 price: 599.99,
                 originalPrice: 599.99,
                 stock: 3,
-                imageUrl: 'gallery/wig1.jpg',
+                imageUrl: 'gallery/wigs.jpg',
                 gallery: [],
                 tags: ['new'],
                 specifications: {
