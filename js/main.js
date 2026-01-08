@@ -34,7 +34,8 @@ const AppManager = (function() {
             OrdersManager: typeof OrdersManager !== 'undefined',
             CustomerOrderManager: typeof CustomerOrderManager !== 'undefined',
             AdminManager: typeof AdminManager !== 'undefined',
-            CustomerSearchManager: typeof CustomerSearchManager !== 'undefined'
+            CustomerSearchManager: typeof CustomerSearchManager !== 'undefined',
+            InventoryManager: typeof InventoryManager !== 'undefined'
         };
         
         // Log missing modules
@@ -43,8 +44,10 @@ const AppManager = (function() {
         });
         
         // Initialize in dependency order
+        let productsManager, inventoryManager;
+        
         if (modules.ProductsManager) {
-            ProductsManager.init();  // First: products need to render
+            productsManager = ProductsManager.init();  // First: products
         }
         
         if (modules.BeautyHubCart) {
@@ -59,8 +62,17 @@ const AppManager = (function() {
             CustomerOrderManager.init(); // Fourth: checkout depends on orders
         }
         
+        if (modules.CustomerSearchManager) {
+            CustomerSearchManager.init(); // Fifth: search depends on checkout
+        }
+        
         if (modules.AdminManager) {
-            AdminManager.init();     // Fifth: admin depends on everything
+            AdminManager.init();     // Sixth: admin depends on everything
+        }
+        
+        // Initialize Inventory LAST (depends on Products and Orders)
+        if (modules.InventoryManager && productsManager && modules.OrdersManager) {
+            inventoryManager = InventoryManager.init(ProductsManager, OrdersManager);
         }
     }
     
