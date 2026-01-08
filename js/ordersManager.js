@@ -575,19 +575,188 @@ const OrdersManager = (function() {
             <html>
             <head>
                 <title>Order ${order.id} - BeautyHub2025</title>
-                <style>
-                    body { font-family: Arial, sans-serif; margin: 20px; }
-                    .header { text-align: center; margin-bottom: 30px; }
-                    .order-info { margin-bottom: 20px; }
-                    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                    th { background-color: #f2f2f2; }
-                    .total-row { font-weight: bold; }
-                    .footer { margin-top: 40px; font-size: 12px; color: #666; }
-                    @media print {
-                        button { display: none; }
-                    }
-                </style>
+<style>
+    * {
+        box-sizing: border-box;
+    }
+    
+    body { 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        margin: 0;
+        padding: 20px;
+        color: #333;
+        background: white;
+    }
+    
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .header { 
+        text-align: center; 
+        margin-bottom: 30px; 
+        padding-bottom: 20px;
+        border-bottom: 2px solid #e91e63;
+    }
+    
+    .header h1 {
+        color: #e91e63;
+        margin-bottom: 5px;
+    }
+    
+    .header h2 {
+        color: #555;
+        font-weight: normal;
+    }
+    
+    .order-info { 
+        margin-bottom: 30px; 
+        padding: 15px;
+        background: #f9f9f9;
+        border-radius: 8px;
+    }
+    
+    .order-info p {
+        margin: 8px 0;
+    }
+    
+    table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        margin: 20px 0; 
+    }
+    
+    th, td { 
+        border: 1px solid #ddd; 
+        padding: 12px 8px; 
+        text-align: left; 
+    }
+    
+    th { 
+        background-color: #f2f2f2; 
+        font-weight: bold;
+    }
+    
+    .total-row { 
+        font-weight: bold; 
+        background-color: #f9f9f9;
+    }
+    
+    .footer { 
+        margin-top: 40px; 
+        font-size: 14px; 
+        color: #666; 
+        text-align: center;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+    
+    .print-buttons {
+        margin-top: 30px;
+        text-align: center;
+    }
+    
+    button {
+        padding: 12px 24px;
+        margin: 0 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+    }
+    
+    .print-btn {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .close-btn {
+        background: #ff9800;
+        color: white;
+    }
+    
+    /* Responsive styles for tablets and phones */
+    @media (max-width: 768px) {
+        body {
+            padding: 15px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+        }
+        
+        .header h2 {
+            font-size: 18px;
+        }
+        
+        th, td {
+            padding: 10px 6px;
+            font-size: 14px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            display: block;
+            width: 100%;
+        }
+        
+        .print-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        body {
+            padding: 10px;
+        }
+        
+        .container {
+            width: 100%;
+        }
+        
+        table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .order-info {
+            padding: 10px;
+            font-size: 14px;
+        }
+        
+        th, td {
+            padding: 8px 4px;
+            font-size: 13px;
+        }
+    }
+    
+    /* Print-specific styles */
+    @media print {
+        button { 
+            display: none !important; 
+        }
+        
+        .print-buttons {
+            display: none !important;
+        }
+        
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0;
+        }
+    }
+</style>
             </head>
             <body>
                 <div class="header">
@@ -631,31 +800,16 @@ const OrdersManager = (function() {
                     <p>Thank you for your business!</p>
                     <p>BeautyHub2025 | Luxury Beauty Products</p>
                 </div>
-                
-                <button onclick="window.print()" style="
-                    margin-top: 20px;
-                    padding: 10px 20px;
-                    background: #4CAF50;
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                ">
-                    Print Invoice
-                </button>
-                
-                <button onclick="window.close()" style="
-                    margin-top: 20px;
-                    margin-left: 10px;
-                    padding: 10px 20px;
-                    background: #ff9800;
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                ">
-                    Close Window
-                </button>
+                                <div class="print-buttons">
+                    <button onclick="window.print()" class="print-btn">
+                        Print Invoice
+                    </button>
+                    
+                    <button onclick="window.close()" class="close-btn">
+                        Close Window
+                    </button>
+                </div>
+    
             </body>
             </html>
         `);
