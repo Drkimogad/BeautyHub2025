@@ -284,9 +284,13 @@ const CustomerOrderManager = (function() {
     function validateForm(formData) {
         const errors = [];
         
-        if (!formData.customerName?.trim()) {
-            errors.push('Full name is required');
-        }
+        if (!formData.firstName?.trim()) {
+    errors.push('First name is required');
+}
+
+if (!formData.surname?.trim()) {
+    errors.push('Surname is required');
+}
         
         if (!formData.customerPhone?.trim()) {
             errors.push('Phone number is required');
