@@ -1004,10 +1004,13 @@ const AdminManager = (function() {
                 handleLogout();
             }
             
-            if (e.target.id === 'refresh-orders' || e.target.closest('#refresh-orders')) {
-            console.log('Refresh button clicked');
-                loadDashboardData();
-                updateDashboardTime();
+            // Refresh button
+           if (e.target.id === 'refresh-orders' || 
+          (e.target.classList.contains('action-btn') && e.target.querySelector('i.fa-sync-alt'))) {
+           console.log('Refresh button clicked via event delegation');
+             loadDashboardData();
+             updateDashboardTime();
+           e.stopPropagation();
             }
         });
         
