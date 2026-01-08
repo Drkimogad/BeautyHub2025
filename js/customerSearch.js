@@ -230,44 +230,41 @@ const CustomerSearchManager = (function() {
     }
     
     // LocalStorage search implementation
-    function searchLocalStorageCustomer(surname, phone) {
-        try {
-            // Get all orders from localStorage
-            const ordersJSON = localStorage.getItem('beautyhub_orders');
-            if (!ordersJSON) return null;
+function searchLocalStorageCustomer(surname, phone) {
+    try {
+        // Get all orders from localStorage
+        const ordersJSON = localStorage.getItem('beautyhub_orders');
+        if (!ordersJSON) return null;
+        
+        const orders = JSON.parse(ordersJSON) || [];
+        if (orders.length === 0) return null;
+        
+        // Normalize search parameters
+        const searchSurname = surname.toLowerCase().trim();
+        const searchPhone = normalizePhone(phone);
+        
+        // Find matching customer in orders
+        for (const order of orders) {
+            if (!order.surname) continue; // Changed from customerName to surname
             
-            const orders = JSON.parse(ordersJSON) || [];
-            if (orders.length === 0) return null;
+            // Get surname directly from order - NEW METHOD
+            const orderSurname = order.surname.toLowerCase().trim();
+            const orderPhone = normalizePhone(order.customerPhone);
             
-            // Normalize search parameters
-            const searchSurname = surname.toLowerCase().trim();
-            const searchPhone = normalizePhone(phone);
-            
-            // Find matching customer in orders
-            for (const order of orders) {
-                if (!order.customerName) continue;
-                
-                // Extract surname from full name
-                const nameParts = order.customerName.trim().split(' ');
-                const orderSurname = nameParts[nameParts.length - 1].toLowerCase();
-                
-                // Normalize order phone
-                const orderPhone = normalizePhone(order.customerPhone);
-                
-                // Check match
-                if (orderSurname === searchSurname && orderPhone === searchPhone) {
-                    // Found matching customer - create customer record
-                    return createCustomerFromOrder(order);
-                }
+            // Check match (case-insensitive)
+            if (orderSurname === searchSurname && orderPhone === searchPhone) {
+                // Found matching customer - create customer record
+                return createCustomerFromOrder(order);
             }
-            
-            return null;
-            
-        } catch (error) {
-            console.error('LocalStorage search error:', error);
-            return null;
         }
+        
+        return null;
+        
+    } catch (error) {
+        console.error('LocalStorage search error:', error);
+        return null;
     }
+}
     
     // Firebase search (placeholder for future implementation)
     async function searchFirebaseCustomer(surname, phone) {
@@ -302,28 +299,24 @@ const CustomerSearchManager = (function() {
     // ============================================
     // CUSTOMER DATA MANAGEMENT
     // ============================================
-    function createCustomerFromOrder(order) {
-        const nameParts = order.customerName.trim().split(' ');
-        const firstName = nameParts.slice(0, -1).join(' ');
-        const surname = nameParts[nameParts.length - 1];
-        
-        return {
-            ...CUSTOMER_SCHEMA,
-            id: generateCustomerId(),
-            firstName: firstName || '',
-            surname: surname || '',
-            phone: order.customerPhone || '',
-            whatsApp: order.customerWhatsApp || '',
-            email: order.customerEmail || '',
-            addresses: [order.shippingAddress || ''],
-            orderCount: 1,
-            totalSpent: order.totalAmount || 0,
-            firstOrder: order.createdAt || new Date().toISOString(),
-            lastOrder: order.createdAt || new Date().toISOString(),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-    }
+function createCustomerFromOrder(order) {  //UPDATED
+    return {
+        ...CUSTOMER_SCHEMA,
+        id: generateCustomerId(),
+        firstName: order.firstName || '',
+        surname: order.surname || '',
+        phone: order.customerPhone || '',
+        whatsApp: order.customerWhatsApp || '',
+        email: order.customerEmail || '',
+        addresses: [order.shippingAddress || ''],
+        orderCount: 1,
+        totalSpent: order.totalAmount || 0,
+        firstOrder: order.createdAt || new Date().toISOString(),
+        lastOrder: order.createdAt || new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+}
     
     function saveCustomer(customerData) {
         try {
@@ -396,38 +389,39 @@ const CustomerSearchManager = (function() {
     // ============================================
     // FORM AUTO-FILL FUNCTIONALITY
     // ============================================
-    function autoFillForm(customer) {
-        console.log('Auto-filling form with customer:', customer);
-        
-        // Map customer data to form fields
-        const fieldMapping = {
-            'customer-name': customer.firstName ? `${customer.firstName} ${customer.surname}`.trim() : customer.surname,
-            'customer-phone': customer.phone,
-            'customer-whatsapp': customer.whatsApp || '',
-            'customer-email': customer.email || '',
-            'shipping-address': customer.addresses && customer.addresses.length > 0 
-                ? customer.addresses[0] 
-                : ''
-        };
-        
-        // Fill each form field
-        Object.entries(fieldMapping).forEach(([fieldId, value]) => {
-            const field = document.getElementById(fieldId);
-            if (field && value) {
-                field.value = value;
-                
-                // Trigger change event for any validation
-                field.dispatchEvent(new Event('input', { bubbles: true }));
-                field.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-        });
-        
-        // Focus on special instructions field for convenience
-        const notesField = document.getElementById('order-notes');
-        if (notesField) {
-            setTimeout(() => notesField.focus(), 100);
+function autoFillForm(customer) {  // UPDATED
+    console.log('Auto-filling form with customer:', customer);
+    
+    // Map customer data to form fields
+    const fieldMapping = {
+        'customer-firstname': customer.firstName || '',
+        'customer-surname': customer.surname || '',
+        'customer-phone': customer.phone,
+        'customer-whatsapp': customer.whatsApp || '',
+        'customer-email': customer.email || '',
+        'shipping-address': customer.addresses && customer.addresses.length > 0 
+            ? customer.addresses[0] 
+            : ''
+    };
+    
+    // Fill each form field
+    Object.entries(fieldMapping).forEach(([fieldId, value]) => {
+        const field = document.getElementById(fieldId);
+        if (field && value) {
+            field.value = value;
+            
+            // Trigger change event for any validation
+            field.dispatchEvent(new Event('input', { bubbles: true }));
+            field.dispatchEvent(new Event('change', { bubbles: true }));
         }
+    });
+    
+    // Focus on special instructions field for convenience
+    const notesField = document.getElementById('order-notes');
+    if (notesField) {
+        setTimeout(() => notesField.focus(), 100);
     }
+}
     
     // ============================================
     // UTILITY FUNCTIONS
