@@ -576,20 +576,28 @@ const AdminManager = (function() {
                             </div>
                         </div>
                         
-                        <!-- Products Tab (Placeholder) -->
-                        <div id="products-tab-content" class="tab-pane" style="
-                            flex: 1;
-                            display: none;
-                            align-items: center;
-                            justify-content: center;
-                            color: #666;
-                        ">
-                            <div style="text-align: center;">
-                                <i class="fas fa-boxes" style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.2;"></i>
-                                <h3>Products Management</h3>
-                                <p>Coming soon in future update</p>
-                            </div>
-                        </div>
+                     <!-- Products Tab -->
+<div id="products-tab-content" class="tab-pane" style="
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+">
+    <!-- Content will be loaded dynamically by ProductsManager -->
+    <div style="
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #666;
+    ">
+        <div style="text-align: center;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+            <h3>Loading Products...</h3>
+            <p>Please wait while we load your products.</p>
+        </div>
+    </div>
+</div>
                         
                         <!-- Analytics Tab (Placeholder) -->
                         <div id="analytics-tab-content" class="tab-pane" style="
@@ -730,6 +738,10 @@ const AdminManager = (function() {
         
         // Render orders
         renderDashboardOrders('pending');
+        // Load products if ProductsManager is available
+if (typeof ProductsManager !== 'undefined') {
+    ProductsManager.renderProductsAdmin('products-tab-content');
+}
     }
     
     // Render orders in dashboard
