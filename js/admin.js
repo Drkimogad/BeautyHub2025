@@ -668,6 +668,12 @@ const AdminManager = (function() {
     
     // Open dashboard
     function openDashboard() {
+    // Check session is still valid
+    if (!checkExistingSession()) {
+        destroySession();
+        openAdminLogin(); // Force re-login
+        return;
+    }
         if (dashboardModal) {
             dashboardModal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
@@ -686,6 +692,7 @@ const AdminManager = (function() {
     
     // Load dashboard data
     function loadDashboardData() {
+        console.log('loadDashboardData called');
         if (typeof OrdersManager === 'undefined') {
             console.error('OrdersManager not loaded');
             return;
@@ -998,6 +1005,7 @@ const AdminManager = (function() {
             }
             
             if (e.target.id === 'refresh-orders' || e.target.closest('#refresh-orders')) {
+            console.log('Refresh button clicked');
                 loadDashboardData();
                 updateDashboardTime();
             }
