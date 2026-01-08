@@ -580,7 +580,7 @@ const AdminManager = (function() {
 <div id="products-tab-content" class="tab-pane" style="
     flex: 1;
     overflow: hidden;
-    display: flex;
+    display: none;  /* CHANGE FROM 'flex' TO 'none'*/
     flex-direction: column;
 ">
     <!-- Content will be loaded dynamically by ProductsManager -->
