@@ -738,10 +738,6 @@ const AdminManager = (function() {
         
         // Render orders
         renderDashboardOrders('pending');
-        // Load products if ProductsManager is available
-if (typeof ProductsManager !== 'undefined') {
-    ProductsManager.renderProductsAdmin('products-tab-content');
-}
     }
     
     // Render orders in dashboard
@@ -1053,12 +1049,33 @@ if (typeof ProductsManager !== 'undefined') {
                     t.style.border = t === tab ? 'none' : '2px solid #e0e0e0';
                 });
                 
-                // Show corresponding content
+            // In the tab switching click handler, add this condition:
+if (tabName === 'products' && typeof ProductsManager !== 'undefined') {
+    // Clear any previous content
+    const productsTab = document.getElementById('products-tab-content');
+    if (productsTab) {
+        // Show loading, then render products
+        productsTab.innerHTML = `
+            <div style="flex: 1; display: flex; align-items: center; justify-content: center; color: #666;">
+                <div style="text-align: center;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <h3>Loading Products...</h3>
+                    <p>Please wait while we load your products.</p>
+                </div>
+            </div>
+        `;
+        
+        // Small delay to ensure UI updates, then render products
+        setTimeout(() => {
+            ProductsManager.renderProductsAdmin('products-tab-content');
+        }, 100);
+    }
+}
+                 // Show corresponding content
                 document.querySelectorAll('.tab-pane').forEach(pane => {
                     pane.style.display = pane.id === `${tabName}-tab-content` ? 'flex' : 'none';
                 });
             }
-            
             // Status filter switching
             if (e.target.classList.contains('status-filter') || 
                 e.target.closest('.status-filter')) {
