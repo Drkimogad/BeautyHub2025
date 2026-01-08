@@ -633,6 +633,10 @@ const CustomerSearchManager = (function() {
     };
 })();
 
+
+// Export the manager for integration
+// Call CustomerSearchManager.init() when checkout form is ready
+
 // Auto-initialize when DOM is ready
 // Note: Call this after checkout form is created
 // if (document.readyState === 'loading') {
