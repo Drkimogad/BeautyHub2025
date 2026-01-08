@@ -38,9 +38,14 @@ const AdminManager = (function() {
         updateAdminButtonVisibility();
         // Listens for new orders from ANY tab
       window.addEventListener('storage', function(e) {
-    if (e.key === 'beautyhub_orders' && dashboardModal.style.display === 'flex') {
-        loadDashboardData(); // Updates modal only when open
-        console.log('Auto-refreshed dashboard: New order detected');
+    if (e.key === 'beautyhub_orders') {
+        console.log('New order detected, dashboard open?', 
+                   dashboardModal && dashboardModal.style.display);
+        
+        // Always refresh if dashboard exists and is visible
+        if (dashboardModal && dashboardModal.style.display === 'flex') {
+            loadDashboardData();
+        }
     }
 });
     }
