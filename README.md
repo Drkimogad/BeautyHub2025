@@ -343,7 +343,106 @@ The foundation is solid with:
 
 ✅ Clean, maintainable code structure
 
-Next logical step: Begin Priority 3 - Inventory Management with product CRUD operations and stock tracking.
 
 Last Updated: Development session completed with customer search integration and admin dashboard optimization. Ready for inventory management implementation.
+
+
+Next logical step: Begin Priority 3 - Inventory Management with product CRUD operations and stock tracking.
+Basic, Practical Products Management
+Core Features Needed:
+1. Product CRUD Operations:
+
+Add Product: Form with name, price, stock, category, image URL
+
+Edit Product: Update existing product details
+
+Delete Product: Remove with confirmation
+
+View Products: Grid/list with quick actions
+
+2. Stock Management:
+
+Current Stock display for each product
+
+Auto-deduct when orders placed
+
+Low Stock Alerts (visual indicator when stock < threshold)
+
+Manual Stock Update (restock/adjustments)
+
+3. Product Display:
+
+Categories Filter: Perfumes, Lashes, Skincare, Wigs
+
+Stock Status Badges: "In Stock", "Low Stock", "Out of Stock"
+
+Quick Edit: Stock adjustment without full edit
+
+Suggested Products Management Modal:
+Based on your current admin dashboard design:
+
+text
+┌─────────────────────────────────────────┐
+│ Products Management           [Add New] │
+├─────────────────────────────────────────┤
+│ [All] [Perfumes] [Lashes] [Skincare]    │
+│ [Wigs] [Low Stock] [Out of Stock]       │
+├─────────────────────────────────────────┤
+│ ┌─────────────────────────────────┐     │
+│ │ PRODUCT CARD:                  │     │
+│ │ [Image]                        │     │
+│ │ Product Name                   │     │
+│ │ R299.99 • Stock: 15            │     │
+│ │ [Edit] [Adjust Stock] [Delete] │     │
+│ └─────────────────────────────────┘     │
+│                                         │
+│ ┌─────────────────────────────────┐     │
+│ │ PRODUCT CARD:                  │     │
+│ │ [Image]                        │     │
+│ │ Product Name                   │     │
+│ │ R499.99 • Stock: 3 (LOW!)      │     │
+│ │ [Edit] [Adjust Stock] [Delete] │     │
+│ └─────────────────────────────────┘     │
+└─────────────────────────────────────────┘
+Product Card Actions:
+Edit: Opens full edit modal
+
+Adjust Stock: Quick +/- buttons popup
+
+Delete: With "Move to out of stock?" option
+
+Practical Implementation Plan:
+Phase 1 - Basic CRUD:
+
+productsManager.js - Product schema & localStorage operations
+
+Add "Products" tab to existing admin dashboard
+
+Simple add/edit forms
+
+Phase 2 - Stock Integration:
+
+Connect to ordersManager.js to deduct stock
+
+Low stock indicators
+
+Quick stock adjustment
+
+Phase 3 - Enhanced Display:
+
+Categories filtering
+
+Search within products
+
+Bulk actions
+
+Key Insights:
+Reuse your existing admin modal pattern - same style, same UX
+
+Start with localStorage - same pattern as orders/customers
+
+Simple schema first - expand later
+
+Integrate gradually - connect stock to existing order flow
+
 
