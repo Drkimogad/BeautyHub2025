@@ -225,7 +225,7 @@ function initializeModules() {
                         <span class="close-modal">&times;</span>
                         <img src="${productImg}" alt="${productTitle}">
                         <h3>${productTitle}</h3>
-                        <button class="add-to-cart">Add to Cart</button>
+             <!-- REMOVED: <button class="add-to-cart">Add to Cart</button> -->
                     </div>
                 `;
                 modal.style.display = 'flex';
