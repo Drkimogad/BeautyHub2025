@@ -265,7 +265,7 @@ const AdminManager = (function() {
                 border-radius: 16px;
                 width: 100%;
                 height: 100%;
-                max-height: 95vh;   /*changed*/
+                max-height: 100vh;   /*changed*/
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
