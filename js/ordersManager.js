@@ -190,14 +190,37 @@ const OrdersManager = (function() {
         return updateOrderStatus(orderId, 'paid');
     }
     
-    // Mark order as shipped (with date input)
-    function markAsShipped(orderId, shippingDate = '') {
-        if (!shippingDate) {
-            // Default to today if no date provided
-            shippingDate = new Date().toISOString().split('T')[0];
-        }
-        return updateOrderStatus(orderId, 'shipped', shippingDate);
+// Mark order as shipped (with date input)  UPDATED
+function markAsShipped(orderId, shippingDate = '') {
+    if (!shippingDate) {
+        // Default to today if no date provided
+        shippingDate = new Date().toISOString().split('T')[0];
     }
+    
+    // Stock deduction - ADDED INTEGRATION
+    const order = getOrderById(orderId);
+    if (order && typeof ProductsManager !== 'undefined') {
+        // Deduct stock for each item in the order
+        let allStockDeducted = true;
+        const failedItems = [];
+        
+        order.items.forEach(item => {
+            const success = ProductsManager.updateStock(item.productId, -item.quantity);
+            if (!success) {
+                allStockDeducted = false;
+                failedItems.push(item.productName);
+            }
+        });
+        
+        // If stock deduction failed, alert and cancel shipment
+        if (!allStockDeducted) {
+            alert(`Cannot ship order ${orderId}. Insufficient stock for: ${failedItems.join(', ')}`);
+            return false;
+        }
+    }
+    
+    return updateOrderStatus(orderId, 'shipped', shippingDate);
+}
     
     // Delete order
     function deleteOrder(orderId) {
