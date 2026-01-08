@@ -25,56 +25,73 @@ const AppManager = (function() {
         console.log('BeautyHub2025 PWA Initialized');
     }
     
-    // Initialize all modules in correct order
-    function initializeModules() {
-        // Check module dependencies
-        const modules = {
-            ProductsManager: typeof ProductsManager !== 'undefined',
-            BeautyHubCart: typeof BeautyHubCart !== 'undefined',
-            OrdersManager: typeof OrdersManager !== 'undefined',
-            CustomerOrderManager: typeof CustomerOrderManager !== 'undefined',
-            AdminManager: typeof AdminManager !== 'undefined',
-            CustomerSearchManager: typeof CustomerSearchManager !== 'undefined',
-            InventoryManager: typeof InventoryManager !== 'undefined'
-        };
-        
-        // Log missing modules
-        Object.entries(modules).forEach(([name, loaded]) => {
-            if (!loaded) console.error(`${name} not loaded`);
-        });
-        
-        // Initialize in dependency order
-        let productsManager, inventoryManager;
-        
-        if (modules.ProductsManager) {
-            productsManager = ProductsManager.init();  // First: products
-        }
-        
-        if (modules.BeautyHubCart) {
-            BeautyHubCart.init();    // Second: cart depends on products
-        }
-        
-        if (modules.OrdersManager) {
-            OrdersManager.init();    // Third: orders depends on cart
-        }
-        
-        if (modules.CustomerOrderManager) {
-            CustomerOrderManager.init(); // Fourth: checkout depends on orders
-        }
-        
-        if (modules.CustomerSearchManager) {
-            CustomerSearchManager.init(); // Fifth: search depends on checkout
-        }
-        
-        if (modules.AdminManager) {
-            AdminManager.init();     // Sixth: admin depends on everything
-        }
-        
-        // Initialize Inventory LAST (depends on Products and Orders)
-        if (modules.InventoryManager && productsManager && modules.OrdersManager) {
-            inventoryManager = InventoryManager.init(ProductsManager, OrdersManager);
-        }
+  // Initialize all modules in correct order
+function initializeModules() {
+    // Check module dependencies
+    const modules = {
+        ProductsManager: typeof ProductsManager !== 'undefined',
+        ProductsDisplay: typeof ProductsDisplay !== 'undefined', // ADDED
+        BeautyHubCart: typeof BeautyHubCart !== 'undefined',
+        OrdersManager: typeof OrdersManager !== 'undefined',
+        CustomerOrderManager: typeof CustomerOrderManager !== 'undefined',
+        AdminManager: typeof AdminManager !== 'undefined',
+        CustomerSearchManager: typeof CustomerSearchManager !== 'undefined',
+        InventoryManager: typeof InventoryManager !== 'undefined'
+    };
+    
+    // Log missing modules
+    Object.entries(modules).forEach(([name, loaded]) => {
+        if (!loaded) console.error(`${name} not loaded`);
+    });
+    
+    // Initialize in dependency order
+    let productsManager, inventoryManager;
+    
+    // 1. Products data (core data)
+    if (modules.ProductsManager) {
+        productsManager = ProductsManager.init();
     }
+    
+    // 2. Products display (UI)
+    if (modules.ProductsDisplay) {
+        ProductsDisplay.init(); // ADDED: Render products to page
+    }
+    
+    // 3. Inventory (needs products data for stock checks)
+    if (modules.InventoryManager && modules.ProductsManager) {
+        inventoryManager = InventoryManager.init(ProductsManager, null); // Initialize early for cart
+    }
+    
+    // 4. Cart (needs products display + inventory for stock checks)
+    if (modules.BeautyHubCart) {
+        BeautyHubCart.init();
+    }
+    
+    // 5. Orders (needs cart)
+    if (modules.OrdersManager) {
+        OrdersManager.init();
+    }
+    
+    // 6. Checkout (needs orders)
+    if (modules.CustomerOrderManager) {
+        CustomerOrderManager.init();
+    }
+    
+    // 7. Search (needs checkout/customer data)
+    if (modules.CustomerSearchManager) {
+        CustomerSearchManager.init();
+    }
+    
+    // 8. Admin (needs everything)
+    if (modules.AdminManager) {
+        AdminManager.init();
+    }
+    
+    // 9. Finalize Inventory with Orders dependency
+    if (inventoryManager && modules.OrdersManager) {
+        // Already initialized above, just update Orders reference if needed
+    }
+}
     
     // ===== NAVIGATION HANDLERS =====
     function setupNavigationHandlers() {
