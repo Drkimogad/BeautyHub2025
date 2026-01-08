@@ -98,6 +98,12 @@ const OrdersManager = (function() {
     
     // Create new order
     function createOrder(customerData) {
+        console.log('DEBUG Order Creation:', {
+        firstName: customerData.firstName,
+        surname: customerData.surname,
+        fullData: customerData
+    });
+        
         if (!customerData || !customerData.cartItems || customerData.cartItems.length === 0) {
             console.error('Cannot create order: No cart items');
             return null;
