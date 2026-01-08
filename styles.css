@@ -1149,4 +1149,15 @@ header {
     }
 }
 
+/* Override for admin dashboard only */
+#dashboard-orders-container .order-card-detailed {
+    padding: 1rem !important;
+    margin-bottom: 0.75rem !important;
+}
 
+#dashboard-orders-container .order-customer-detailed {
+    display: block !important;
+    padding: 0 !important;
+    background: transparent !important;
+    margin-bottom: 0.5rem !important;
+}
