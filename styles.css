@@ -1161,3 +1161,194 @@ header {
     background: transparent !important;
     margin-bottom: 0.5rem !important;
 }
+
+/* ===== PRODUCTS MANAGER CSS ===== */
+/* Product Admin Cards */
+.product-admin-card {
+    transition: all 0.2s ease;
+}
+
+.product-admin-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Product Modals */
+.product-modal,
+.stock-modal {
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Product Form Styles */
+#product-form input:focus,
+#product-form select:focus,
+#product-form textarea:focus {
+    border-color: #667eea !important;
+    outline: none;
+}
+
+/* Stock Status Indicators */
+.stock-low {
+    background: #fff8e1;
+    border-color: #ff9800 !important;
+}
+
+.stock-out {
+    background: #ffebee;
+    border-color: #ff5252 !important;
+}
+
+.stock-healthy {
+    background: #f1f8e9;
+    border-color: #4CAF50 !important;
+}
+
+/* Product Grid */
+#products-grid {
+    scrollbar-width: thin;
+    scrollbar-color: #ccc #f5f5f5;
+}
+
+#products-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+#products-grid::-webkit-scrollbar-track {
+    background: #f5f5f5;
+    border-radius: 3px;
+}
+
+#products-grid::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}
+
+/* ===== INVENTORY MANAGER CSS ===== */
+/* Inventory Report Cards */
+.inventory-report-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #667eea;
+}
+
+.inventory-metric {
+    text-align: center;
+    padding: 1rem;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.inventory-metric .value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 0.5rem;
+}
+
+.inventory-metric .label {
+    font-size: 0.9rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Stock Alert Styles */
+.stock-alert {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.8; }
+    100% { opacity: 1; }
+}
+
+.stock-alert-critical {
+    background: linear-gradient(135deg, #ff5252, #ff8a80);
+    color: white;
+}
+
+.stock-alert-warning {
+    background: linear-gradient(135deg, #ff9800, #ffb74d);
+    color: white;
+}
+
+/* Inventory Table */
+.inventory-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+
+.inventory-table th {
+    background: #f8f9fa;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.inventory-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.inventory-table tr:hover {
+    background: #f8f9fa;
+}
+
+/* Responsive Styles for Products */
+@media (max-width: 768px) {
+    #products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
+        gap: 1rem !important;
+    }
+    
+    .product-admin-card {
+        padding: 0.75rem !important;
+    }
+    
+    .product-admin-card > div:first-child {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .product-admin-card img {
+        width: 100% !important;
+        height: 150px !important;
+    }
+    
+    .product-filter {
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.8rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #products-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .product-modal > div,
+    .stock-modal > div {
+        padding: 1.5rem !important;
+    }
+    
+    .product-form-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
