@@ -11,13 +11,10 @@ Summary of changes to products.js:
 const ProductsDisplay = (function() {
   // Initialize products display
 function init() {
-    console.log('[ProductsDisplay] Initializing...');
-    
-    // Wait a bit for ProductsManager to initialize
-    setTimeout(() => {
-        renderProducts();
-        setupEventListeners();
-    }, 100);
+    console.log('[ProductsDisplay] Initializing...');    
+  // Remove this setTimeout - ProductsManager is already initialized
+    renderProducts();
+    setupEventListeners();
 }
     
 // Render products to page using ProductsManager data
