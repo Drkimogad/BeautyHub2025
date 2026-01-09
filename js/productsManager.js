@@ -1,13 +1,22 @@
 // productsManager.js - Product CRUD & Management System
-
+/*
+Summary of changes to productsManager.js:
+✅ Added cache system with 1-hour expiry
+✅ Loads from cache first, falls back to localStorage
+✅ Saves to cache whenever products change
+✅ Cache invalidation method for admin updates
+✅ Maintains exact same interface
+*/
 const ProductsManager = (function() {
     // Configuration
-    const CONFIG = {
-        STORAGE_KEY: 'beautyhub_products',
-        CATEGORIES: ['perfumes', 'lashes', 'skincare', 'wigs'],
-        DEFAULT_IMAGE: 'gallery/placeholder.jpg',
-        LOW_STOCK_THRESHOLD: 5
-    };
+   const CONFIG = {
+    STORAGE_KEY: 'beautyhub_products',
+    CACHE_KEY: 'beautyhub_products_cache', // NEW
+    CACHE_DURATION: 60 * 60 * 1000, // 1 hour in milliseconds (NEW)
+    CATEGORIES: ['perfumes', 'lashes', 'skincare', 'wigs'],
+    DEFAULT_IMAGE: 'gallery/placeholder.jpg',
+    LOW_STOCK_THRESHOLD: 5
+};
     
     // Product Schema
     const PRODUCT_SCHEMA = {
@@ -46,28 +55,89 @@ const ProductsManager = (function() {
         };
     }
     
-    // Load products from localStorage
-    function loadProducts() {
-        const saved = localStorage.getItem(CONFIG.STORAGE_KEY);
-        if (saved) {
-            try {
-                products = JSON.parse(saved) || [];
-            } catch (e) {
-                products = [];
-                console.error('Error loading products:', e);
-            }
-        }
-        
-        // Initialize sample products if empty
-        if (products.length === 0) {
-            initializeSampleProducts();
+// Load products from localStorage
+function loadProducts() {
+    console.log('[ProductsManager] Loading products...');
+    
+    // Try to load from cache first
+    const cached = loadProductsFromCache();
+    if (cached && cached.products && cached.products.length > 0) {
+        console.log('[ProductsManager] Loaded from cache:', cached.products.length, 'products');
+        products = cached.products;
+        return;
+    }
+    
+    // Fallback to localStorage
+    const saved = localStorage.getItem(CONFIG.STORAGE_KEY);
+    if (saved) {
+        try {
+            products = JSON.parse(saved) || [];
+            console.log('[ProductsManager] Loaded from localStorage:', products.length, 'products');
+        } catch (e) {
+            products = [];
+            console.error('[ProductsManager] Error loading products:', e);
         }
     }
     
+    // Initialize sample products if empty
+    if (products.length === 0) {
+        console.log('[ProductsManager] Initializing sample products');
+        initializeSampleProducts();
+    }
+    
+    // Save to cache
+    saveProductsToCache();
+}
+
+// Cache management SYSTEM ADDED NEW
+function loadProductsFromCache() {
+    try {
+        const cached = localStorage.getItem(CONFIG.CACHE_KEY);
+        if (!cached) return null;
+        
+        const cacheData = JSON.parse(cached);
+        const now = Date.now();
+        
+        // Check if cache is expired
+        if (now - cacheData.timestamp > CONFIG.CACHE_DURATION) {
+            console.log('[ProductsManager] Cache expired');
+            localStorage.removeItem(CONFIG.CACHE_KEY);
+            return null;
+        }
+        
+        return cacheData;
+    } catch (error) {
+        console.error('[ProductsManager] Cache load error:', error);
+        localStorage.removeItem(CONFIG.CACHE_KEY);
+        return null;
+    }
+}
+
+function saveProductsToCache() {
+    try {
+        const cacheData = {
+            products: products,
+            timestamp: Date.now()
+        };
+        localStorage.setItem(CONFIG.CACHE_KEY, JSON.stringify(cacheData));
+        console.log('[ProductsManager] Saved to cache');
+    } catch (error) {
+        console.error('[ProductsManager] Cache save error:', error);
+    }
+}
+// END OF CACHING SYSTEM
+
     // Save products to localStorage
     function saveProducts() {
-        localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(products));
-    }
+    localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(products));
+    saveProductsToCache(); // Also save to cache
+    console.log('[ProductsManager] Products saved to storage and cache');
+}
+//Add cache invalidation function (after saveProducts()):
+function invalidateCache() {
+    localStorage.removeItem(CONFIG.CACHE_KEY);
+    console.log('[ProductsManager] Cache invalidated');
+}
     
     // Initialize sample products
     function initializeSampleProducts() {
@@ -1187,6 +1257,7 @@ form.addEventListener('submit', (function(savedProductId) {
         renderProductsAdmin,
         showProductForm,
         showStockAdjustmentForm,
-        setupProductEventListeners // ADD THIS LINE
+        setupProductEventListeners, // ADD THIS LINE
+        invalidateCache // NEW
     };
 })();
