@@ -270,22 +270,7 @@ const ProductsManager = (function() {
         const container = document.getElementById(containerId);
         if (!container) return;
         
-        const filteredProducts = getProducts(filter);
-        
-        if (filteredProducts.length === 0) {
-            container.innerHTML = `
-                <div class="no-products" style="
-                    text-align: center;
-                    color: #666;
-                    padding: 3rem 1rem;
-                ">
-                    <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-                    <h3 style="margin: 0 0 0.5rem 0;">No products found</h3>
-                    <p>${filter.category ? 'No products in this category.' : 'Add your first product to get started.'}</p>
-                </div>
-            `;
-            return;
-        }
+        const filteredProducts = getProducts(filter); 
         
         let html = `
     <div style="
