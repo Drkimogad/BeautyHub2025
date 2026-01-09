@@ -858,10 +858,11 @@ const ProductsManager = (function() {
         
         // Setup form submission
         const form = document.getElementById('product-form');
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            handleProductFormSubmit(productId);
-        });
+        form.onsubmit = function(e) {
+    e.preventDefault();
+    handleProductFormSubmit(productId);
+    return false;
+};
         
         // Close buttons
         document.getElementById('close-product-form').onclick = closeProductForm;
