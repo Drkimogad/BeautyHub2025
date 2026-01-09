@@ -581,6 +581,7 @@ setupProductEventListeners();
     
     // Setup event listeners for product actions
     function setupProductEventListeners() {
+            console.log('setupProductEventListeners called');
         // Product filters
         document.querySelectorAll('.product-filter').forEach(btn => {
             btn.addEventListener('click', function() {
