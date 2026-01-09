@@ -1,29 +1,16 @@
 // admin.js - Admin Authentication & Dashboard
-
 const AdminManager = (function() {
-    // Configuration
+        // Configuration
     const CONFIG = {
-        // TEST CREDENTIALS (Remove when using Firebase Auth)
-        TEST_CREDENTIALS: {
-            email: 'admin@beautyhub.com',
-            password: 'admin123'
+        // FIREBASE AUTH STATUS CHECK
+        FIREBASE_CONFIG_LOADED: () => {
+            return typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0;
         },
         
         // SESSION SETTINGS
         SESSION_KEY: 'beautyhub_admin_session',
         SESSION_DURATION: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
-        
-        // FIREBASE AUTH PLACEHOLDER (Comment structure)
-        /*
-        FIREBASE_CONFIG: {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            appId: "YOUR_APP_ID"
-        }
-        */
     };
-    
     // State
     let isAuthenticated = false;
     let adminModal = null;
@@ -36,6 +23,7 @@ const AdminManager = (function() {
         createDashboardModal();
         setupEventListeners();
         updateAdminButtonVisibility();
+        initFirebaseAuthListener(); // ADD THIS LINE
         // Listens for new orders from ANY tab
       window.addEventListener('storage', function(e) {
     if (e.key === 'beautyhub_orders') {
@@ -49,25 +37,31 @@ const AdminManager = (function() {
     }
 });
     }
-    
-    // Check for existing valid session
+// Check for existing valid session
     function checkExistingSession() {
+        console.log('[Auth] Checking existing session...');
         const session = localStorage.getItem(CONFIG.SESSION_KEY);
-        if (!session) return false;
+        if (!session) {
+            console.log('[Auth] No session found in localStorage');
+            return false;
+        }
         
         try {
             const sessionData = JSON.parse(session);
             const now = Date.now();
             
-            if (sessionData.expiresAt > now && sessionData.email === CONFIG.TEST_CREDENTIALS.email) {
+            if (sessionData.expiresAt > now) {
                 isAuthenticated = true;
+                console.log('[Auth] Valid session found for:', sessionData.email);
                 return true;
             } else {
                 // Session expired
+                console.log('[Auth] Session expired, removing');
                 localStorage.removeItem(CONFIG.SESSION_KEY);
                 return false;
             }
-        } catch (e) {
+        } catch (error) {
+            console.error('[Auth] Session parse error:', error);
             localStorage.removeItem(CONFIG.SESSION_KEY);
             return false;
         }
@@ -241,8 +235,8 @@ const AdminManager = (function() {
                         color: #666;
                         font-size: 0.9rem;
                     ">
-                        <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
-                        Using test credentials for development
+                        <i class="fas fa-shield-alt" style="margin-right: 0.5rem;"></i>
+                        Secure Admin Authentication
                     </div>
                 </form>
             </div>
@@ -933,61 +927,103 @@ const AdminManager = (function() {
             errorDiv.style.display = 'none';
         }
     }
-    
-    // Handle login
+// Handle login
     function handleLogin(event) {
         event.preventDefault();
+        console.log('[Auth] Login attempt initiated');
         
         const email = document.getElementById('admin-email').value.trim();
         const password = document.getElementById('admin-password').value;
         
-        // TEST AUTH (Replace with Firebase Auth later)
-        if (email === CONFIG.TEST_CREDENTIALS.email && 
-            password === CONFIG.TEST_CREDENTIALS.password) {
-            
-            createSession(email);
-            closeAdminLogin();
-            openDashboard();
-            updateAdminButtonVisibility();
-            
-        } else {
-            showLoginError('Invalid email or password');
+        // Clear any previous errors
+        clearLoginError();
+        
+        // Validate Firebase is loaded
+        if (!CONFIG.FIREBASE_CONFIG_LOADED()) {
+            console.error('[Auth] Firebase not loaded');
+            showLoginError('Authentication system not ready. Please refresh the page.');
+            return;
         }
         
-        // FIREBASE AUTH IMPLEMENTATION (Placeholder)
-        /*
+        console.log('[Auth] Attempting Firebase sign in for:', email);
+        
+        // FIREBASE AUTH IMPLEMENTATION
         firebase.auth().signInWithEmailAndPassword(email, password)
             .then((userCredential) => {
-                createSession(email);
+                console.log('[Auth] Firebase sign in successful:', userCredential.user.email);
+                
+                // Create local session
+                createSession(userCredential.user.email);
                 closeAdminLogin();
                 openDashboard();
                 updateAdminButtonVisibility();
+                
+                // Log successful login
+                console.log('[Auth] Admin dashboard opened for:', userCredential.user.email);
             })
             .catch((error) => {
-                showLoginError(error.message);
+                console.error('[Auth] Firebase sign in error:', error.code, error.message);
+                
+                // User-friendly error messages
+                let errorMessage = 'Authentication failed. ';
+                
+                switch (error.code) {
+                    case 'auth/invalid-email':
+                        errorMessage += 'Invalid email format.';
+                        break;
+                    case 'auth/user-disabled':
+                        errorMessage += 'This account has been disabled.';
+                        break;
+                    case 'auth/user-not-found':
+                        errorMessage += 'No account found with this email.';
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage += 'Incorrect password.';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage += 'Too many attempts. Try again later.';
+                        break;
+                    case 'auth/network-request-failed':
+                        errorMessage += 'Network error. Check your connection.';
+                        break;
+                    default:
+                        errorMessage += 'Please check your credentials.';
+                }
+                
+                showLoginError(errorMessage);
+                
+                // Clear password field for security
+                document.getElementById('admin-password').value = '';
             });
-        */
     }
-    
     // Handle logout
     function handleLogout() {
+        console.log('[Auth] Logout initiated');
         if (confirm('Are you sure you want to logout?')) {
-            destroySession();
-            closeDashboard();
-            updateAdminButtonVisibility();
             
-            // FIREBASE AUTH IMPLEMENTATION (Placeholder)
-            /*
-            firebase.auth().signOut()
-                .then(() => {
-                    destroySession();
-                    closeDashboard();
-                    updateAdminButtonVisibility();
-                })
-                .catch((error) => {
-                    console.error('Logout error:', error);
-                });
-            */
+            // Firebase sign out
+            if (CONFIG.FIREBASE_CONFIG_LOADED()) {
+                firebase.auth().signOut()
+                    .then(() => {
+                        console.log('[Auth] Firebase sign out successful');
+                        destroySession();
+                        closeDashboard();
+                        updateAdminButtonVisibility();
+                        console.log('[Auth] Admin session destroyed');
+                    })
+                    .catch((error) => {
+                        console.error('[Auth] Firebase sign out error:', error);
+                        // Still destroy local session even if Firebase fails
+                        destroySession();
+                        closeDashboard();
+                        updateAdminButtonVisibility();
+                    });
+            } else {
+                console.warn('[Auth] Firebase not loaded, destroying local session only');
+                destroySession();
+                closeDashboard();
+                updateAdminButtonVisibility();
+            }
         }
     }
     
@@ -1130,7 +1166,40 @@ if (tabName === 'products' && typeof ProductsManager !== 'undefined') {
             }
         });
     }
-    
+// Initialize Firebase auth state listener
+    function initFirebaseAuthListener() {
+        if (!CONFIG.FIREBASE_CONFIG_LOADED()) {
+            console.warn('[Auth] Firebase not loaded, skipping auth listener');
+            return;
+        }
+        
+        console.log('[Auth] Setting up Firebase auth state listener');
+        
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                console.log('[Auth] Firebase user authenticated:', user.email);
+                
+                // Check if we have a valid local session
+                const session = localStorage.getItem(CONFIG.SESSION_KEY);
+                if (!session) {
+                    // User is authenticated with Firebase but no local session
+                    console.log('[Auth] Firebase auth detected but no local session, creating one');
+                    createSession(user.email);
+                    updateAdminButtonVisibility();
+                }
+            } else {
+                console.log('[Auth] Firebase user signed out');
+                
+                // Ensure local session is destroyed when Firebase auth ends
+                if (isAuthenticated) {
+                    console.log('[Auth] Destroying local session due to Firebase sign out');
+                    destroySession();
+                    closeDashboard();
+                    updateAdminButtonVisibility();
+                }
+            }
+        });
+    }
     // Public API
     return {
         init,
@@ -1143,13 +1212,6 @@ if (tabName === 'products' && typeof ProductsManager !== 'undefined') {
         handleLogin
     };
 })();
-
-// Auto-initialize
-//if (document.readyState === 'loading') {
-//    document.addEventListener('DOMContentLoaded', () => AdminManager.init());
-//} else {
-//    AdminManager.init();
-//}
 
 // Media Queries CSS (Add to styles.css)
 const adminMediaQueries = `
