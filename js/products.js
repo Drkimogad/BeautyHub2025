@@ -15,6 +15,12 @@ function init() {
   // Remove this setTimeout - ProductsManager is already initialized
     renderProducts();
     setupEventListeners();
+  
+      // Listen for product updates IT MAY HAVE TO BE MODIFIED WHEN FIRESTORE IS IMPLEMENTED
+    window.addEventListener('productsUpdated', () => {
+        console.log('[ProductsDisplay] Products updated, refreshing...');
+        renderProducts();
+    });
 }
     
 // Render products to page using ProductsManager data
