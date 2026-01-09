@@ -30,7 +30,7 @@ function initializeModules() {
     // Check module dependencies
     const modules = {
         ProductsManager: typeof ProductsManager !== 'undefined',
-        ProductsDisplay: typeof ProductsDisplay !== 'undefined', // ADDED
+        ProductsDisplay: typeof ProductsDisplay !== 'undefined',
         BeautyHubCart: typeof BeautyHubCart !== 'undefined',
         OrdersManager: typeof OrdersManager !== 'undefined',
         CustomerOrderManager: typeof CustomerOrderManager !== 'undefined',
@@ -47,19 +47,22 @@ function initializeModules() {
     // Initialize in dependency order
     let productsManager, inventoryManager;
     
-    // 1. Products data (core data)
+    // 1. Products data (core data) - MUST BE FIRST
     if (modules.ProductsManager) {
+        console.log('[Main] Initializing ProductsManager...');
         productsManager = ProductsManager.init();
+        console.log('[Main] ProductsManager initialized');
     }
     
-    // 2. Products display (UI)
+    // 2. Products display (UI) - AFTER ProductsManager
     if (modules.ProductsDisplay) {
+        console.log('[Main] Initializing ProductsDisplay...');
         ProductsDisplay.init(); // ADDED: Render products to page
     }
     
     // 3. Inventory (needs products data for stock checks)
     if (modules.InventoryManager && modules.ProductsManager) {
-        inventoryManager = InventoryManager.init(ProductsManager, null); // Initialize early for cart
+        inventoryManager = InventoryManager.init(ProductsManager, null);
     }
     
     // 4. Cart (needs products display + inventory for stock checks)
