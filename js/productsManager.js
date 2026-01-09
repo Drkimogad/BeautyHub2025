@@ -859,12 +859,13 @@ const ProductsManager = (function() {
        // Setup form submission
 const form = document.getElementById('product-form');
 console.log('showProductForm called with productId:', productId);
-form.addEventListener('submit', function(e) {
-    console.log('Form submit, productId should be:', productId);
-    e.preventDefault();
-    handleProductFormSubmit(productId);
-    return false;
-});
+form.addEventListener('submit', (function(savedProductId) {
+    return function(e) {
+        e.preventDefault();
+        handleProductFormSubmit(savedProductId);
+        return false;
+    };
+})(productId));
         
         // Close buttons
         document.getElementById('close-product-form').onclick = closeProductForm;
