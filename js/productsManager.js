@@ -858,17 +858,13 @@ const ProductsManager = (function() {
         
        // Setup form submission
 const form = document.getElementById('product-form');
-
-// Remove any existing listeners first
-form.replaceWith(form.cloneNode(true));
-const newForm = document.getElementById('product-form');
-
-newForm.addEventListener('submit', function(e) {
+console.log('showProductForm called with productId:', productId);
+form.addEventListener('submit', function(e) {
+    console.log('Form submit, productId should be:', productId);
     e.preventDefault();
-    e.stopPropagation();
     handleProductFormSubmit(productId);
     return false;
-}, true);
+});
         
         // Close buttons
         document.getElementById('close-product-form').onclick = closeProductForm;
