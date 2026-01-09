@@ -1,14 +1,35 @@
 // sw.js - Service Worker
-const CACHE_NAME = 'beautyhub-v1';
+const CACHE_NAME = 'beautyhub-v1.1';
 const urlsToCache = [
-    '/',
-    '/index.html',
-    '/styles.css',
-    '/js/cart.js',
-    '/js/ordersManager.js',
-    '/js/customerorder.js',
-    '/js/admin.js',
-    '/js/main.js',
+    '.',  //root
+    'index.html',
+    'styles.css',
+    
+    //js files
+    'js/cart.js',
+    'js/ordersManager.js',
+    'js/productsManager.js',
+    'js/inventoryManager.js',
+    'js/products.js',
+    'js/customerSearch.js',
+    'js/customerorder.js',
+    'js/admin.js',
+    'js/main.js',
+    
+    'manifest.json',
+    
+    //icons
+    'icons/icon-192x192.png',
+    'icons/icon-512x512.png',
+    'favicon.ico',
+    
+    //gallery
+    'gallery/lashes.jpg',
+    'gallery/perfumes.jpg',    
+    'gallery/wigs.jpg',
+    'gallery/skincare.jpg',
+    'gallery/herobanner.jpg',
+    
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
