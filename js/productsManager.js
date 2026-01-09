@@ -288,278 +288,295 @@ const ProductsManager = (function() {
         }
         
         let html = `
-            <div style="
+    <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    ">
+        <h2 style="margin: 0; color: #333;">Products Management</h2>
+        
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button id="add-product-btn" class="action-btn" style="
+                background: #4CAF50;
+                color: white;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 6px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                cursor: pointer;
                 display: flex;
-                justify-content: space-between;
                 align-items: center;
-                margin-bottom: 1.5rem;
-                flex-wrap: wrap;
-                gap: 1rem;
+                gap: 0.5rem;
             ">
-                <h2 style="margin: 0; color: #333;">Products Management</h2>
+                <i class="fas fa-plus"></i>
+                Add Product
+            </button>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div style="
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    ">
+        <button class="product-filter ${filter.category === 'all' || (!filter.category && !filter.stockStatus) ? 'active' : ''}" data-filter='{"category":"all"}' style="
+            background: ${filter.category === 'all' || (!filter.category && !filter.stockStatus) ? '#667eea' : 'white'};
+            color: ${filter.category === 'all' || (!filter.category && !filter.stockStatus) ? 'white' : '#666'};
+            border: ${filter.category === 'all' || (!filter.category && !filter.stockStatus) ? 'none' : '2px solid #e0e0e0'};
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        ">
+            All Products <span class="filter-count">(${getProducts({category: 'all'}).length})</span>
+        </button>
+        
+        ${CONFIG.CATEGORIES.map(cat => {
+            const count = products.filter(p => p.category === cat && p.isActive).length;
+            const isActive = filter.category === cat;
+            return `
+            <button class="product-filter ${isActive ? 'active' : ''}" data-filter='{"category":"${cat}"}' style="
+                background: ${isActive ? '#667eea' : 'white'};
+                color: ${isActive ? 'white' : '#666'};
+                border: ${isActive ? 'none' : '2px solid #e0e0e0'};
+                padding: 0.5rem 1rem;
+                border-radius: 6px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                cursor: pointer;
+                text-transform: capitalize;
+            ">
+                ${cat} <span class="filter-count">(${count})</span>
+            </button>
+            `;
+        }).join('')}
+        
+        <button class="product-filter ${filter.stockStatus === 'low' ? 'active' : ''}" data-filter='{"stockStatus":"low"}' style="
+            background: ${filter.stockStatus === 'low' ? '#ff9800' : 'white'};
+            color: ${filter.stockStatus === 'low' ? 'white' : '#ff9800'};
+            border: 2px solid #ff9800;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        ">
+            <i class="fas fa-exclamation-triangle"></i>
+            Low Stock <span class="filter-count">(${getLowStockProducts().length})</span>
+        </button>
+        
+        <button class="product-filter ${filter.stockStatus === 'out' ? 'active' : ''}" data-filter='{"stockStatus":"out"}' style="
+            background: ${filter.stockStatus === 'out' ? '#ff5252' : 'white'};
+            color: ${filter.stockStatus === 'out' ? 'white' : '#ff5252'};
+            border: 2px solid #ff5252;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        ">
+            <i class="fas fa-times-circle"></i>
+            Out of Stock <span class="filter-count">(${products.filter(p => p.stock === 0).length})</span>
+        </button>
+    </div>
+    
+    <!-- Products Grid -->
+    <div id="products-grid" style="
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        overflow-y: auto;
+        padding: 0.5rem;
+        min-height: 200px;
+    ">
+`;
+
+if (filteredProducts.length === 0) {
+    html += `
+        <div style="
+            grid-column: 1 / -1;
+            text-align: center;
+            color: #666;
+            padding: 3rem 1rem;
+        ">
+            <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+            <h3 style="margin: 0 0 0.5rem 0;">No products found</h3>
+            <p>${filter.category ? 'No products in this category.' : filter.stockStatus === 'low' ? 'No low stock products.' : filter.stockStatus === 'out' ? 'No out of stock products.' : 'Add your first product to get started.'}</p>
+        </div>
+    `;
+} else {
+    filteredProducts.forEach(product => {
+        const isLowStock = product.stock <= CONFIG.LOW_STOCK_THRESHOLD;
+        const isOutOfStock = product.stock === 0;
+        
+        html += `
+            <div class="product-admin-card" data-product-id="${product.id}" style="
+                background: white;
+                border: 2px solid ${isOutOfStock ? '#ffebee' : isLowStock ? '#fff8e1' : '#f0f0f0'};
+                border-radius: 12px;
+                padding: 1rem;
+                transition: transform 0.2s, box-shadow 0.2s;
+                position: relative;
+            ">
+                ${!product.isActive ? `
+                <div style="
+                    position: absolute;
+                    top: 0.5rem;
+                    right: 0.5rem;
+                    background: #ff5252;
+                    color: white;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 4px;
+                    font-size: 0.7rem;
+                    font-weight: 600;
+                ">
+                    Inactive
+                </div>
+                ` : ''}
+                
+                <div style="
+                    display: flex;
+                    gap: 1rem;
+                    margin-bottom: 1rem;
+                ">
+                    <img src="${product.imageUrl}" alt="${product.name}" style="
+                        width: 80px;
+                        height: 80px;
+                        object-fit: cover;
+                        border-radius: 8px;
+                        border: 1px solid #e0e0e0;
+                    ">
+                    
+                    <div style="flex: 1;">
+                        <h3 style="margin: 0 0 0.5rem 0; color: #333; font-size: 1rem;">
+                            ${product.name}
+                            <span style="
+                                background: ${isOutOfStock ? '#ff5252' : isLowStock ? '#ff9800' : '#4CAF50'};
+                                color: white;
+                                padding: 0.2rem 0.5rem;
+                                border-radius: 12px;
+                                font-size: 0.7rem;
+                                margin-left: 0.5rem;
+                            ">
+                                ${isOutOfStock ? 'Out of Stock' : isLowStock ? 'Low Stock' : 'In Stock'}
+                            </span>
+                        </h3>
+                        
+                        <div style="color: #666; font-size: 0.85rem; margin-bottom: 0.25rem;">
+                            <span style="text-transform: capitalize;">${product.category}</span>
+                        </div>
+                        
+                        <div style="
+                            font-size: 1.25rem;
+                            font-weight: 700;
+                            color: #e91e63;
+                            margin-bottom: 0.5rem;
+                        ">
+                            R${product.price.toFixed(2)}
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="
+                    background: #f8f9fa;
+                    padding: 0.75rem;
+                    border-radius: 8px;
+                    margin-bottom: 1rem;
+                ">
+                    <div style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    ">
+                        <div>
+                            <div style="font-size: 0.85rem; color: #666; margin-bottom: 0.25rem;">Current Stock</div>
+                            <div style="font-weight: 600; font-size: 1.1rem; color: ${isOutOfStock ? '#ff5252' : isLowStock ? '#ff9800' : '#333'}">
+                                ${product.stock} units
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.85rem; color: #666; margin-bottom: 0.25rem;">Status</div>
+                            <div style="font-weight: 600; color: ${product.isActive ? '#4CAF50' : '#ff5252'}">
+                                ${product.isActive ? 'Active' : 'Inactive'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    <button id="add-product-btn" class="action-btn" style="
-                        background: #4CAF50;
+                    <button class="edit-product-btn" data-product-id="${product.id}" style="
+                        background: #667eea;
                         color: white;
                         border: none;
-                        padding: 0.5rem 1rem;
-                        border-radius: 6px;
-                        font-size: 0.9rem;
-                        font-weight: 600;
-                        cursor: pointer;
-                        display: flex;
-                        align-items: center;
-                        gap: 0.5rem;
-                    ">
-                        <i class="fas fa-plus"></i>
-                        Add Product
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Filters -->
-            <div style="
-                display: flex;
-                gap: 0.5rem;
-                margin-bottom: 1.5rem;
-                flex-wrap: wrap;
-            ">
-                <button class="product-filter active" data-filter='{"category":"all"}' style="
-                    background: #667eea;
-                    color: white;
-                    border: none;
-                    padding: 0.5rem 1rem;
-                    border-radius: 6px;
-                    font-size: 0.85rem;
-                    font-weight: 600;
-                    cursor: pointer;
-                ">
-                    All Products <span class="filter-count">(${filteredProducts.length})</span>
-                </button>
-                
-                ${CONFIG.CATEGORIES.map(cat => {
-                    const count = products.filter(p => p.category === cat && p.isActive).length;
-                    return `
-                    <button class="product-filter" data-filter='{"category":"${cat}"}' style="
-                        background: white;
-                        color: #666;
-                        border: 2px solid #e0e0e0;
                         padding: 0.5rem 1rem;
                         border-radius: 6px;
                         font-size: 0.85rem;
                         font-weight: 600;
                         cursor: pointer;
-                        text-transform: capitalize;
-                    ">
-                        ${cat} <span class="filter-count">(${count})</span>
-                    </button>
-                    `;
-                }).join('')}
-                
-                <button class="product-filter" data-filter='{"stockStatus":"low"}' style="
-                    background: white;
-                    color: #ff9800;
-                    border: 2px solid #ff9800;
-                    padding: 0.5rem 1rem;
-                    border-radius: 6px;
-                    font-size: 0.85rem;
-                    font-weight: 600;
-                    cursor: pointer;
-                ">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    Low Stock <span class="filter-count">(${getLowStockProducts().length})</span>
-                </button>
-                
-                <button class="product-filter" data-filter='{"stockStatus":"out"}' style="
-                    background: white;
-                    color: #ff5252;
-                    border: 2px solid #ff5252;
-                    padding: 0.5rem 1rem;
-                    border-radius: 6px;
-                    font-size: 0.85rem;
-                    font-weight: 600;
-                    cursor: pointer;
-                ">
-                    <i class="fas fa-times-circle"></i>
-                    Out of Stock <span class="filter-count">(${products.filter(p => p.stock === 0).length})</span>
-                </button>
-            </div>
-            
-            <!-- Products Grid -->
-            <div id="products-grid" style="
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                gap: 1.5rem;
-                overflow-y: auto;
-                padding: 0.5rem;
-            ">
-        `;
-        
-        filteredProducts.forEach(product => {
-            const isLowStock = product.stock <= CONFIG.LOW_STOCK_THRESHOLD;
-            const isOutOfStock = product.stock === 0;
-            
-            html += `
-                <div class="product-admin-card" data-product-id="${product.id}" style="
-                    background: white;
-                    border: 2px solid ${isOutOfStock ? '#ffebee' : isLowStock ? '#fff8e1' : '#f0f0f0'};
-                    border-radius: 12px;
-                    padding: 1rem;
-                    transition: transform 0.2s, box-shadow 0.2s;
-                    position: relative;
-                ">
-                    ${!product.isActive ? `
-                    <div style="
-                        position: absolute;
-                        top: 0.5rem;
-                        right: 0.5rem;
-                        background: #ff5252;
-                        color: white;
-                        padding: 0.25rem 0.5rem;
-                        border-radius: 4px;
-                        font-size: 0.7rem;
-                        font-weight: 600;
-                    ">
-                        Inactive
-                    </div>
-                    ` : ''}
-                    
-                    <div style="
                         display: flex;
-                        gap: 1rem;
-                        margin-bottom: 1rem;
+                        align-items: center;
+                        gap: 0.5rem;
+                        flex: 1;
+                        justify-content: center;
                     ">
-                        <img src="${product.imageUrl}" alt="${product.name}" style="
-                            width: 80px;
-                            height: 80px;
-                            object-fit: cover;
-                            border-radius: 8px;
-                            border: 1px solid #e0e0e0;
-                        ">
-                        
-                        <div style="flex: 1;">
-                            <h3 style="margin: 0 0 0.5rem 0; color: #333; font-size: 1rem;">
-                                ${product.name}
-                                <span style="
-                                    background: ${isOutOfStock ? '#ff5252' : isLowStock ? '#ff9800' : '#4CAF50'};
-                                    color: white;
-                                    padding: 0.2rem 0.5rem;
-                                    border-radius: 12px;
-                                    font-size: 0.7rem;
-                                    margin-left: 0.5rem;
-                                ">
-                                    ${isOutOfStock ? 'Out of Stock' : isLowStock ? 'Low Stock' : 'In Stock'}
-                                </span>
-                            </h3>
-                            
-                            <div style="color: #666; font-size: 0.85rem; margin-bottom: 0.25rem;">
-                                <span style="text-transform: capitalize;">${product.category}</span>
-                            </div>
-                            
-                            <div style="
-                                font-size: 1.25rem;
-                                font-weight: 700;
-                                color: #e91e63;
-                                margin-bottom: 0.5rem;
-                            ">
-                                R${product.price.toFixed(2)}
-                            </div>
-                        </div>
-                    </div>
+                        <i class="fas fa-edit"></i>
+                        Edit
+                    </button>
                     
-                    <div style="
-                        background: #f8f9fa;
-                        padding: 0.75rem;
-                        border-radius: 8px;
-                        margin-bottom: 1rem;
+                    <button class="adjust-stock-btn" data-product-id="${product.id}" style="
+                        background: ${isOutOfStock ? '#4CAF50' : '#ff9800'};
+                        color: white;
+                        border: none;
+                        padding: 0.5rem 1rem;
+                        border-radius: 6px;
+                        font-size: 0.85rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        flex: 1;
+                        justify-content: center;
                     ">
-                        <div style="
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                        ">
-                            <div>
-                                <div style="font-size: 0.85rem; color: #666; margin-bottom: 0.25rem;">Current Stock</div>
-                                <div style="font-weight: 600; font-size: 1.1rem; color: ${isOutOfStock ? '#ff5252' : isLowStock ? '#ff9800' : '#333'}">
-                                    ${product.stock} units
-                                </div>
-                            </div>
-                            
-                            <div style="text-align: right;">
-                                <div style="font-size: 0.85rem; color: #666; margin-bottom: 0.25rem;">Status</div>
-                                <div style="font-weight: 600; color: ${product.isActive ? '#4CAF50' : '#ff5252'}">
-                                    ${product.isActive ? 'Active' : 'Inactive'}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                        <i class="fas fa-boxes"></i>
+                        ${isOutOfStock ? 'Restock' : 'Adjust Stock'}
+                    </button>
                     
-                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                        <button class="edit-product-btn" data-product-id="${product.id}" style="
-                            background: #667eea;
-                            color: white;
-                            border: none;
-                            padding: 0.5rem 1rem;
-                            border-radius: 6px;
-                            font-size: 0.85rem;
-                            font-weight: 600;
-                            cursor: pointer;
-                            display: flex;
-                            align-items: center;
-                            gap: 0.5rem;
-                            flex: 1;
-                            justify-content: center;
-                        ">
-                            <i class="fas fa-edit"></i>
-                            Edit
-                        </button>
-                        
-                        <button class="adjust-stock-btn" data-product-id="${product.id}" style="
-                            background: ${isOutOfStock ? '#4CAF50' : '#ff9800'};
-                            color: white;
-                            border: none;
-                            padding: 0.5rem 1rem;
-                            border-radius: 6px;
-                            font-size: 0.85rem;
-                            font-weight: 600;
-                            cursor: pointer;
-                            display: flex;
-                            align-items: center;
-                            gap: 0.5rem;
-                            flex: 1;
-                            justify-content: center;
-                        ">
-                            <i class="fas fa-boxes"></i>
-                            ${isOutOfStock ? 'Restock' : 'Adjust Stock'}
-                        </button>
-                        
-                        <button class="toggle-product-btn" data-product-id="${product.id}" data-active="${product.isActive}" style="
-                            background: ${product.isActive ? '#ff5252' : '#4CAF50'};
-                            color: white;
-                            border: none;
-                            padding: 0.5rem;
-                            border-radius: 6px;
-                            font-size: 0.85rem;
-                            cursor: pointer;
-                            width: 40px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        ">
-                            <i class="fas ${product.isActive ? 'fa-eye-slash' : 'fa-eye'}"></i>
-                        </button>
-                    </div>
+                    <button class="toggle-product-btn" data-product-id="${product.id}" data-active="${product.isActive}" style="
+                        background: ${product.isActive ? '#ff5252' : '#4CAF50'};
+                        color: white;
+                        border: none;
+                        padding: 0.5rem;
+                        border-radius: 6px;
+                        font-size: 0.85rem;
+                        cursor: pointer;
+                        width: 40px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    ">
+                        <i class="fas ${product.isActive ? 'fa-eye-slash' : 'fa-eye'}"></i>
+                    </button>
                 </div>
-            `;
-        });
-        
-        html += `
             </div>
         `;
-        
-        container.innerHTML = html;
-        setupProductEventListeners();
+    });
+}
+
+html += `
+    </div>
+`;
+
+container.innerHTML = html;
+setupProductEventListeners();
     }
     
     // Setup event listeners for product actions
