@@ -1,0 +1,15 @@
+{
+  "name": "beautyhub2025",
+  "version": "1.0.0",
+  "description": "BeautyHub2025 - E-commerce PWA Project - UPDATED Project Overview Name: BeautyHub2025 - Luxury Beauty Products E-commerce PWA Current Status: Frontend refinement complete, ready for feature expansion Type: Progressive Web App (PWA) with Admin Dashboard Tech Stack: Vanilla JS, LocalStorage (current), Firebase (planned for backend)",
+  "main": "sw.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "firebase": "^12.7.0"
+  }
+}
