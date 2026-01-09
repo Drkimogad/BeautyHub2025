@@ -582,14 +582,17 @@ const ProductsManager = (function() {
         // Add product button
         const addBtn = document.getElementById('add-product-btn');
         if (addBtn) {
-            addBtn.addEventListener('click', showProductForm);
+addBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    showProductForm(null); // Explicitly pass null for new product
+});
         }
         
         // Edit product buttons
         document.querySelectorAll('.edit-product-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const productId = this.dataset.productId;
-                showProductForm(productId);
+                showProductForm(productId); // Pass actual product ID
             });
         });
         
