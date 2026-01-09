@@ -285,11 +285,13 @@ function initializeModules() {
             AdminManager.updateAdminButtonVisibility();
         }
     }
-    
+    //=========================================
+    // SW REGISTRATION AREA
+    //===========================
     function setupPWA() {
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                navigator.serviceWorker.register('./sw.js').then(function(registration) {
                     console.log('ServiceWorker registration successful');
                 }, function(err) {
                     console.log('ServiceWorker registration failed: ', err);
