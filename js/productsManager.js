@@ -1161,6 +1161,7 @@ const ProductsManager = (function() {
         updateStock,
         renderProductsAdmin,
         showProductForm,
-        showStockAdjustmentForm
+        showStockAdjustmentForm,
+        setupProductEventListeners // ADD THIS LINE
     };
 })();
