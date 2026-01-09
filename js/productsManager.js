@@ -877,51 +877,65 @@ newForm.addEventListener('submit', function(e) {
     
     // Handle product form submission
     function handleProductFormSubmit(productId = null) {
-        console.log('handleProductFormSubmit called');
-        const isEdit = !!productId;
-        
-        // Get form data
-        const formData = {
-            name: document.getElementById('product-name').value,
-            description: document.getElementById('product-description').value,
-            category: document.getElementById('product-category').value,
-            price: parseFloat(document.getElementById('product-price').value),
-            originalPrice: parseFloat(document.getElementById('product-original-price').value) || 
-                         parseFloat(document.getElementById('product-price').value),
-            stock: parseInt(document.getElementById('product-stock').value),
-            imageUrl: document.getElementById('product-image-url').value || CONFIG.DEFAULT_IMAGE,
-            tags: document.getElementById('product-tags').value
-                .split(',')
-                .map(tag => tag.trim())
-                .filter(tag => tag.length > 0)
-        };
-        
-        // Validate
-        const errors = [];
-        if (!formData.name.trim()) errors.push('Product name is required');
-        if (isNaN(formData.price) || formData.price < 0) errors.push('Valid price is required');
-        if (isNaN(formData.stock) || formData.stock < 0) errors.push('Valid stock quantity is required');
-        
-        if (errors.length > 0) {
-            const errorDiv = document.getElementById('product-form-error');
-            errorDiv.innerHTML = errors.join('<br>');
-            errorDiv.style.display = 'block';
-            return;
-        }
-        
-        // Save product
-        if (isEdit) {
-            if (updateProduct(productId, formData)) {
-                closeProductForm();
-                renderProductsAdmin();
-            }
+    console.log('handleProductFormSubmit called');
+    console.log('productId:', productId);
+    
+    // Get form data
+    const formData = {
+        name: document.getElementById('product-name').value,
+        description: document.getElementById('product-description').value,
+        category: document.getElementById('product-category').value,
+        price: parseFloat(document.getElementById('product-price').value),
+        originalPrice: parseFloat(document.getElementById('product-original-price').value) || 
+                     parseFloat(document.getElementById('product-price').value),
+        stock: parseInt(document.getElementById('product-stock').value),
+        imageUrl: document.getElementById('product-image-url').value || CONFIG.DEFAULT_IMAGE,
+        tags: document.getElementById('product-tags').value
+            .split(',')
+            .map(tag => tag.trim())
+            .filter(tag => tag.length > 0)
+    };
+    
+    console.log('Form data:', formData);
+    
+    // Validate
+    const errors = [];
+    if (!formData.name.trim()) errors.push('Product name is required');
+    if (isNaN(formData.price) || formData.price < 0) errors.push('Valid price is required');
+    if (isNaN(formData.stock) || formData.stock < 0) errors.push('Valid stock quantity is required');
+    
+    console.log('Validation errors:', errors);
+    
+    if (errors.length > 0) {
+        const errorDiv = document.getElementById('product-form-error');
+        errorDiv.innerHTML = errors.join('<br>');
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    console.log('Validation passed');
+    
+    // Save product
+    if (productId) {
+        console.log('Updating product:', productId);
+        if (updateProduct(productId, formData)) {
+            console.log('Update successful');
+            closeProductForm();
+            renderProductsAdmin();
         } else {
-            if (addProduct(formData)) {
-                closeProductForm();
-                renderProductsAdmin();
-            }
+            console.log('Update failed');
+        }
+    } else {
+        console.log('Adding new product');
+        if (addProduct(formData)) {
+            console.log('Add successful');
+            closeProductForm();
+            renderProductsAdmin();
+        } else {
+            console.log('Add failed');
         }
     }
+}
     
     // Show stock adjustment form
     function showStockAdjustmentForm(productId) {
