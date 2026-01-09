@@ -856,13 +856,19 @@ const ProductsManager = (function() {
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
         
-        // Setup form submission
-        const form = document.getElementById('product-form');
-        form.onsubmit = function(e) {
+       // Setup form submission
+const form = document.getElementById('product-form');
+
+// Remove any existing listeners first
+form.replaceWith(form.cloneNode(true));
+const newForm = document.getElementById('product-form');
+
+newForm.addEventListener('submit', function(e) {
     e.preventDefault();
+    e.stopPropagation();
     handleProductFormSubmit(productId);
     return false;
-};
+}, true);
         
         // Close buttons
         document.getElementById('close-product-form').onclick = closeProductForm;
@@ -871,6 +877,7 @@ const ProductsManager = (function() {
     
     // Handle product form submission
     function handleProductFormSubmit(productId = null) {
+        console.log('handleProductFormSubmit called');
         const isEdit = !!productId;
         
         // Get form data
