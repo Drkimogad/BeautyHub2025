@@ -132,7 +132,10 @@ function saveProductsToCache() {
     localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(products));
     saveProductsToCache(); // Also save to cache
     console.log('[ProductsManager] Products saved to storage and cache');
+    // Dispatch event for auto-refresh
+    window.dispatchEvent(new CustomEvent('productsUpdated')); //added
 }
+    
 //Add cache invalidation function (after saveProducts()):
 function invalidateCache() {
     localStorage.removeItem(CONFIG.CACHE_KEY);
