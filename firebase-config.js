@@ -1,12 +1,12 @@
 // firebase-config.js
 const firebaseConfig = {
-  apiKey: "AIzaSyB96xSqgk4gI1Z94ZXSESFlfbVMb3meo7U",
-  authDomain: "beautyhub-5987d.firebaseapp.com",
-  projectId: "beautyhub-5987d",
-  storageBucket: "beautyhub-5987d.firebasestorage.app",
-  messagingSenderId: "20539362118",
-  appId: "1:20539362118:web:b15665bb331433c1ea7347",
-  measurementId: "G-G1YQSSM8TK"
+  apiKey: "AIzaSyAScnUVBPj0-UhJaS8-AChYPMbDWqfEjD4",
+  authDomain: "beautyhub-za.firebaseapp.com",
+  projectId: "beautyhub-za",
+  storageBucket: "beautyhub-za.firebasestorage.app",
+  messagingSenderId: "945293822088",
+  appId: "1:945293822088:web:879eede0f52df134f1f73d",
+  measurementId: "G-XCQMS80N47"
 };
 
 // Initialize Firebase
@@ -16,3 +16,4 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
 const firestore = firebase.firestore();
+
