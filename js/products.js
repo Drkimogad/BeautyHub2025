@@ -27,24 +27,18 @@ function renderProducts() {
     
     console.log('[ProductsDisplay] Rendering products...');
     
-    // Get products - try cache first, then fallback
+    // Get products - ALWAYS use ProductsManager if available
     let products = [];
     
-    // 1. Try ProductsManager (with cache)
-    if (typeof ProductsManager !== 'undefined') {
-        // Check if ProductsManager has products loaded
-        if (ProductsManager.products && ProductsManager.products.length > 0) {
-            products = ProductsManager.getProducts({ activeOnly: true });
-            console.log('[ProductsDisplay] Loaded from ProductsManager:', products.length, 'products');
-        } else {
-            console.warn('[ProductsDisplay] ProductsManager not initialized yet');
-        }
+    if (typeof ProductsManager !== 'undefined' && ProductsManager.getProducts) {
+        products = ProductsManager.getProducts({ activeOnly: true });
+        console.log('[ProductsDisplay] Loaded from ProductsManager:', products.length, 'products');
     }
     
-    // 2. If no products from manager, use fallback
+    // If still no products, use fallback
     if (products.length === 0) {
+        console.log('[ProductsDisplay] No products from manager, using fallback');
         products = getFallbackProducts();
-        console.log('[ProductsDisplay] Using fallback products:', products.length, 'products');
     }
     
     // Show loading indicator if products are empty
