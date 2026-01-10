@@ -41,10 +41,12 @@ function init() {
         return false;
     };
     
-    // Try immediately
-    if (checkProductsManager()) {
-        return; // Success, exit function
-    }
+    // Try immediately, but don't return early
+        checkProductsManager();
+// Try immediately
+  //  if (checkProductsManager()) {
+  //      return; // Success, exit function
+ //   }
     
     console.log('[ProductsDisplay] Waiting for ProductsManager...');
     
