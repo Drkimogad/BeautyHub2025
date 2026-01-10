@@ -434,6 +434,48 @@ const BeautyHubCart = (function() {
             });
             cartItemsContainer.innerHTML = html;
         }
+
+        // In updateCartUI() function, before checkout button:
+const shippingThreshold = 1000;
+const shippingCost = total < shippingThreshold ? 50 : 0;
+const isFreeShipping = total >= shippingThreshold;
+
+let shippingHtml = `
+<div class="cart-shipping-info" style="
+    margin: 1rem 0;
+    padding: 1rem;
+    background: ${isFreeShipping ? '#e8f5e9' : '#fff8e1'};
+    border-radius: 8px;
+    border-left: 4px solid ${isFreeShipping ? '#4CAF50' : '#FF9800'};
+">
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+        <span>Shipping:</span>
+        <span style="font-weight: bold; color: ${isFreeShipping ? '#4CAF50' : '#333'}">
+            ${isFreeShipping ? 'FREE' : `R${shippingCost.toFixed(2)}`}
+        </span>
+    </div>
+    
+    ${!isFreeShipping ? `
+    <div style="font-size: 0.9rem; color: #666;">
+        <i class="fas fa-truck" style="margin-right: 5px;"></i>
+        Spend R${(shippingThreshold - total).toFixed(2)} more for free shipping!
+    </div>
+    ` : `
+    <div style="font-size: 0.9rem; color: #4CAF50;">
+        <i class="fas fa-check-circle" style="margin-right: 5px;"></i>
+        Free shipping applied!
+    </div>
+    `}
+    
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.5rem;">
+        <i class="fas fa-info-circle" style="margin-right: 5px;"></i>
+        Prices include 15% VAT. No returns on damaged products.
+    </div>
+</div>
+`;
+
+// Add to cart total display
+const finalTotal = total + shippingCost;
         
         // Enable/disable checkout button
         if (checkoutBtn) {
