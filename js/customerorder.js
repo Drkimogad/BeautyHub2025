@@ -260,6 +260,69 @@ const CustomerOrderManager = (function() {
         clearError();
         resetForm();
     }
+
+
+// TO BE MERGED
+   function updateOrderSummary(cartItems, subtotal) {
+    const shippingThreshold = 1000;
+    const shippingCost = subtotal >= shippingThreshold ? 0 : 50;
+    const isFreeShipping = subtotal >= shippingThreshold;
+    const total = subtotal + shippingCost;
+    
+    // Update HTML to show breakdown
+    let html = `
+    <div style="margin-bottom: 1rem;">
+        <h4 style="margin-top: 0;">Order Summary</h4>
+        
+        <!-- Items -->
+        ${cartItems.map(item => `
+        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #eee;">
+            <div>
+                ${item.productName} × ${item.quantity}
+                ${item.isDiscounted ? '<span style="color:#e91e63; font-size:0.9em;"> (Discounted)</span>' : ''}
+            </div>
+            <div>R${(item.finalPrice * item.quantity).toFixed(2)}</div>
+        </div>
+        `).join('')}
+        
+        <!-- Financial Breakdown -->
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 2px solid #eee;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Subtotal:</span>
+                <span>R${subtotal.toFixed(2)}</span>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Shipping:</span>
+                <span style="color: ${isFreeShipping ? '#4CAF50' : '#333'}; font-weight: ${isFreeShipping ? 'bold' : 'normal'}">
+                    ${isFreeShipping ? 'FREE' : `R${shippingCost.toFixed(2)}`}
+                </span>
+            </div>
+            
+            ${!isFreeShipping ? `
+            <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; padding-left: 1rem;">
+                <i class="fas fa-truck" style="margin-right: 5px;"></i>
+                Free shipping on orders over R${shippingThreshold}
+            </div>
+            ` : ''}
+            
+            <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #eee; font-weight: bold;">
+                <span>Total:</span>
+                <span>R${total.toFixed(2)}</span>
+            </div>
+            
+            <div style="font-size: 0.85rem; color: #666; margin-top: 0.5rem; font-style: italic;">
+                <i class="fas fa-info-circle" style="margin-right: 5px;"></i>
+                Includes 15% VAT. No returns on damaged products.
+            </div>
+        </div>
+    </div>
+    `;
+    
+    summaryContainer.innerHTML = html;
+    totalElement.textContent = `R${total.toFixed(2)}`;
+}
+    
     
     function updateOrderSummary(cartItems, total) {
         const summaryContainer = document.getElementById('checkout-items-summary');
