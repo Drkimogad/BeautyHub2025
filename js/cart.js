@@ -355,133 +355,160 @@ const BeautyHubCart = (function() {
         
         headerActions.appendChild(cartBtn);
     }
-    
+
     // ===== UI UPDATES =====
-    function updateCartUI() {
-        const cartCount = document.getElementById('cart-count');
-        const cartTotal = document.getElementById('cart-total');
-        const cartItemsContainer = document.getElementById('cart-items-container');
-        const checkoutBtn = document.getElementById('checkout-btn');
-        
-        // Update cart count
-        if (cartCount) {
-            cartCount.textContent = getCartCount();
+function updateCartUI() {
+    const cartCount = document.getElementById('cart-count');
+    const cartTotal = document.getElementById('cart-total');
+    const cartItemsContainer = document.getElementById('cart-items-container');
+    const checkoutBtn = document.getElementById('checkout-btn');
+    
+    // Update cart count
+    if (cartCount) {
+        cartCount.textContent = getCartCount();
+    }
+    
+    // Calculate SUBTOTAL (items only)
+    const subtotal = getCartTotal(); // This is actually subtotal
+    const subtotalFixed = subtotal.toFixed(2);
+    
+    // Update cart total (this is actually subtotal)
+    if (cartTotal) {
+        cartTotal.textContent = `R${subtotalFixed}`;
+    }
+    
+    // Update cart items list
+    if (cartItemsContainer) {
+        if (cartItems.length === 0) {
+            cartItemsContainer.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
+            if (checkoutBtn) checkoutBtn.disabled = true;
+            return;
         }
         
-        // Update cart total
-        const total = getCartTotal().toFixed(2);
-        if (cartTotal) {
-            cartTotal.textContent = `R${total}`;
-        }
-        
-        // Update cart items list
-        if (cartItemsContainer) {
-            if (cartItems.length === 0) {
-                cartItemsContainer.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
-                if (checkoutBtn) checkoutBtn.disabled = true;
-                return;
-            }
-            
-            let html = '';
-            cartItems.forEach(item => {
-                html += `
-                <div class="cart-item" data-id="${item.productId}" style="
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    padding: 0.75rem 0;
-                    border-bottom: 1px solid #f5f5f5;
+        let html = '';
+        cartItems.forEach(item => {
+            html += `
+            <div class="cart-item" data-id="${item.productId}" style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0.75rem 0;
+                border-bottom: 1px solid #f5f5f5;
+            ">
+                <img src="${item.imageUrl}" alt="${item.productName}" style="
+                    width: 50px;
+                    height: 50px;
+                    object-fit: cover;
+                    border-radius: 4px;
                 ">
-                    <img src="${item.imageUrl}" alt="${item.productName}" style="
-                        width: 50px;
-                        height: 50px;
-                        object-fit: cover;
+                <div class="cart-item-details" style="flex: 1; padding: 0 1rem;">
+                    <h4 style="margin: 0 0 0.25rem 0;">${item.productName}</h4>
+                    <p style="margin: 0; color: #666;">R${item.price.toFixed(2)} × ${item.quantity}</p>
+                </div>
+                <div class="cart-item-controls" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <button class="qty-btn minus" data-id="${item.productId}" style="
+                        width: 25px;
+                        height: 25px;
+                        border: 1px solid #ddd;
+                        background: white;
+                        cursor: pointer;
                         border-radius: 4px;
-                    ">
-                    <div class="cart-item-details" style="flex: 1; padding: 0 1rem;">
-                        <h4 style="margin: 0 0 0.25rem 0;">${item.productName}</h4>
-                        <p style="margin: 0; color: #666;">R${item.price.toFixed(2)} × ${item.quantity}</p>
-                    </div>
-                    <div class="cart-item-controls" style="display: flex; align-items: center; gap: 0.5rem;">
-                        <button class="qty-btn minus" data-id="${item.productId}" style="
-                            width: 25px;
-                            height: 25px;
-                            border: 1px solid #ddd;
-                            background: white;
-                            cursor: pointer;
-                            border-radius: 4px;
-                        ">−</button>
-                        <span class="qty-display" style="min-width: 20px; text-align: center;">${item.quantity}</span>
-                        <button class="qty-btn plus" data-id="${item.productId}" style="
-                            width: 25px;
-                            height: 25px;
-                            border: 1px solid #ddd;
-                            background: white;
-                            cursor: pointer;
-                            border-radius: 4px;
-                        ">+</button>
-                        <button class="remove-btn" data-id="${item.productId}" style="
-                            background: #ff5252;
-                            color: white;
-                            border: none;
-                            width: 25px;
-                            height: 25px;
-                            border-radius: 4px;
-                            cursor: pointer;
-                        ">×</button>
-                    </div>
-                </div>`;
-            });
-            cartItemsContainer.innerHTML = html;
-        }
-
-        // In updateCartUI() function, before checkout button:
-const shippingThreshold = 1000;
-const shippingCost = total < shippingThreshold ? 50 : 0;
-const isFreeShipping = total >= shippingThreshold;
-
-let shippingHtml = `
-<div class="cart-shipping-info" style="
-    margin: 1rem 0;
-    padding: 1rem;
-    background: ${isFreeShipping ? '#e8f5e9' : '#fff8e1'};
-    border-radius: 8px;
-    border-left: 4px solid ${isFreeShipping ? '#4CAF50' : '#FF9800'};
-">
-    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-        <span>Shipping:</span>
-        <span style="font-weight: bold; color: ${isFreeShipping ? '#4CAF50' : '#333'}">
-            ${isFreeShipping ? 'FREE' : `R${shippingCost.toFixed(2)}`}
-        </span>
-    </div>
+                    ">−</button>
+                    <span class="qty-display" style="min-width: 20px; text-align: center;">${item.quantity}</span>
+                    <button class="qty-btn plus" data-id="${item.productId}" style="
+                        width: 25px;
+                        height: 25px;
+                        border: 1px solid #ddd;
+                        background: white;
+                        cursor: pointer;
+                        border-radius: 4px;
+                    ">+</button>
+                    <button class="remove-btn" data-id="${item.productId}" style="
+                        background: #ff5252;
+                        color: white;
+                        border: none;
+                        width: 25px;
+                        height: 25px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                    ">×</button>
+                </div>
+            </div>`;
+        });
+        cartItemsContainer.innerHTML = html;
+    }
     
-    ${!isFreeShipping ? `
-    <div style="font-size: 0.9rem; color: #666;">
-        <i class="fas fa-truck" style="margin-right: 5px;"></i>
-        Spend R${(shippingThreshold - total).toFixed(2)} more for free shipping!
-    </div>
-    ` : `
-    <div style="font-size: 0.9rem; color: #4CAF50;">
-        <i class="fas fa-check-circle" style="margin-right: 5px;"></i>
-        Free shipping applied!
-    </div>
-    `}
+    // Calculate shipping
+    const shippingThreshold = 1000;
+    const shippingCost = subtotal >= shippingThreshold ? 0 : 50;
+    const isFreeShipping = subtotal >= shippingThreshold;
+    const finalTotal = subtotal + shippingCost;
     
-    <div style="font-size: 0.85rem; color: #666; margin-top: 0.5rem;">
-        <i class="fas fa-info-circle" style="margin-right: 5px;"></i>
-        Prices include 15% VAT. No returns on damaged products.
-    </div>
-</div>
-`;
-
-// Add to cart total display
-const finalTotal = total + shippingCost;
+    // Remove existing shipping info if present
+    const existingShipping = document.querySelector('.cart-shipping-info');
+    if (existingShipping) existingShipping.remove();
+    
+    // Create shipping HTML
+    const shippingHtml = `
+    <div class="cart-shipping-info" style="
+        margin: 1rem 0;
+        padding: 1rem;
+        background: ${isFreeShipping ? '#e8f5e9' : '#fff8e1'};
+        border-radius: 8px;
+        border-left: 4px solid ${isFreeShipping ? '#4CAF50' : '#FF9800'};
+    ">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+            <span>Shipping:</span>
+            <span style="font-weight: bold; color: ${isFreeShipping ? '#4CAF50' : '#333'}">
+                ${isFreeShipping ? 'FREE' : `R${shippingCost.toFixed(2)}`}
+            </span>
+        </div>
         
-        // Enable/disable checkout button
-        if (checkoutBtn) {
-            checkoutBtn.disabled = cartItems.length === 0;
+        ${!isFreeShipping ? `
+        <div style="font-size: 0.9rem; color: #666;">
+            <i class="fas fa-truck" style="margin-right: 5px;"></i>
+            Spend R${(shippingThreshold - subtotal).toFixed(2)} more for free shipping!
+        </div>
+        ` : `
+        <div style="font-size: 0.9rem; color: #4CAF50;">
+            <i class="fas fa-check-circle" style="margin-right: 5px;"></i>
+            Free shipping applied!
+        </div>
+        `}
+        
+        <div style="font-size: 0.85rem; color: #666; margin-top: 0.5rem;">
+            <i class="fas fa-info-circle" style="margin-right: 5px;"></i>
+            Prices include 15% VAT. No returns on damaged products.
+        </div>
+    </div>
+    `;
+    
+    // Insert shipping info and update final total
+    const cartFooter = document.querySelector('.cart-footer');
+    if (cartFooter) {
+        // Create container for shipping
+        const shippingContainer = document.createElement('div');
+        shippingContainer.innerHTML = shippingHtml;
+        
+        // Insert shipping before the total section
+        const totalDiv = cartFooter.querySelector('.cart-total');
+        if (totalDiv) {
+            cartFooter.insertBefore(shippingContainer, totalDiv.nextSibling);
+        }
+        
+        // Update total display to show FINAL TOTAL (subtotal + shipping)
+        const cartTotalElement = document.getElementById('cart-total');
+        if (cartTotalElement) {
+            cartTotalElement.textContent = `R${finalTotal.toFixed(2)}`;
         }
     }
+    
+    // Enable/disable checkout button
+    if (checkoutBtn) {
+        checkoutBtn.disabled = cartItems.length === 0;
+    }
+}
+
     
     function showAddedNotification(productName) {
         let notification = document.getElementById('cart-notification');
