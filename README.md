@@ -1,3 +1,17 @@
+// Clear ALL BeautyHub data
+localStorage.removeItem('beautyhub_products');
+localStorage.removeItem('beautyhub_products_cache');
+localStorage.removeItem('beautyhub_cart');
+localStorage.removeItem('beautyhub_orders');
+localStorage.removeItem('beautyhub_admin_session');
+localStorage.removeItem('beautyhub_order_id_counter');
+localStorage.removeItem('beautyhub_customers');
+localStorage.removeItem('beautyhub_inventory_transactions');
+
+console.log('All BeautyHub data cleared. Reloading...');
+location.reload(true);
+
+
 BeautyHub2025 - E-commerce PWA Project - UPDATED
 Project Overview
 Name: BeautyHub2025 - Luxury Beauty Products E-commerce PWA
