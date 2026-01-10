@@ -186,16 +186,8 @@ const ProductsManager = (function() {
                 saveProductsToLocalStorage(); // Keep local backup
                 console.log('[ProductsManager] Primary: Loaded from Firestore');
                 console.log('[ProductsManager] Dispatching productsManagerReady event');
-window.dispatchEvent(new CustomEvent('productsManagerReady'));
-
-// Direct call to ProductsDisplay if it exists
-setTimeout(() => {
-    if (typeof ProductsDisplay !== 'undefined' && ProductsDisplay.renderProducts) {
-        console.log('[ProductsManager] Direct call to ProductsDisplay.renderProducts()');
-        ProductsDisplay.renderProducts();
-    }
-}, 100);
-                return;
+             window.dispatchEvent(new CustomEvent('productsManagerReady'));
+              return;
             }
         }
         
