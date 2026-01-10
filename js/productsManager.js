@@ -1,5 +1,4 @@
 // productsManager.js - Product CRUD & Management System WITH FIRESTORE
-
 const ProductsManager = (function() {
     // Configuration
     const CONFIG = {
