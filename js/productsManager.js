@@ -185,6 +185,7 @@ const ProductsManager = (function() {
                 saveProductsToCache();
                 saveProductsToLocalStorage(); // Keep local backup
                 console.log('[ProductsManager] Primary: Loaded from Firestore');
+                console.log('[ProductsManager] Dispatching productsManagerReady event');
                 window.dispatchEvent(new CustomEvent('productsManagerReady')); //added
                 return;
             }
