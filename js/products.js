@@ -9,16 +9,30 @@ Summary of changes to products.js:
 ✅ Added logging for debugging
 */
 const ProductsDisplay = (function() {
-  // Initialize products display
+
+// Initialize products display
 function init() {
     console.log('[ProductsDisplay] Initializing...');
+    
+    // SET UP ALL EVENT LISTENERS FIRST (BEFORE ANYTHING ELSE)
+    // Listen for ProductsManager ready signal - SET UP ONCE
+    window.addEventListener('productsManagerReady', () => {
+        console.log('[ProductsDisplay] Received productsManagerReady signal');
+        renderProducts();
+        setupEventListeners();
+    });
+    
+    // Listen for product updates
+    window.addEventListener('productsUpdated', () => {
+        console.log('[ProductsDisplay] Products updated, refreshing...');
+        renderProducts();
+    });
     
     // Check if ProductsManager is ready
     const checkProductsManager = () => {
         if (typeof ProductsManager !== 'undefined' && 
-           ProductsManager.getProducts &&  //get products now
-           ProductsManager.getProducts().length > 0) {
-            // ProductsManager has products loaded
+           ProductsManager.getProducts) {
+            // Just check if function exists, don't check length
             console.log('[ProductsDisplay] ProductsManager ready, rendering products');
             renderProducts();
             setupEventListeners();
@@ -32,21 +46,7 @@ function init() {
         return; // Success, exit function
     }
     
-    // If not ready, wait for signal
     console.log('[ProductsDisplay] Waiting for ProductsManager...');
-    
-    // Listen for ProductsManager ready signal
-    window.addEventListener('productsManagerReady', () => {
-        console.log('[ProductsDisplay] Received productsManagerReady signal');
-        renderProducts();
-        setupEventListeners();
-    });
-    
-    // Also listen for product updates
-    window.addEventListener('productsUpdated', () => {
-        console.log('[ProductsDisplay] Products updated, refreshing...');
-        renderProducts();
-    });
     
     // Fallback: Check every 100ms for 3 seconds
     let checks = 0;
