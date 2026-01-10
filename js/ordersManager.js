@@ -111,6 +111,9 @@ const OrdersManager = (function() {
         
         const orderId = generateOrderId();
         const now = new Date().toISOString();
+        const shippingThreshold = 1000;
+    const shippingCost = customerData.totalAmount >= shippingThreshold ? 0 : 50;
+    const isFreeShipping = customerData.totalAmount >= shippingThreshold;
         
         const newOrder = {
     id: orderId,
@@ -134,7 +137,21 @@ const OrdersManager = (function() {
             createdAt: now,
             updatedAt: now,
             notes: customerData.orderNotes?.trim() || '',
-            adminNotes: ''
+            adminNotes: '',
+            // FINANCIAL FIELDS - ADD THESE
+        subtotal: customerData.totalAmount,
+        shippingCost: shippingCost,
+        shippingThreshold: shippingThreshold,
+        isFreeShipping: isFreeShipping,
+        discount: 0.00,
+        tax: 0.00,
+        totalAmount: customerData.totalAmount + shippingCost,
+        
+        // POLICY FIELD
+        returnPolicy: "No returns on damaged products. 7-day return for unused items with original packaging.",
+         // ANALYTICS FIELDS
+        hasDiscount: false,
+        usedFreeShipping: isFreeShipping
         };
         
         // Add to orders array
