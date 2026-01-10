@@ -212,6 +212,7 @@ function getFallbackProducts() {
 
     // Setup event listeners (keep existing code, unchanged)
     function setupEventListeners() {
+      console.log('[ProductsDisplay] Setting up productsManagerReady listener'); 
         document.addEventListener('click', function(e) {
             // Add to cart button
             if (e.target.classList.contains('add-to-cart') || 
