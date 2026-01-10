@@ -374,7 +374,8 @@ return {
             return ProductsManager.getProducts({ activeOnly: true });
         }
         return getFallbackProducts();
-    }
+    },
+        renderProducts // <-- ADD THIS LINE
 };
 })();
 
