@@ -1,4 +1,5 @@
 // migration-orders-schema.js
+
 const OrderSchemaMigration = (function() {
     
     async function migrateOrdersSchema() {
