@@ -31,7 +31,9 @@ function init() {
     // Check if ProductsManager is ready
     const checkProductsManager = () => {
         if (typeof ProductsManager !== 'undefined' && 
-           ProductsManager.getProducts) {
+           ProductsManager.getProducts &&
+           ProductsManager.products && // ADD THIS
+           ProductsManager.products.length > 0) { // AND THIS
             // Just check if function exists, don't check length
             console.log('[ProductsDisplay] ProductsManager ready, rendering products');
             renderProducts();
