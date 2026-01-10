@@ -535,3 +535,154 @@ To Test Cache is Working:
 Refresh the page now - Should see Loaded from cache instead of Loaded from localStorage
 Add a product in admin panel - Should immediately reflect on homepage
 Wait 1+ hour - Should reload from localStorage
+
+
+SCHEMAS IMPLEMENTATION
+Looking at your complete codebase, here are the essential schemas needed for long-term Firebase migration:
+
+1. PRODUCTS SCHEMA (Most Important - Foundation)
+javascript
+{
+  id: string,                    // "PROD-20250115-1234" (keep your format)
+  name: string,                  // "Signature Perfumes"
+  description: string,           // "Elegant scents that linger..."
+  category: string,              // "perfumes", "lashes", "skincare", "wigs"
+  price: number,                 // 300.00 (Rands)
+  originalPrice: number,         // 350.00 (for discounts)
+  stock: number,                 // 15
+  imageUrl: string,              // "gallery/perfumes.jpg"
+  gallery: string[],             // ["url1.jpg", "url2.jpg"]
+  tags: string[],                // ["bestseller", "new", "featured"]
+  specifications: {              // Flexible key-value
+    size: "50ml",
+    fragranceType: "Eau de Parfum",
+    longevity: "8-10 hours"
+  },
+  isActive: boolean,             // true/false (soft delete)
+  createdAt: timestamp,          // Firestore timestamp
+  updatedAt: timestamp,          // Firestore timestamp
+  lastRestock: timestamp,        // For inventory tracking
+  salesCount: number             // Total units sold
+}
+2. ORDERS SCHEMA (Already Good - Minor Tweaks)
+javascript
+{
+  id: string,                    // "ORD250115-0001" (keep your format)
+  customerId: string,            // Reference to customer (NEW - for relationships)
+  firstName: string,             // "John"
+  surname: string,               // "Doe"
+  customerPhone: string,         // "0712345678"
+  customerWhatsApp: string,      // "0712345678" (optional)
+  customerEmail: string,         // "john@email.com" (optional)
+  shippingAddress: string,       // "123 Street, City"
+  items: [                       // Array of ordered items
+    {
+      productId: string,         // Reference to product
+      productName: string,       // "Signature Perfumes"
+      price: number,             // 300.00 (price at time of order)
+      quantity: number,          // 2
+      imageUrl: string           // For display in admin
+    }
+  ],
+  totalAmount: number,           // 600.00
+  status: string,                // "pending" | "paid" | "shipped" | "completed" | "cancelled"
+  paymentMethod: string,         // "manual" | "card" | "cash" (future)
+  shippingDate: timestamp,       // When shipped
+  createdAt: timestamp,
+  updatedAt: timestamp,
+  notes: string,                 // Customer notes
+  adminNotes: string,            // Internal admin notes
+  // NEW FOR ANALYTICS:
+  shippingCost: number,          // 0.00 (free shipping threshold)
+  discount: number,              // 0.00 (future promotions)
+  tax: number                    // 0.00 (future)
+}
+3. CUSTOMERS SCHEMA (From customerSearch.js - Enhanced)
+javascript
+{
+  id: string,                    // "CUST-20250115-5678"
+  firstName: string,
+  surname: string,
+  phone: string,                 // Primary key for search
+  whatsApp: string,              // Optional
+  email: string,                 // Optional
+  addresses: string[],           // Array of shipping addresses
+  // STATS:
+  orderCount: number,            // Total orders
+  totalSpent: number,            // Lifetime value
+  averageOrderValue: number,     // totalSpent / orderCount
+  firstOrderDate: timestamp,
+  lastOrderDate: timestamp,
+  lastActive: timestamp,         // Last site visit/activity
+  // PREFERENCES:
+  favoriteCategories: string[],  // ["perfumes", "skincare"]
+  notes: string,                 // Admin notes about customer
+  createdAt: timestamp,
+  updatedAt: timestamp,
+  isSubscribed: boolean          // For marketing (future)
+}
+4. INVENTORY TRANSACTIONS (For Stock History)
+javascript
+{
+  id: string,                    // "TX-20250115-001"
+  productId: string,             // Reference to product
+  type: string,                  // "order" | "restock" | "adjustment" | "return"
+  quantity: number,              // +10 (restock) or -2 (sale)
+  previousStock: number,         // Stock before transaction
+  newStock: number,              // Stock after transaction
+  referenceId: string,           // Order ID or admin ID
+  notes: string,                 // "Customer order #ORD123" or "Manual restock"
+  performedBy: string,           // "system" | "admin@email.com" | "customer@email.com"
+  timestamp: timestamp
+}
+5. ADMIN USERS (For Firebase Auth Integration)
+javascript
+{
+  uid: string,                   // Firebase Auth UID
+  email: string,                 // "admin@beautyhub.com"
+  displayName: string,           // "Admin User"
+  role: string,                  // "admin" | "manager" (future roles)
+  permissions: string[],         // ["view_orders", "edit_products", "manage_inventory"]
+  lastLogin: timestamp,
+  createdAt: timestamp,
+  isActive: boolean              // Account active status
+}
+Migration Strategy:
+Phase 1: Products to Firestore (Easiest First)
+Read-only for visitors
+
+Admin CRUD operations
+
+Cache layer remains (localStorage → Firestore)
+
+Phase 2: Orders to Firestore
+Real-time admin notifications
+
+Customer order history
+
+Analytics data
+
+Phase 3: Customers to Firestore
+Auto-create on first order
+
+Search and auto-fill
+
+Customer analytics
+
+Phase 4: Inventory & Analytics
+Real-time stock updates
+
+Sales reports
+
+Dashboard metrics
+
+Critical Decision:
+Should we add customerId to orders now? This creates the relationship between orders and customers.
+
+Recommendation: Yes, add customerId field to your current order schema. It can be:
+
+Generated from phone+surname hash
+
+Auto-created on first order
+
+Used for customer search and order history
