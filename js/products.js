@@ -21,7 +21,8 @@ function init() {
         console.log('[ProductsDisplay] Products updated, refreshing...');
         renderProducts();
     });
-}
+}, 1000); // 800ms delay for Firestore to load
+
     
 // Render products to page using ProductsManager data
 function renderProducts() {
