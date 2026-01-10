@@ -460,239 +460,348 @@ function renderCompletedOrders(containerId = 'completed-orders-list') {
     
     container.innerHTML = html;
 }
+//===================================================================    
+// Show order details modal - UPDATED with financial breakdown
+//==========================================================
+function showOrderDetails(orderId) {
+    const order = getOrderById(orderId);
+    if (!order) return;
     
-    // Show order details modal
-    function showOrderDetails(orderId) {
-        const order = getOrderById(orderId);
-        if (!order) return;
+    // Create or update modal
+    let modal = document.getElementById('order-details-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'order-details-modal';
+        modal.className = 'order-details-modal';
+        modal.style.cssText = `
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    const orderDate = new Date(order.createdAt).toLocaleString();
+    const shippingDate = order.shippingDate 
+        ? new Date(order.shippingDate).toLocaleDateString()
+        : 'Not shipped yet';
+    
+    // Build items list
+    let itemsHtml = '';
+    order.items.forEach(item => {
+        const itemTotal = (item.finalPrice || item.price) * item.quantity;
+        itemsHtml += `
+        <div class="order-item" style="
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        ">
+            <div class="item-name">
+                ${item.productName} × ${item.quantity}
+                ${item.isDiscounted ? '<span style="color:#e91e63; font-size:0.9em; margin-left:0.5rem;">(Discounted)</span>' : ''}
+            </div>
+            <div class="item-price">R${itemTotal.toFixed(2)}</div>
+        </div>`;
+    });
+    
+    // Financial breakdown - NEW
+    const financialBreakdown = `
+    <div style="
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 4px;
+        margin-top: 1rem;
+    ">
+        <h4 style="margin-top: 0; margin-bottom: 1rem;">Order Breakdown</h4>
         
-        // Create or update modal
-        let modal = document.getElementById('order-details-modal');
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'order-details-modal';
-            modal.className = 'order-details-modal';
-            modal.style.cssText = `
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.5);
-                z-index: 9999;  /* HIGHEST Z-INDEX TO APPEAR ABOVE EVERYTHING*/
-                align-items: center;
-                justify-content: center;
-            `;
-            document.body.appendChild(modal);
-        }
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+            <span>Subtotal:</span>
+            <span>R${order.subtotal.toFixed(2)}</span>
+        </div>
         
-        const orderDate = new Date(order.createdAt).toLocaleString();
-        const shippingDate = order.shippingDate 
-            ? new Date(order.shippingDate).toLocaleDateString()
-            : 'Not shipped yet';
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+            <span>Shipping:</span>
+            <span style="color: ${order.shippingCost === 0 ? '#4CAF50' : '#333'}; font-weight: ${order.shippingCost === 0 ? 'bold' : 'normal'}">
+                ${order.shippingCost === 0 ? 'FREE' : `R${order.shippingCost.toFixed(2)}`}
+                ${order.shippingCost === 0 ? ' (over R' + order.shippingThreshold + ')' : ''}
+            </span>
+        </div>
         
-        // Build items list
-        let itemsHtml = '';
-        order.items.forEach(item => {
-            itemsHtml += `
-            <div class="order-item">
-                <div class="item-name">${item.productName} × ${item.quantity}</div>
-                <div class="item-price">R${(item.price * item.quantity).toFixed(2)}</div>
-            </div>`;
-        });
+        ${order.discount > 0 ? `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #e91e63;">
+            <span>Discount:</span>
+            <span>-R${order.discount.toFixed(2)}</span>
+        </div>
+        ` : ''}
         
-        modal.innerHTML = `
-            <div class="order-modal-content" style="
-                background: white;
-                border-radius: 8px;
-                width: 90%;
-                max-width: 600px;
-                max-height: 90vh;
-                overflow-y: auto;
-                padding: 2rem;
-                position: relative;
-            ">
-                <button id="close-details-modal" style="
-                    position: absolute;
-                    top: 1rem;
-                    right: 1rem;
-                    background: none;
-                    border: none;
-                    font-size: 1.5rem;
-                    cursor: pointer;
-                ">&times;</button>
-                
-                <h2 style="margin-top: 0; color: #333;">
-                    Order Details: ${order.id}
-                    <span class="status-badge" style="
-                        background: ${order.status === 'pending' ? '#ff9800' : 
-                                    order.status === 'paid' ? '#2196f3' : 
-                                    order.status === 'shipped' ? '#4caf50' : '#9e9e9e'};
-                        color: white;
-                        padding: 0.25rem 0.75rem;
-                        border-radius: 20px;
-                        font-size: 0.8rem;
-                        margin-left: 1rem;
-                    ">${order.status.toUpperCase()}</span>
-                </h2>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
-                    <div>
-                        <h3 style="margin-top: 0;">Customer Information</h3>
-                        <div style="margin-bottom: 0.5rem;">
-                          <strong>Name:</strong> ${order.firstName} ${order.surname}
-                        </div>
-                        <div style="margin-bottom: 0.5rem;">
-                            <strong>Phone:</strong> ${order.customerPhone}
-                        </div>
-                        ${order.customerWhatsApp ? `<div style="margin-bottom: 0.5rem;">
-                            <strong>WhatsApp:</strong> ${order.customerWhatsApp}
-                        </div>` : ''}
-                        ${order.customerEmail ? `<div style="margin-bottom: 0.5rem;">
-                            <strong>Email:</strong> ${order.customerEmail}
-                        </div>` : ''}
-                        <div style="margin-bottom: 0.5rem;">
-                            <strong>Order Date:</strong> ${orderDate}
-                        </div>
-                        <div>
-                            <strong>Shipping Date:</strong> ${shippingDate}
-                        </div>
+        ${order.tax > 0 ? `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+            <span>Tax:</span>
+            <span>R${order.tax.toFixed(2)}</span>
+        </div>
+        ` : ''}
+        
+        <div style="
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 2px solid #ddd;
+            font-weight: bold;
+            font-size: 1.1rem;
+        ">
+            <span>Total Amount:</span>
+            <span>R${order.totalAmount.toFixed(2)}</span>
+        </div>
+        
+        ${order.returnPolicy ? `
+        <div style="
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px dashed #ddd;
+            font-size: 0.85rem;
+            color: #666;
+        ">
+            <strong>Return Policy:</strong> ${order.returnPolicy}
+        </div>
+        ` : ''}
+    </div>
+    `;
+    
+    modal.innerHTML = `
+        <div class="order-modal-content" style="
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2rem;
+            position: relative;
+        ">
+            <button id="close-details-modal" style="
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                cursor: pointer;
+                color: #666;
+            ">&times;</button>
+            
+            <h2 style="margin-top: 0; color: #333;">
+                Order Details: ${order.id}
+                <span class="status-badge" style="
+                    background: ${order.status === 'pending' ? '#ff9800' : 
+                                order.status === 'paid' ? '#2196f3' : 
+                                order.status === 'shipped' ? '#4caf50' : '#9e9e9e'};
+                    color: white;
+                    padding: 0.25rem 0.75rem;
+                    border-radius: 20px;
+                    font-size: 0.8rem;
+                    margin-left: 1rem;
+                ">${order.status.toUpperCase()}</span>
+            </h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                <div>
+                    <h3 style="margin-top: 0;">Customer Information</h3>
+                    <div style="margin-bottom: 0.5rem;">
+                      <strong>Name:</strong> ${order.firstName} ${order.surname}
+                      ${order.customerId ? `<br><span style="font-size: 0.85rem; color: #666;">ID: ${order.customerId}</span>` : ''}
                     </div>
-                    
+                    <div style="margin-bottom: 0.5rem;">
+                        <strong>Phone:</strong> ${order.customerPhone}
+                    </div>
+                    ${order.customerWhatsApp ? `<div style="margin-bottom: 0.5rem;">
+                        <strong>WhatsApp:</strong> ${order.customerWhatsApp}
+                    </div>` : ''}
+                    ${order.customerEmail ? `<div style="margin-bottom: 0.5rem;">
+                        <strong>Email:</strong> ${order.customerEmail}
+                    </div>` : ''}
+                    <div style="margin-bottom: 0.5rem;">
+                        <strong>Order Date:</strong> ${orderDate}
+                    </div>
                     <div>
-                        <h3 style="margin-top: 0;">Shipping Address</h3>
-                        <div style="
-                            background: #f8f9fa;
-                            padding: 1rem;
-                            border-radius: 4px;
-                            white-space: pre-wrap;
-                        ">${order.shippingAddress}</div>
+                        <strong>Shipping Date:</strong> ${shippingDate}
                     </div>
                 </div>
                 
-                <div style="margin-bottom: 2rem;">
-                    <h3>Order Items</h3>
-                    <div style="
-                        background: #f8f9fa;
-                        padding: 1rem;
-                        border-radius: 4px;
-                    ">
-                        ${itemsHtml}
-                        <div style="
-                            display: flex;
-                            justify-content: space-between;
-                            margin-top: 1rem;
-                            padding-top: 1rem;
-                            border-top: 1px solid #ddd;
-                            font-weight: bold;
-                        ">
-                            <div>Total Amount:</div>
-                            <div>R${order.totalAmount.toFixed(2)}</div>
-                        </div>
-                    </div>
-                </div>
-                
-                ${order.notes ? `<div style="margin-bottom: 2rem;">
-                    <h3>Customer Notes</h3>
+                <div>
+                    <h3 style="margin-top: 0;">Shipping Address</h3>
                     <div style="
                         background: #f8f9fa;
                         padding: 1rem;
                         border-radius: 4px;
                         white-space: pre-wrap;
-                    ">${order.notes}</div>
-                </div>` : ''}
-                
-                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                    <button id="print-order-details" class="print-btn" style="
-                        padding: 0.75rem 1.5rem;
-                        background: #2196f3;
-                        color: white;
-                        border: none;
-                        border-radius: 4px;
-                        cursor: pointer;
-                    ">
-                        <i class="fas fa-print" style="margin-right: 0.5rem;"></i>
-                        Print Order
-                    </button>
-                    
-                    <button id="delete-order-details" class="delete-btn" style="
-                        padding: 0.75rem 1.5rem;
-                        background: #ff5252;
-                        color: white;
-                        border: none;
-                        border-radius: 4px;
-                        cursor: pointer;
-                    ">
-                        <i class="fas fa-trash" style="margin-right: 0.5rem;"></i>
-                        Delete Order
-                    </button>
+                        font-size: 0.95rem;
+                    ">${order.shippingAddress}</div>
                 </div>
             </div>
-        `;
-        
-        // Show modal
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        
-        // Add event listeners for this modal
-        const closeBtn = document.getElementById('close-details-modal');
-        const printBtn = document.getElementById('print-order-details');
-        const deleteBtn = document.getElementById('delete-order-details');
-        
-        if (closeBtn) {
-            closeBtn.onclick = () => {
-                modal.style.display = 'none';
-                document.body.style.overflow = '';
-            };
-        }
-        
-        if (printBtn) {
-            printBtn.onclick = () => printOrderDetails(order);
-        }
-        
-        if (deleteBtn) {
-            deleteBtn.onclick = () => {
-                if (confirm('Are you sure you want to delete this order?')) {
-                    deleteOrder(orderId);
-                    modal.style.display = 'none';
-                    document.body.style.overflow = '';
-                    
-                    // Refresh order lists if in admin view
-                    if (document.getElementById('admin-dashboard')?.style.display !== 'none') {
-                        renderOrders();
-                        renderCompletedOrders();
-                    }
-                }
-            };
-        }
+            
+            <div style="margin-bottom: 2rem;">
+                <h3>Order Items</h3>
+                <div style="
+                    background: #f8f9fa;
+                    padding: 1rem;
+                    border-radius: 4px;
+                ">
+                    ${itemsHtml}
+                </div>
+                
+                ${financialBreakdown}
+            </div>
+            
+            ${order.notes ? `<div style="margin-bottom: 2rem;">
+                <h3>Customer Notes</h3>
+                <div style="
+                    background: #f8f9fa;
+                    padding: 1rem;
+                    border-radius: 4px;
+                    white-space: pre-wrap;
+                    font-size: 0.95rem;
+                ">${order.notes}</div>
+            </div>` : ''}
+            
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button id="print-order-details" class="print-btn" style="
+                    padding: 0.75rem 1.5rem;
+                    background: #2196f3;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-weight: 600;
+                ">
+                    <i class="fas fa-print" style="margin-right: 0.5rem;"></i>
+                    Print Order
+                </button>
+                
+                <button id="delete-order-details" class="delete-btn" style="
+                    padding: 0.75rem 1.5rem;
+                    background: #ff5252;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-weight: 600;
+                ">
+                    <i class="fas fa-trash" style="margin-right: 0.5rem;"></i>
+                    Delete Order
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Show modal
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Add event listeners
+    const closeBtn = document.getElementById('close-details-modal');
+    const printBtn = document.getElementById('print-order-details');
+    const deleteBtn = document.getElementById('delete-order-details');
+    
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        };
     }
     
+    if (printBtn) {
+        printBtn.onclick = () => printOrderDetails(order);
+    }
+    
+    if (deleteBtn) {
+        deleteBtn.onclick = () => {
+            if (confirm('Are you sure you want to delete this order?')) {
+                deleteOrder(orderId);
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+                
+                if (document.getElementById('admin-dashboard')?.style.display !== 'none') {
+                    renderOrders();
+                    renderCompletedOrders();
+                }
+            }
+        };
+    }
+}
+
+    
+    
     // Print order details
-    function printOrderDetails(order) {
-        const printWindow = window.open('', '_blank');
-        const orderDate = new Date(order.createdAt).toLocaleString();
-        const shippingDate = order.shippingDate 
-            ? new Date(order.shippingDate).toLocaleDateString()
-            : 'Not shipped yet';
-        
-        let itemsHtml = '';
-        order.items.forEach(item => {
-            itemsHtml += `
+// Print order details - UPDATED
+function printOrderDetails(order) {
+    const printWindow = window.open('', '_blank');
+    const orderDate = new Date(order.createdAt).toLocaleString();
+    const shippingDate = order.shippingDate 
+        ? new Date(order.shippingDate).toLocaleDateString()
+        : 'Not shipped yet';
+    
+    let itemsHtml = '';
+    order.items.forEach(item => {
+        const itemTotal = (item.finalPrice || item.price) * item.quantity;
+        itemsHtml += `
+        <tr>
+            <td>${item.productName}${item.isDiscounted ? ' (Discounted)' : ''}</td>
+            <td>${item.quantity}</td>
+            <td>R${(item.finalPrice || item.price).toFixed(2)}</td>
+            <td>R${itemTotal.toFixed(2)}</td>
+        </tr>`;
+    });
+    
+    // Financial breakdown for print
+    const financialBreakdown = `
+    <div style="margin-top: 20px;">
+        <table style="width: 100%; border-collapse: collapse;">
             <tr>
-                <td>${item.productName}</td>
-                <td>${item.quantity}</td>
-                <td>R${item.price.toFixed(2)}</td>
-                <td>R${(item.price * item.quantity).toFixed(2)}</td>
-            </tr>`;
-        });
-        
-        printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Order ${order.id} - BeautyHub2025</title>
-<style>
+                <td style="padding: 8px 0;">Subtotal:</td>
+                <td style="text-align: right; padding: 8px 0;">R${order.subtotal.toFixed(2)}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0;">Shipping:</td>
+                <td style="text-align: right; padding: 8px 0; color: ${order.shippingCost === 0 ? '#4CAF50' : '#333'}">
+                    ${order.shippingCost === 0 ? 'FREE' : `R${order.shippingCost.toFixed(2)}`}
+                    ${order.shippingCost === 0 ? ' (over R' + order.shippingThreshold + ')' : ''}
+                </td>
+            </tr>
+            ${order.discount > 0 ? `
+            <tr style="color: #e91e63;">
+                <td style="padding: 8px 0;">Discount:</td>
+                <td style="text-align: right; padding: 8px 0;">-R${order.discount.toFixed(2)}</td>
+            </tr>
+            ` : ''}
+            ${order.tax > 0 ? `
+            <tr>
+                <td style="padding: 8px 0;">Tax:</td>
+                <td style="text-align: right; padding: 8px 0;">R${order.tax.toFixed(2)}</td>
+            </tr>
+            ` : ''}
+            <tr style="font-weight: bold; border-top: 2px solid #333;">
+                <td style="padding: 12px 0;">Total Amount:</td>
+                <td style="text-align: right; padding: 12px 0;">R${order.totalAmount.toFixed(2)}</td>
+            </tr>
+        </table>
+    </div>
+    `;
+    
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Order ${order.id} - BeautyHub2025</title>
+            <style>
     * {
         box-sizing: border-box;
     }
@@ -873,66 +982,69 @@ function renderCompletedOrders(containerId = 'completed-orders-list') {
             margin: 0;
         }
     }
-</style>
-            </head>
-            <body>
-                <div class="header">
-                    <h1>BeautyHub2025</h1>
-                    <h2>Order Invoice: ${order.id}</h2>
-                </div>
-                
-                <div class="order-info">
-                    <p><strong>Order Date:</strong> ${orderDate}</p>
-                    <p><strong>Customer Name:</strong> ${order.firstName} ${order.surname}</p>
-                    <p><strong>Phone:</strong> ${order.customerPhone}</p>
-                    <p><strong>Shipping Address:</strong> ${order.shippingAddress}</p>
-                    <p><strong>Shipping Date:</strong> ${shippingDate}</p>
-                    <p><strong>Status:</strong> ${order.status.toUpperCase()}</p>
-                </div>
-                
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Quantity</th>
-                            <th>Unit Price</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${itemsHtml}
-                        <tr class="total-row">
-                            <td colspan="3" style="text-align: right;">Total Amount:</td>
-                            <td>R${order.totalAmount.toFixed(2)}</td>
-                        </tr>
-                    </tbody>
-                </table>
-                
-                ${order.notes ? `<div style="margin-top: 20px;">
-                    <strong>Customer Notes:</strong>
-                    <p>${order.notes}</p>
-                </div>` : ''}
-                
-                <div class="footer">
-                    <p>Thank you for your business!</p>
-                    <p>BeautyHub2025 | Luxury Beauty Products</p>
-                </div>
-                                <div class="print-buttons">
-                    <button onclick="window.print()" class="print-btn">
-                        Print Invoice
-                    </button>
-                    
-                    <button onclick="window.close()" class="close-btn">
-                        Close Window
-                    </button>
-                </div>
+   </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>BeautyHub2025</h1>
+                <h2>Order Invoice: ${order.id}</h2>
+            </div>
+            
+            <div class="order-info">
+                <p><strong>Order Date:</strong> ${orderDate}</p>
+                <p><strong>Customer Name:</strong> ${order.firstName} ${order.surname}</p>
+                <p><strong>Customer ID:</strong> ${order.customerId || 'N/A'}</p>
+                <p><strong>Phone:</strong> ${order.customerPhone}</p>
+                <p><strong>Shipping Address:</strong> ${order.shippingAddress}</p>
+                <p><strong>Shipping Date:</strong> ${shippingDate}</p>
+                <p><strong>Status:</strong> ${order.status.toUpperCase()}</p>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHtml}
+                </tbody>
+            </table>
+            
+            <!-- FINANCIAL BREAKDOWN - NEW -->
+            ${financialBreakdown}
+            
+            ${order.notes ? `<div style="margin-top: 20px;">
+                <strong>Customer Notes:</strong>
+                <p>${order.notes}</p>
+            </div>` : ''}
+            
+            ${order.returnPolicy ? `<div style="margin-top: 20px; font-size: 0.9em; color: #666;">
+                <strong>Return Policy:</strong> ${order.returnPolicy}
+            </div>` : ''}
+            
+            <div class="footer">
+                <p>Thank you for your business!</p>
+                <p>BeautyHub2025 | Luxury Beauty Products</p>
+            </div>
+            
+            <div class="print-buttons">
+                <button onclick="window.print()" class="print-btn">
+                    Print Invoice
+                </button>
+                <button onclick="window.close()" class="close-btn">
+                    Close Window
+                </button>
+            </div>
+        </body>
+        </html>
+    `);
     
-            </body>
-            </html>
-        `);
-        
-        printWindow.document.close();
-    }
+    printWindow.document.close();
+}
     
     // Show shipping date input
     function showShippingDateInput(orderId) {
