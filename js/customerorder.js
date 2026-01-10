@@ -221,36 +221,37 @@ const CustomerOrderManager = (function() {
     }
     
     // ===== MODAL CONTROLS =====
-    function openCheckout() {
-        if (!checkoutModal) return;
-        
-        // Check cart system
-        if (typeof BeautyHubCart === 'undefined') {
-            showError('Cart system not available');
-            return;
-        }
-        
-        const cartItems = BeautyHubCart.getCartItems();
-        const cartTotal = BeautyHubCart.getCartTotal();
-        
-        if (cartItems.length === 0) {
-            showError('Your cart is empty');
-            return;
-        }
-        
-        // Update order summary
-        updateOrderSummary(cartItems, cartTotal);
-        
-        // Show modal
-        checkoutModal.style.display = 'flex';
-//document.getElementById('customer-firstname').focus(); // CHANGED
-        // add check to avoid error
-        const firstNameField = document.getElementById('customer-firstname');
-        if (firstNameField) {
-        firstNameField.focus();
-         }
-        document.body.style.overflow = 'hidden';
+function openCheckout() {
+    if (!checkoutModal) return;
+    
+    if (typeof BeautyHubCart === 'undefined') {
+        showError('Cart system not available');
+        return;
     }
+    
+    const cartItems = BeautyHubCart.getCartItems();
+    
+    // Calculate SUBTOTAL (items only)
+    const subtotal = cartItems.reduce((total, item) => {
+        return total + (item.price * item.quantity);
+    }, 0);
+    
+    if (cartItems.length === 0) {
+        showError('Your cart is empty');
+        return;
+    }
+    
+    // Update order summary with SUBTOTAL
+    updateOrderSummary(cartItems, subtotal);
+    
+    // Show modal
+    checkoutModal.style.display = 'flex';
+    const firstNameField = document.getElementById('customer-firstname');
+    if (firstNameField) {
+        firstNameField.focus();
+    }
+    document.body.style.overflow = 'hidden';
+}
     
     function closeCheckout() {
         if (!checkoutModal) return;
@@ -260,10 +261,15 @@ const CustomerOrderManager = (function() {
         clearError();
         resetForm();
     }
-
-
-// TO BE MERGED
-   function updateOrderSummary(cartItems, subtotal) {
+//==========================================
+    // UPDATEORDERSUMMARY
+//=================================
+function updateOrderSummary(cartItems, subtotal) {
+    const summaryContainer = document.getElementById('checkout-items-summary');
+    const totalElement = document.getElementById('checkout-total-summary');
+    
+    if (!summaryContainer || !totalElement) return;
+    
     const shippingThreshold = 1000;
     const shippingCost = subtotal >= shippingThreshold ? 0 : 50;
     const isFreeShipping = subtotal >= shippingThreshold;
@@ -281,7 +287,7 @@ const CustomerOrderManager = (function() {
                 ${item.productName} × ${item.quantity}
                 ${item.isDiscounted ? '<span style="color:#e91e63; font-size:0.9em;"> (Discounted)</span>' : ''}
             </div>
-            <div>R${(item.finalPrice * item.quantity).toFixed(2)}</div>
+            <div>R${((item.finalPrice || item.price) * item.quantity).toFixed(2)}</div>
         </div>
         `).join('')}
         
@@ -322,31 +328,6 @@ const CustomerOrderManager = (function() {
     summaryContainer.innerHTML = html;
     totalElement.textContent = `R${total.toFixed(2)}`;
 }
-    
-    
-    function updateOrderSummary(cartItems, total) {
-        const summaryContainer = document.getElementById('checkout-items-summary');
-        const totalElement = document.getElementById('checkout-total-summary');
-        
-        if (!summaryContainer || !totalElement) return;
-        
-        let html = '';
-        cartItems.forEach(item => {
-            html += `
-            <div style="
-                display: flex;
-                justify-content: space-between;
-                padding: 0.5rem 0;
-                border-bottom: 1px solid #eee;
-            ">
-                <span>${item.productName} × ${item.quantity}</span>
-                <span>R${(item.price * item.quantity).toFixed(2)}</span>
-            </div>`;
-        });
-        
-        summaryContainer.innerHTML = html;
-        totalElement.textContent = `R${total.toFixed(2)}`;
-    }
     
     // ===== FORM HANDLING =====
     function validateForm(formData) {
