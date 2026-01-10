@@ -11,17 +11,58 @@ Summary of changes to products.js:
 const ProductsDisplay = (function() {
   // Initialize products display
 function init() {
-    console.log('[ProductsDisplay] Initializing...');    
-  // Remove this setTimeout - ProductsManager is already initialized
-    renderProducts();
-    setupEventListeners();
-  
-      // Listen for product updates IT MAY HAVE TO BE MODIFIED WHEN FIRESTORE IS IMPLEMENTED
+    console.log('[ProductsDisplay] Initializing...');
+    
+    // Check if ProductsManager is ready
+    const checkProductsManager = () => {
+        if (typeof ProductsManager !== 'undefined' && 
+            ProductsManager.products && 
+            ProductsManager.products.length > 0) {
+            // ProductsManager has products loaded
+            console.log('[ProductsDisplay] ProductsManager ready, rendering products');
+            renderProducts();
+            setupEventListeners();
+            return true;
+        }
+        return false;
+    };
+    
+    // Try immediately
+    if (checkProductsManager()) {
+        return; // Success, exit function
+    }
+    
+    // If not ready, wait for signal
+    console.log('[ProductsDisplay] Waiting for ProductsManager...');
+    
+    // Listen for ProductsManager ready signal
+    window.addEventListener('productsManagerReady', () => {
+        console.log('[ProductsDisplay] Received productsManagerReady signal');
+        renderProducts();
+        setupEventListeners();
+    });
+    
+    // Also listen for product updates
     window.addEventListener('productsUpdated', () => {
         console.log('[ProductsDisplay] Products updated, refreshing...');
         renderProducts();
     });
-} 
+    
+    // Fallback: Check every 100ms for 3 seconds
+    let checks = 0;
+    const fallbackCheck = setInterval(() => {
+        checks++;
+        if (checkProductsManager()) {
+            clearInterval(fallbackCheck);
+        } else if (checks >= 30) { // 30 checks * 100ms = 3 seconds
+            clearInterval(fallbackCheck);
+            console.log('[ProductsDisplay] Fallback: Rendering with available data');
+            renderProducts();
+            setupEventListeners();
+        }
+    }, 100);
+}
+  
 // Render products to page using ProductsManager data
 function renderProducts() {
     const container = document.getElementById('products-container');
