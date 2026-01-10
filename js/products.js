@@ -9,15 +9,20 @@ Summary of changes to products.js:
 ✅ Added logging for debugging
 */
 const ProductsDisplay = (function() {
-
+// MODULE-LEVEL VARIABLE (accessible to all functions)
+let fallbackCheck = null;
 // Initialize products display
 function init() {
     console.log('[ProductsDisplay] Initializing...');
-    
     // SET UP ALL EVENT LISTENERS FIRST (BEFORE ANYTHING ELSE)
     // Listen for ProductsManager ready signal - SET UP ONCE
     window.addEventListener('productsManagerReady', () => {
         console.log('[ProductsDisplay] Received productsManagerReady signal');
+    // STOP THE FALLBACK TIMER
+    if (fallbackCheck) {
+        clearInterval(fallbackCheck);
+        console.log('[ProductsDisplay] Stopped fallback timer');
+    }
         renderProducts();
         setupEventListeners();
     });
@@ -52,19 +57,21 @@ function init() {
     
     console.log('[ProductsDisplay] Waiting for ProductsManager...');
     
-    // Fallback: Check every 100ms for 3 seconds
-    let checks = 0;
-    const fallbackCheck = setInterval(() => {
-        checks++;
-        if (checkProductsManager()) {
-            clearInterval(fallbackCheck);
-        } else if (checks >= 30) { // 30 checks * 100ms = 3 seconds
-            clearInterval(fallbackCheck);
-            console.log('[ProductsDisplay] Fallback: Rendering with available data');
-            renderProducts();
-            setupEventListeners();
-        }
-    }, 100);
+// Fallback: Check every 100ms for 3 seconds
+let checks = 0;
+let fallbackCheck = setInterval(() => { // Remove const, use let
+    checks++;
+    if (checkProductsManager()) {
+        clearInterval(fallbackCheck);
+        fallbackCheck = null; // Clear reference
+    } else if (checks >= 30) { // 30 checks * 100ms = 3 seconds
+        clearInterval(fallbackCheck);
+        fallbackCheck = null; // Clear reference
+        console.log('[ProductsDisplay] Fallback: Rendering with available data');
+        renderProducts();
+        setupEventListeners();
+    }
+}, 100);
 }
   
 // Render products to page using ProductsManager data
