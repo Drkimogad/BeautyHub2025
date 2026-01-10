@@ -88,6 +88,8 @@ const ProductsManager = (function() {
             });
             
             console.log(`[ProductsManager] Firestore loaded: ${firestoreProducts.length} products`);
+            // ADD THIS CRITICAL LINE:
+            products = firestoreProducts; // <-- THIS IS MISSING
             return firestoreProducts;
             
         } catch (error) {
@@ -179,7 +181,7 @@ const ProductsManager = (function() {
         if (CONFIG.USE_FIRESTORE) {
             const firestoreProducts = await loadProductsFromFirestore();
             if (firestoreProducts && firestoreProducts.length > 0) {
-                products = firestoreProducts;
+                products = firestoreProducts; // <-- THIS MUST EXIST
                 saveProductsToCache();
                 saveProductsToLocalStorage(); // Keep local backup
                 console.log('[ProductsManager] Primary: Loaded from Firestore');
