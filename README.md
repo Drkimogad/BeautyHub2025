@@ -686,3 +686,9 @@ Generated from phone+surname hash
 Auto-created on first order
 
 Used for customer search and order history
+
+*****SERVICE WORKER FINALIZATION TO WORK FOR BOTH ROOTS GITHUB ABD FIREBASE HS TO BE DONE:
+Keep your JS caching (it's working well). Add service worker later for:
+Image caching (product photos) NOT NEEDED AS THE APP WORKS ONLY ONLINE
+App shell caching (HTML/CSS/JS files) ONLY THIS FOR USER EXPERIENCE 
+Better offline experience, NIT NEEDED FOR OFFLINE. BUT TO JUST SERVE OFFLINE.HTML IF OFFLINE AND NO CONNECTION LIKE A PWA.
