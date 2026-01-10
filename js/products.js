@@ -16,8 +16,8 @@ function init() {
     // Check if ProductsManager is ready
     const checkProductsManager = () => {
         if (typeof ProductsManager !== 'undefined' && 
-            ProductsManager.products && 
-            ProductsManager.products.length > 0) {
+           ProductsManager.getProducts &&  //get products now
+           ProductsManager.getProducts().length > 0) {
             // ProductsManager has products loaded
             console.log('[ProductsDisplay] ProductsManager ready, rendering products');
             renderProducts();
@@ -77,7 +77,7 @@ function renderProducts() {
     let products = [];
     
     if (typeof ProductsManager !== 'undefined' && ProductsManager.getProducts) {
-        products = ProductsManager.getProducts({ activeOnly: true });
+        products = ProductsManager.getProducts({ activeOnly: false });
         console.log('[ProductsDisplay] Loaded from ProductsManager:', products.length, 'products');
     }
     
