@@ -195,57 +195,38 @@ javascript
   salesCount: number,             // Total units sold
   status: 'in_stock' | 'low_stock' | 'out_of_stock'
 }
+
 Firebase Migration Considerations
 Authentication:
 Current: Hardcoded credentials in admin.js
-
 Firebase: OAuth/Email-Password with proper security rules
-
 Migration: Replace CONFIG.TEST_CREDENTIALS with Firebase Auth calls
 
 Data Structure:
 Collections: orders, customers, products, inventory
-
-Relations: Orders reference customers, items reference products
-
+Relations: Orders reference customers, items reference product
 Indexes: Create for surname+phone searches, status filters
-
 Image Storage Strategy:
 Option A - Firebase Storage:
-
 Upload product images to Firebase Storage
-
 Store download URLs in Firestore
-
 Use CDN for fast delivery
-
 Requires admin upload interface
 
 Option B - Hybrid (Recommended for migration):
-
 Keep existing images in /gallery/ folder
-
 New products use Firebase Storage
-
 Base URL configuration for environment switching
-
 Graceful fallback to local images
 
 Option C - External CDN:
-
 Use dedicated image hosting (Cloudinary, Imgix)
-
 Automatic optimization, resizing
-
 Separate from Firebase costs
-
 Real-time Features:
 Firestore listeners for live order updates
-
 Automatic dashboard refresh when orders change
-
 Cross-tab synchronization
-
 Offline support with local cache
 
 Next Development Priorities
@@ -253,50 +234,29 @@ Priority 3 - Inventory Management:
 Product Management Interface
 
 Add/edit/delete products
-
 Stock level tracking
-
 Image upload/management
-
 Inventory Tracking
-
 Auto-deduct stock on orders
-
 Low stock alerts
-
 Restock management
-
 Product Display Enhancement
-
 Categories, filters, search
-
 Product details page
-
 Related products
 
 Priority 4 - Analytics Dashboard:
 Sales Analytics
-
 Revenue charts (daily, weekly, monthly)
-
 Best-selling products
-
 Customer acquisition metrics
-
 Customer Insights
-
 Repeat customer rate
-
 Average order value
-
 Geographic distribution
-
 Inventory Reports
-
 Stock turnover
-
 Low stock alerts
-
 Seasonal trends
 
 File Structure for Future Expansion
@@ -312,72 +272,48 @@ js/
 ├── customerSearch.js       - Customer lookup
 ├── admin.js               - Admin authentication
 ├── analytics.js           - NEW: Sales dashboards
-└── firebaseConfig.js      - NEW: Firebase initialization
-Current Admin Credentials (Testing)
+└── firebaseConfig.js      - NEW: Firebase initialization REMOVED
+Current Admin Credentials (Testing) REMOVED
 Email: admin@beautyhub.com
 Password: admin123
 
 Development Rules
 Methodical Approach - Step-by-step, surgical fixes only
-
 No Unauthorized Coding - Discuss first, code after approval
-
 Focus on Refinement - Fix existing before adding new
-
 Clear Communication - Explain what, why, and how
-
 Respect Architecture - Maintain modular JS structure
-
 Migration Ready - Code structured for Firebase transition
 
 Ready for Next Phase
 The foundation is solid with:
-
 ✅ Complete customer journey
-
 ✅ Robust admin system
-
 ✅ Customer search functionality
-
 ✅ Responsive design throughout
-
 ✅ Clean, maintainable code structure
 
-
 Last Updated: Development session completed with customer search integration and admin dashboard optimization. Ready for inventory management implementation.
-
 
 Next logical step: Begin Priority 3 - Inventory Management with product CRUD operations and stock tracking.
 Basic, Practical Products Management
 Core Features Needed:
 1. Product CRUD Operations:
-
 Add Product: Form with name, price, stock, category, image URL
-
 Edit Product: Update existing product details
-
 Delete Product: Remove with confirmation
-
 View Products: Grid/list with quick actions
 
 2. Stock Management:
-
 Current Stock display for each product
-
 Auto-deduct when orders placed
-
 Low Stock Alerts (visual indicator when stock < threshold)
-
 Manual Stock Update (restock/adjustments)
-
 3. Product Display:
 
 Categories Filter: Perfumes, Lashes, Skincare, Wigs
-
 Stock Status Badges: "In Stock", "Low Stock", "Out of Stock"
-
 Quick Edit: Stock adjustment without full edit
-
 Suggested Products Management Modal:
 Based on your current admin dashboard design:
 
@@ -406,48 +342,33 @@ text
 └─────────────────────────────────────────┘
 Product Card Actions:
 Edit: Opens full edit modal
-
 Adjust Stock: Quick +/- buttons popup
-
 Delete: With "Move to out of stock?" option
-
 Practical Implementation Plan:
 Phase 1 - Basic CRUD:
-
 productsManager.js - Product schema & localStorage operations
-
 Add "Products" tab to existing admin dashboard
 
 Simple add/edit forms
 
 Phase 2 - Stock Integration:
-
 Connect to ordersManager.js to deduct stock
-
 Low stock indicators
-
 Quick stock adjustment
 
 Phase 3 - Enhanced Display:
-
 Categories filtering
-
 Search within products
-
 Bulk actions
 
 Key Insights:
 Reuse your existing admin modal pattern - same style, same UX
-
 Start with localStorage - same pattern as orders/customers
-
 Simple schema first - expand later
-
 Integrate gradually - connect stock to existing order flow
 
 THIS IS CRUCIAL PART FOR NEXT STEPS
 My opinion on the conversation:
-
 This is excellent advice. For your BeautyHub2025, here's what I recommend:
 
 Immediate (before Firebase backend):
