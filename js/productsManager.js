@@ -1622,7 +1622,7 @@ function isValidDate(dateString) {
     // Public API
     return {
         init,
-        products,
+       // products, // <-- This returns the CURRENT value of products array
         getProducts,
         getProductById,
         addProduct,
@@ -1635,6 +1635,9 @@ function isValidDate(dateString) {
         showProductForm,
         showStockAdjustmentForm,
         setupProductEventListeners,
-        invalidateCache
+        invalidateCache,
+           // Add these:
+       loadProducts,  // Make it public
+       getProductsArray: () => products  // Getter for current array
     };
 })();
