@@ -1071,7 +1071,7 @@ setupProductEventListeners();
                             resize: vertical;
                         ">${product?.description || ''}</textarea>
                     </div>
-                    FROM HERE***********************************************
+
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
     <div>
         <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
@@ -1192,7 +1192,7 @@ setupProductEventListeners();
         Mark as On Sale
     </label>
 </div>
-                    UNTILL HERE*****************************************
+
                     <div style="margin-bottom: 1rem;">
                         <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
                             Image URL
