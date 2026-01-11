@@ -1541,15 +1541,6 @@ header {
 .products-empty-state p {
     margin: 0;
     color: #666;
-
-/* Add CSS for discount percentage */
-/* Discount percentage display */
-.discount-percentage-display {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #e91e63;
-    margin-bottom: 5px;
-    text-align: center;
 }
 
 /* Price row for alignment */
@@ -1561,14 +1552,57 @@ header {
     flex-wrap: wrap;
 }
 
-/* Adjust current price to not be too large */
+/* ====================================== */
+/* PRICING & DISCOUNT STYLES */
+/* ====================================== */
+/* Product Pricing Container */
+.product-pricing {
+    margin: 0.5rem 0;
+}
+
+/* Regular price (no discount) */
+.price {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #e91e63;
+}
+
+/* Discount percentage on its own line */
+.discount-percentage-line {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #e91e63;
+    margin-bottom: 8px;
+    text-align: center;
+    display: block;
+    width: 100%;
+}
+
+/* Prices and badge on one line */
+.price-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+/* Original price (strikethrough) */
+.original-price {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 0.9rem;
+}
+
+/* Current price */
 .current-price {
     font-size: 1.2rem;
     font-weight: bold;
     color: #e91e63;
 }
 
-/* Sale badge adjustments for this layout */
+/* Sale badge */
 .sale-badge {
     display: inline-block;
     background: linear-gradient(45deg, #e91e63, #ff4081);
