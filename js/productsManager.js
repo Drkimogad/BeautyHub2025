@@ -1622,7 +1622,7 @@ function isValidDate(dateString) {
     // Public API
     return {
         init,
-       // products, // <-- This returns the CURRENT value of products array
+        products, // <-- This returns the CURRENT value of products array
         getProducts,
         getProductById,
         addProduct,
