@@ -1540,6 +1540,13 @@ header {
 .products-empty-state p {
     margin: 0;
     color: #666;
+
+/* Add CSS for discount percentage */
+.discount-percentage {
+    font-size: 0.9rem;
+    color: #e91e63;
+    font-weight: 600;
+    margin-left: 5px;
 }
 
 /* ================================================== */
