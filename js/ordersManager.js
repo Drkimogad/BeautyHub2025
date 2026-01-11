@@ -5,46 +5,7 @@ const OrdersManager = (function() {
         ORDERS: 'beautyhub_orders',
         ORDER_COUNTER: 'beautyhub_order_id_counter'
     };
-    
-    // ============================================
-    // ORDER SCHEMA (For Firebase implementation later)
-    // ============================================
-    /*
-    ORDER_SCHEMA:
-{
-  id: string,                     // Auto-generated order ID
-  firstName: string,              // Required
-  surname: string,                // Required
-  customerPhone: string,          // Required
-  customerWhatsApp: string,       // Optional
-  customerEmail: string,          // Optional
-      shippingAddress: string,        // Required
-      items: [                        // Array of cart items
-        {
-          productId: string,
-          productName: string,
-          price: number,
-          quantity: number,
-          imageUrl: string
-        }
-      ],
-      totalAmount: number,            // Calculated total
-      status: 'pending',              // pending | paid | shipped | completed
-      paymentMethod: 'manual',        // For future: cash, card, etc.
-      shippingDate: string,           // ISO string when shipped
-      createdAt: string,              // ISO string
-      updatedAt: string,              // ISO string
-      notes: string,                  // Customer notes
-      adminNotes: string              // Admin internal notes
-    }
-    
-    STATUS FLOW:
-    1. Created → status: 'pending'
-    2. Paid → status: 'paid' (stays in pending view)
-    3. Shipped → status: 'shipped' (moves to completed)
-    4. Optional: completed → status: 'completed' (archive)
-    */
-    
+       
     // Initialize order system
     let orders = [];
     let orderIdCounter = 1000;
@@ -268,7 +229,7 @@ function markAsShipped(orderId, shippingDate = '') {
         }
     }
     
-// Render orders in admin panel UPDATED
+// Render orders in admin panel - UPDATED with financial breakdown
 function renderOrders(statusFilter = 'pending', containerId = 'pending-orders') {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -288,74 +249,332 @@ function renderOrders(statusFilter = 'pending', containerId = 'pending-orders') 
         // Build items list with images
         let itemsHtml = '';
         order.items.forEach(item => {
+            const itemPrice = item.finalPrice || item.price;
+            const itemTotal = itemPrice * item.quantity;
             itemsHtml += `
-            <div class="detailed-item">
+            <div class="detailed-item" style="
+                display: flex;
+                align-items: center;
+                padding: 0.75rem 0;
+                border-bottom: 1px solid #f0f0f0;
+            ">
                 <img src="${item.imageUrl || 'gallery/placeholder.jpg'}" 
                      alt="${item.productName}"
-                     class="item-image-small">
-                <div class="item-details">
-                    <div class="item-name">${item.productName}</div>
-                    <div class="item-meta">
+                     style="
+                        width: 50px;
+                        height: 50px;
+                        object-fit: cover;
+                        border-radius: 6px;
+                        margin-right: 1rem;
+                     ">
+                <div class="item-details" style="flex: 1;">
+                    <div class="item-name" style="
+                        font-weight: 600;
+                        margin-bottom: 0.25rem;
+                    ">${item.productName}
+                    ${item.isDiscounted ? '<span style="color:#e91e63; font-size:0.8em; margin-left:0.5rem;">(Discounted)</span>' : ''}
+                    </div>
+                    <div class="item-meta" style="
+                        font-size: 0.9rem;
+                        color: #666;
+                        display: flex;
+                        gap: 1rem;
+                    ">
                         <span class="item-quantity">×${item.quantity}</span>
-                        <span class="item-price">R${item.price.toFixed(2)} each</span>
+                        <span class="item-price">R${itemPrice.toFixed(2)} each</span>
                     </div>
                 </div>
-                <div class="item-total">R${(item.price * item.quantity).toFixed(2)}</div>
+                <div class="item-total" style="
+                    font-weight: 600;
+                    min-width: 80px;
+                    text-align: right;
+                ">R${itemTotal.toFixed(2)}</div>
             </div>`;
         });
         
+        // Financial breakdown - NEW
+        const financialBreakdown = `
+        <div class="order-financial-breakdown" style="
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-left: 4px solid #2196f3;
+        ">
+            <h4 style="margin-top: 0; margin-bottom: 0.75rem; color: #333;">Order Summary</h4>
+            
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 0.5rem;
+                font-size: 0.95rem;
+            ">
+                <span>Subtotal:</span>
+                <span>R${order.subtotal.toFixed(2)}</span>
+            </div>
+            
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 0.5rem;
+                font-size: 0.95rem;
+            ">
+                <span>Shipping:</span>
+                <span style="color: ${order.shippingCost === 0 ? '#4CAF50' : '#333'}; font-weight: ${order.shippingCost === 0 ? '600' : 'normal'}">
+                    ${order.shippingCost === 0 ? 'FREE' : `R${order.shippingCost.toFixed(2)}`}
+                </span>
+            </div>
+            
+            ${order.discount > 0 ? `
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 0.5rem;
+                font-size: 0.95rem;
+                color: #e91e63;
+            ">
+                <span>Discount:</span>
+                <span>-R${order.discount.toFixed(2)}</span>
+            </div>
+            ` : ''}
+            
+            ${order.tax > 0 ? `
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 0.5rem;
+                font-size: 0.95rem;
+            ">
+                <span>Tax:</span>
+                <span>R${order.tax.toFixed(2)}</span>
+            </div>
+            ` : ''}
+            
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                margin-top: 0.75rem;
+                padding-top: 0.75rem;
+                border-top: 2px solid #ddd;
+                font-weight: bold;
+                font-size: 1.1rem;
+                color: #333;
+            ">
+                <span>Total Amount:</span>
+                <span>R${order.totalAmount.toFixed(2)}</span>
+            </div>
+            
+            ${order.isFreeShipping ? `
+            <div style="
+                margin-top: 0.5rem;
+                padding: 0.5rem;
+                background: #e8f5e9;
+                border-radius: 4px;
+                font-size: 0.85rem;
+                color: #2e7d32;
+                text-align: center;
+            ">
+                <i class="fas fa-shipping-fast" style="margin-right: 0.5rem;"></i>
+                Free shipping applied (over R${order.shippingThreshold})
+            </div>
+            ` : ''}
+        </div>
+        `;
+        
         html += `
-        <div class="order-card-detailed" data-order-id="${order.id}">
-            <div class="order-header-detailed">
+        <div class="order-card-detailed" data-order-id="${order.id}" style="
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e0e0e0;
+        ">
+            <div class="order-header-detailed" style="
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 1rem;
+                padding-bottom: 1rem;
+                border-bottom: 2px solid #f0f0f0;
+            ">
                 <div class="order-id-date">
-                    <h3>${order.id}</h3>
-                    <div class="order-timestamp">${orderDate} ${orderTime}</div>
+                    <h3 style="margin: 0 0 0.5rem 0; color: #333;">${order.id}</h3>
+                    <div class="order-timestamp" style="
+                        font-size: 0.9rem;
+                        color: #666;
+                    ">${orderDate} ${orderTime}</div>
+                    ${order.customerId ? `
+                    <div style="font-size: 0.85rem; color: #888; margin-top: 0.25rem;">
+                        <i class="fas fa-id-card" style="margin-right: 0.25rem;"></i>
+                        Customer ID: ${order.customerId}
+                    </div>
+                    ` : ''}
                 </div>
                 <div class="order-status-detailed">
-                    <span class="status-badge status-${order.status}">${order.status.toUpperCase()}</span>
+                    <span class="status-badge status-${order.status}" style="
+                        background: ${order.status === 'pending' ? '#ff9800' : 
+                                    order.status === 'paid' ? '#2196f3' : 
+                                    order.status === 'shipped' ? '#4caf50' : '#9e9e9e'};
+                        color: white;
+                        padding: 0.35rem 1rem;
+                        border-radius: 20px;
+                        font-size: 0.85rem;
+                        font-weight: 600;
+                        display: inline-block;
+                    ">${order.status.toUpperCase()}</span>
                 </div>
             </div>
             
-            <div class="order-customer-detailed">
-    <div class="customer-info">
-        <div><strong>${order.firstName} ${order.surname}</strong></div>
-        <div>${order.customerPhone}</div>
-        ${order.customerEmail ? `<div>${order.customerEmail}</div>` : ''}
-    </div>
+            <div class="order-customer-detailed" style="
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.5rem;
+                margin-bottom: 1.5rem;
+                padding-bottom: 1.5rem;
+                border-bottom: 1px solid #f0f0f0;
+            ">
+                <div class="customer-info">
+                    <div style="
+                        font-weight: 600;
+                        margin-bottom: 0.5rem;
+                        font-size: 1.1rem;
+                    ">${order.firstName} ${order.surname}</div>
+                    <div style="margin-bottom: 0.25rem; color: #555;">
+                        <i class="fas fa-phone" style="margin-right: 0.5rem; color: #666;"></i>
+                        ${order.customerPhone}
+                    </div>
+                    ${order.customerEmail ? `
+                    <div style="margin-bottom: 0.25rem; color: #555;">
+                        <i class="fas fa-envelope" style="margin-right: 0.5rem; color: #666;"></i>
+                        ${order.customerEmail}
+                    </div>
+                    ` : ''}
+                </div>
                 
                 <div class="shipping-info">
-                    <div><strong>Shipping Address:</strong></div>
-                    <div class="address-text">${order.shippingAddress}</div>
+                    <div style="
+                        font-weight: 600;
+                        margin-bottom: 0.5rem;
+                        color: #333;
+                    ">
+                        <i class="fas fa-truck" style="margin-right: 0.5rem;"></i>
+                        Shipping Address:
+                    </div>
+                    <div class="address-text" style="
+                        color: #555;
+                        line-height: 1.5;
+                        font-size: 0.95rem;
+                    ">${order.shippingAddress}</div>
                 </div>
             </div>
             
-            <div class="order-items-detailed">
-                <h4>Order Items:</h4>
+            <div class="order-items-detailed" style="margin-bottom: 1rem;">
+                <h4 style="
+                    margin-top: 0;
+                    margin-bottom: 1rem;
+                    color: #333;
+                    font-size: 1.1rem;
+                ">
+                    <i class="fas fa-shopping-basket" style="margin-right: 0.5rem;"></i>
+                    Order Items:
+                </h4>
                 ${itemsHtml}
-                <div class="order-total-detailed">
-                    <span>Total Amount:</span>
-                    <span class="total-amount">R${order.totalAmount.toFixed(2)}</span>
-                </div>
             </div>
+            
+            ${financialBreakdown}
             
             ${order.notes ? `
-            <div class="order-notes">
-                <strong>Customer Notes:</strong>
-                <div class="notes-text">${order.notes}</div>
-            </div>` : ''}
+            <div class="order-notes" style="
+                margin-top: 1rem;
+                padding: 1rem;
+                background: #fff8e1;
+                border-radius: 8px;
+                border-left: 4px solid #ffc107;
+            ">
+                <div style="
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: #333;
+                ">
+                    <i class="fas fa-sticky-note" style="margin-right: 0.5rem;"></i>
+                    Customer Notes:
+                </div>
+                <div class="notes-text" style="
+                    color: #555;
+                    font-size: 0.95rem;
+                    line-height: 1.5;
+                ">${order.notes}</div>
+            </div>
+            ` : ''}
             
-            <div class="order-actions-detailed">
+            ${order.returnPolicy ? `
+            <div style="
+                margin-top: 1rem;
+                padding: 0.75rem;
+                background: #f3e5f5;
+                border-radius: 6px;
+                font-size: 0.85rem;
+                color: #7b1fa2;
+                border-left: 3px solid #9c27b0;
+            ">
+                <i class="fas fa-undo" style="margin-right: 0.5rem;"></i>
+                <strong>Return Policy:</strong> ${order.returnPolicy}
+            </div>
+            ` : ''}
+            
+            <div class="order-actions-detailed" style="
+                display: flex;
+                gap: 0.75rem;
+                margin-top: 1.5rem;
+                padding-top: 1.5rem;
+                border-top: 2px solid #f0f0f0;
+            ">
                 ${order.status === 'pending' ? `
-                <button class="action-btn mark-paid" data-order-id="${order.id}">
+                <button class="action-btn mark-paid" data-order-id="${order.id}" style="
+                    flex: 1;
+                    padding: 0.75rem 1.5rem;
+                    background: #2196f3;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                ">
+                    <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>
                     Mark as Paid
-                </button>` : ''}
+                </button>
+                ` : ''}
                 
                 ${order.status !== 'shipped' ? `
-                <button class="action-btn mark-shipped" data-order-id="${order.id}">
+                <button class="action-btn mark-shipped" data-order-id="${order.id}" style="
+                    flex: 1;
+                    padding: 0.75rem 1.5rem;
+                    background: #4CAF50;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                ">
+                    <i class="fas fa-shipping-fast" style="margin-right: 0.5rem;"></i>
                     Mark as Shipped
-                </button>` : ''}
+                </button>
+                ` : ''}
                 
-                <button class="action-btn delete-order" data-order-id="${order.id}">
+                <button class="action-btn delete-order" data-order-id="${order.id}" style="
+                    padding: 0.75rem 1.5rem;
+                    background: #ff5252;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                ">
+                    <i class="fas fa-trash" style="margin-right: 0.5rem;"></i>
                     Delete
                 </button>
             </div>
@@ -365,7 +584,8 @@ function renderOrders(statusFilter = 'pending', containerId = 'pending-orders') 
     container.innerHTML = html;
 }
     
-// Render completed orders UPDATED
+    
+// Render completed orders - UPDATED with financial breakdown
 function renderCompletedOrders(containerId = 'completed-orders-list') {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -382,77 +602,345 @@ function renderCompletedOrders(containerId = 'completed-orders-list') {
         const orderDate = new Date(order.createdAt).toLocaleDateString();
         const shippingDate = order.shippingDate 
             ? new Date(order.shippingDate).toLocaleDateString()
-            : 'Not set';
+            : 'Not shipped';
         
-        // Build items list with images (same as above)
+        // Build items list with images
         let itemsHtml = '';
         order.items.forEach(item => {
+            const itemPrice = item.finalPrice || item.price;
+            const itemTotal = itemPrice * item.quantity;
             itemsHtml += `
-            <div class="detailed-item">
+            <div class="detailed-item" style="
+                display: flex;
+                align-items: center;
+                padding: 0.75rem 0;
+                border-bottom: 1px solid #f0f0f0;
+            ">
                 <img src="${item.imageUrl || 'gallery/placeholder.jpg'}" 
                      alt="${item.productName}"
-                     class="item-image-small">
-                <div class="item-details">
-                    <div class="item-name">${item.productName}</div>
-                    <div class="item-meta">
+                     style="
+                        width: 50px;
+                        height: 50px;
+                        object-fit: cover;
+                        border-radius: 6px;
+                        margin-right: 1rem;
+                     ">
+                <div class="item-details" style="flex: 1;">
+                    <div class="item-name" style="
+                        font-weight: 600;
+                        margin-bottom: 0.25rem;
+                    ">${item.productName}
+                    ${item.isDiscounted ? '<span style="color:#e91e63; font-size:0.8em; margin-left:0.5rem;">(Discounted)</span>' : ''}
+                    </div>
+                    <div class="item-meta" style="
+                        font-size: 0.9rem;
+                        color: #666;
+                        display: flex;
+                        gap: 1rem;
+                    ">
                         <span class="item-quantity">×${item.quantity}</span>
-                        <span class="item-price">R${item.price.toFixed(2)} each</span>
+                        <span class="item-price">R${itemPrice.toFixed(2)} each</span>
                     </div>
                 </div>
-                <div class="item-total">R${(item.price * item.quantity).toFixed(2)}</div>
+                <div class="item-total" style="
+                    font-weight: 600;
+                    min-width: 80px;
+                    text-align: right;
+                ">R${itemTotal.toFixed(2)}</div>
             </div>`;
         });
         
+        // Financial breakdown - NEW
+        const financialBreakdown = `
+        <div class="order-financial-breakdown" style="
+            background: #e8f5e9;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-left: 4px solid #4CAF50;
+        ">
+            <h4 style="margin-top: 0; margin-bottom: 0.75rem; color: #2e7d32;">
+                <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>
+                Order Summary
+            </h4>
+            
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 0.5rem;
+                font-size: 0.95rem;
+            ">
+                <span>Subtotal:</span>
+                <span>R${order.subtotal.toFixed(2)}</span>
+            </div>
+            
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 0.5rem;
+                font-size: 0.95rem;
+            ">
+                <span>Shipping:</span>
+                <span style="color: ${order.shippingCost === 0 ? '#4CAF50' : '#333'}; font-weight: ${order.shippingCost === 0 ? '600' : 'normal'}">
+                    ${order.shippingCost === 0 ? 'FREE' : `R${order.shippingCost.toFixed(2)}`}
+                </span>
+            </div>
+            
+            ${order.discount > 0 ? `
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 0.5rem;
+                font-size: 0.95rem;
+                color: #e91e63;
+            ">
+                <span>Discount:</span>
+                <span>-R${order.discount.toFixed(2)}</span>
+            </div>
+            ` : ''}
+            
+            ${order.tax > 0 ? `
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 0.5rem;
+                font-size: 0.95rem;
+            ">
+                <span>Tax:</span>
+                <span>R${order.tax.toFixed(2)}</span>
+            </div>
+            ` : ''}
+            
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                margin-top: 0.75rem;
+                padding-top: 0.75rem;
+                border-top: 2px solid #c8e6c9;
+                font-weight: bold;
+                font-size: 1.1rem;
+                color: #1b5e20;
+            ">
+                <span>Total Amount:</span>
+                <span>R${order.totalAmount.toFixed(2)}</span>
+            </div>
+            
+            ${order.isFreeShipping ? `
+            <div style="
+                margin-top: 0.5rem;
+                padding: 0.5rem;
+                background: #c8e6c9;
+                border-radius: 4px;
+                font-size: 0.85rem;
+                color: #1b5e20;
+                text-align: center;
+            ">
+                <i class="fas fa-shipping-fast" style="margin-right: 0.5rem;"></i>
+                Free shipping applied (over R${order.shippingThreshold})
+            </div>
+            ` : ''}
+        </div>
+        `;
+        
         html += `
-        <div class="order-card-detailed" data-order-id="${order.id}">
-            <div class="order-header-detailed">
+        <div class="order-card-detailed" data-order-id="${order.id}" style="
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #c8e6c9;
+        ">
+            <div class="order-header-detailed" style="
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 1rem;
+                padding-bottom: 1rem;
+                border-bottom: 2px solid #e8f5e9;
+            ">
                 <div class="order-id-date">
-                    <h3>${order.id}</h3>
-                    <div class="order-timestamp">
-                        <span>Ordered: ${orderDate}</span>
-                        <span class="shipped-date">Shipped: ${shippingDate}</span>
+                    <h3 style="margin: 0 0 0.5rem 0; color: #2e7d32;">
+                        <i class="fas fa-box" style="margin-right: 0.5rem;"></i>
+                        ${order.id}
+                    </h3>
+                    <div class="order-timestamp" style="
+                        font-size: 0.9rem;
+                        color: #666;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.25rem;
+                    ">
+                        <span>
+                            <i class="fas fa-calendar-plus" style="margin-right: 0.5rem;"></i>
+                            Ordered: ${orderDate}
+                        </span>
+                        <span class="shipped-date" style="
+                            color: #4CAF50;
+                            font-weight: 600;
+                        ">
+                            <i class="fas fa-shipping-fast" style="margin-right: 0.5rem;"></i>
+                            Shipped: ${shippingDate}
+                        </span>
                     </div>
+                    ${order.customerId ? `
+                    <div style="font-size: 0.85rem; color: #888; margin-top: 0.25rem;">
+                        <i class="fas fa-id-card" style="margin-right: 0.25rem;"></i>
+                        Customer ID: ${order.customerId}
+                    </div>
+                    ` : ''}
                 </div>
                 <div class="order-status-detailed">
-                    <span class="status-badge status-shipped">SHIPPED</span>
+                    <span class="status-badge status-shipped" style="
+                        background: #4CAF50;
+                        color: white;
+                        padding: 0.35rem 1rem;
+                        border-radius: 20px;
+                        font-size: 0.85rem;
+                        font-weight: 600;
+                        display: inline-block;
+                    ">
+                        <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>
+                        SHIPPED
+                    </span>
                 </div>
             </div>
             
-            <div class="order-customer-detailed">
-    <div class="customer-info">
-        <div><strong>${order.firstName} ${order.surname}</strong></div>
-        <div>${order.customerPhone}</div>
-        ${order.customerEmail ? `<div>${order.customerEmail}</div>` : ''}
-    </div>
+            <div class="order-customer-detailed" style="
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.5rem;
+                margin-bottom: 1.5rem;
+                padding-bottom: 1.5rem;
+                border-bottom: 1px solid #e8f5e9;
+            ">
+                <div class="customer-info">
+                    <div style="
+                        font-weight: 600;
+                        margin-bottom: 0.5rem;
+                        font-size: 1.1rem;
+                        color: #333;
+                    ">
+                        <i class="fas fa-user" style="margin-right: 0.5rem;"></i>
+                        ${order.firstName} ${order.surname}
+                    </div>
+                    <div style="margin-bottom: 0.25rem; color: #555;">
+                        <i class="fas fa-phone" style="margin-right: 0.5rem; color: #666;"></i>
+                        ${order.customerPhone}
+                    </div>
+                    ${order.customerEmail ? `
+                    <div style="margin-bottom: 0.25rem; color: #555;">
+                        <i class="fas fa-envelope" style="margin-right: 0.5rem; color: #666;"></i>
+                        ${order.customerEmail}
+                    </div>
+                    ` : ''}
+                </div>
                 
                 <div class="shipping-info">
-                    <div><strong>Shipping Address:</strong></div>
-                    <div class="address-text">${order.shippingAddress}</div>
+                    <div style="
+                        font-weight: 600;
+                        margin-bottom: 0.5rem;
+                        color: #333;
+                    ">
+                        <i class="fas fa-truck" style="margin-right: 0.5rem;"></i>
+                        Shipping Address:
+                    </div>
+                    <div class="address-text" style="
+                        color: #555;
+                        line-height: 1.5;
+                        font-size: 0.95rem;
+                    ">${order.shippingAddress}</div>
                 </div>
             </div>
             
-            <div class="order-items-detailed">
-                <h4>Order Items:</h4>
+            <div class="order-items-detailed" style="margin-bottom: 1rem;">
+                <h4 style="
+                    margin-top: 0;
+                    margin-bottom: 1rem;
+                    color: #333;
+                    font-size: 1.1rem;
+                ">
+                    <i class="fas fa-shopping-basket" style="margin-right: 0.5rem;"></i>
+                    Order Items:
+                </h4>
                 ${itemsHtml}
-                <div class="order-total-detailed">
-                    <span>Total Amount:</span>
-                    <span class="total-amount">R${order.totalAmount.toFixed(2)}</span>
-                </div>
             </div>
+            
+            ${financialBreakdown}
             
             ${order.notes ? `
-            <div class="order-notes">
-                <strong>Customer Notes:</strong>
-                <div class="notes-text">${order.notes}</div>
-            </div>` : ''}
+            <div class="order-notes" style="
+                margin-top: 1rem;
+                padding: 1rem;
+                background: #fff8e1;
+                border-radius: 8px;
+                border-left: 4px solid #ffc107;
+            ">
+                <div style="
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: #333;
+                ">
+                    <i class="fas fa-sticky-note" style="margin-right: 0.5rem;"></i>
+                    Customer Notes:
+                </div>
+                <div class="notes-text" style="
+                    color: #555;
+                    font-size: 0.95rem;
+                    line-height: 1.5;
+                ">${order.notes}</div>
+            </div>
+            ` : ''}
             
-            <div class="order-actions-detailed">
-                <button class="action-btn view-details" data-order-id="${order.id}">
-                    <i class="fas fa-eye"></i> View Details
+            ${order.returnPolicy ? `
+            <div style="
+                margin-top: 1rem;
+                padding: 0.75rem;
+                background: #f3e5f5;
+                border-radius: 6px;
+                font-size: 0.85rem;
+                color: #7b1fa2;
+                border-left: 3px solid #9c27b0;
+            ">
+                <i class="fas fa-undo" style="margin-right: 0.5rem;"></i>
+                <strong>Return Policy:</strong> ${order.returnPolicy}
+            </div>
+            ` : ''}
+            
+            <div class="order-actions-detailed" style="
+                display: flex;
+                gap: 0.75rem;
+                margin-top: 1.5rem;
+                padding-top: 1.5rem;
+                border-top: 2px solid #e8f5e9;
+            ">
+                <button class="action-btn view-details" data-order-id="${order.id}" style="
+                    flex: 1;
+                    padding: 0.75rem 1.5rem;
+                    background: #2196f3;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                ">
+                    <i class="fas fa-eye" style="margin-right: 0.5rem;"></i>
+                    View Details
                 </button>
                 
-                <button class="action-btn delete-order" data-order-id="${order.id}">
-                    <i class="fas fa-trash"></i> Delete
+                <button class="action-btn delete-order" data-order-id="${order.id}" style="
+                    padding: 0.75rem 1.5rem;
+                    background: #ff5252;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                ">
+                    <i class="fas fa-trash" style="margin-right: 0.5rem;"></i>
+                    Delete
                 </button>
             </div>
         </div>`;
@@ -740,8 +1228,7 @@ function showOrderDetails(orderId) {
 
     
     
-    // Print order details
-// Print order details - UPDATED
+// Print order details - UPDATED WITH FINANCIAL BREAKDOWN
 function printOrderDetails(order) {
     const printWindow = window.open('', '_blank');
     const orderDate = new Date(order.createdAt).toLocaleString();
