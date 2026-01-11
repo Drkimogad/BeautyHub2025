@@ -354,6 +354,33 @@ function initializeSampleProducts() {
             updatedAt: new Date().toISOString(),
             salesCount: 18           // Added sales count
         },
+        // Add this to your sample products array:
+{
+    ...PRODUCT_SCHEMA,
+    id: generateProductId(),
+    name: 'Dubai Special Perfume',
+    description: 'Our best seller perfume with exotic Middle Eastern scents.',
+    category: 'perfumes',
+    originalPrice: 500.00,
+    discountPercent: 20,  // 20% discount
+    price: 400.00,  // Auto-calculated: 500 - (500 * 0.20) = 400
+    isOnSale: true,
+    saleEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+    stock: 10,
+    imageUrl: 'gallery/perfumes.jpg', // You need to add this image
+    gallery: [],
+    tags: ['bestseller', 'featured', 'sale'],
+    specifications: {
+        'Size': '100ml',
+        'Fragrance Type': 'Eau de Parfum',
+        'Longevity': '12+ hours',
+        'Origin': 'Dubai, UAE'
+    },
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    salesCount: 158
+},
         {
             ...PRODUCT_SCHEMA,
             id: generateProductId(),
