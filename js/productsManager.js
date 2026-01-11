@@ -1514,153 +1514,74 @@ function showDeleteConfirmation(productId) {
         modal = document.createElement('div');
         modal.id = 'delete-confirmation-modal';
         modal.className = 'delete-modal';
-        modal.style.cssText = `
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 1007;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        `;
+        modal.className = 'delete-modal';
         document.body.appendChild(modal);
     }
     
-    modal.innerHTML = `
-        <div style="
-            background: white;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 500px;
-            padding: 2rem;
-            position: relative;
-        ">
-            <button id="close-delete-modal" style="
-                position: absolute;
-                top: 1rem;
-                right: 1rem;
-                background: none;
-                border: none;
-                font-size: 1.5rem;
-                cursor: pointer;
-                color: #666;
-            ">&times;</button>
-            
-            <div style="text-align: center; margin-bottom: 1.5rem;">
-                <div style="
-                    width: 80px;
-                    height: 80px;
-                    background: linear-gradient(135deg, #ff5252, #ff4081);
-                    border-radius: 50%;
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    margin-bottom: 1rem;
-                ">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: white;"></i>
-                </div>
-                
-                <h2 style="margin-top: 0; color: #333; margin-bottom: 0.5rem;">
-                    Delete Product
-                </h2>
-                <p style="color: #666; margin-bottom: 1.5rem;">
-                    Are you sure you want to delete this product permanently?
-                </p>
+modal.innerHTML = `
+    <div class="delete-modal-content">
+        <button id="close-delete-modal" class="modal-close-btn">&times;</button>
+        
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div class="delete-warning-icon">
+                <i class="fas fa-exclamation-triangle"></i>
             </div>
             
-            <div style="
-                background: #fff8e1;
-                border-left: 4px solid #ff9800;
-                padding: 1rem;
-                border-radius: 4px;
-                margin-bottom: 1.5rem;
-            ">
-                <div style="font-weight: 600; color: #333; margin-bottom: 0.5rem;">
-                    Product Details
-                </div>
-                <div style="color: #666; font-size: 0.9rem;">
-                    <div><strong>Name:</strong> ${product.name}</div>
-                    <div><strong>ID:</strong> ${product.id}</div>
-                    <div><strong>Category:</strong> ${product.category}</div>
-                    <div><strong>Current Stock:</strong> ${product.stock} units</div>
-                </div>
+            <h2 class="modal-title">Delete Product</h2>
+            <p style="color: #666; margin-bottom: 1.5rem;">
+                Are you sure you want to delete this product permanently?
+            </p>
+        </div>
+        
+        <div class="delete-product-details">
+            <div style="font-weight: 600; color: #333; margin-bottom: 0.5rem;">
+                Product Details
             </div>
-            
-            <div style="margin-bottom: 1.5rem;">
-                <div style="font-weight: 600; color: #333; margin-bottom: 0.5rem;">
-                    Warning
-                </div>
-                <div style="color: #ff5252; font-size: 0.9rem; background: #ffebee; padding: 0.75rem; border-radius: 6px;">
-                    <i class="fas fa-exclamation-circle"></i> 
-                    This action cannot be undone. The product will be permanently removed from Firestore and set to inactive locally.
-                </div>
-            </div>
-            
-            <div style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">
-                    Admin Password Required *
-                </label>
-                <input type="password" 
-                       id="admin-password" 
-                       placeholder="Enter admin password to confirm"
-                       style="
-                            width: 100%;
-                            padding: 0.75rem;
-                            border: 2px solid #e0e0e0;
-                            border-radius: 8px;
-                            font-size: 1rem;
-                       ">
-                <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
-                    Type "DELETE" to confirm permanent deletion
-                </div>
-            </div>
-            
-            <div id="delete-error" style="
-                background: #ffebee;
-                color: #d32f2f;
-                padding: 1rem;
-                border-radius: 8px;
-                margin-bottom: 1.5rem;
-                display: none;
-            "></div>
-            
-            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                <button type="button" id="cancel-delete" style="
-                    background: white;
-                    color: #666;
-                    border: 2px solid #e0e0e0;
-                    padding: 0.75rem 1.5rem;
-                    border-radius: 8px;
-                    font-size: 1rem;
-                    font-weight: 600;
-                    cursor: pointer;
-                ">
-                    Cancel
-                </button>
-                
-                <button type="button" id="confirm-delete" style="
-                    background: #ff5252;
-                    color: white;
-                    border: none;
-                    padding: 0.75rem 1.5rem;
-                    border-radius: 8px;
-                    font-size: 1rem;
-                    font-weight: 600;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                ">
-                    <i class="fas fa-trash-alt"></i>
-                    Delete Permanently
-                </button>
+            <div style="color: #666; font-size: 0.9rem;">
+                <div><strong>Name:</strong> ${product.name}</div>
+                <div><strong>ID:</strong> ${product.id}</div>
+                <div><strong>Category:</strong> ${product.category}</div>
+                <div><strong>Current Stock:</strong> ${product.stock} units</div>
             </div>
         </div>
-    `;
+        
+        <div style="margin-bottom: 1.5rem;">
+            <div style="font-weight: 600; color: #333; margin-bottom: 0.5rem;">
+                Warning
+            </div>
+            <div class="delete-warning-box">
+                <i class="fas fa-exclamation-circle"></i> 
+                This action cannot be undone. The product will be permanently removed from Firestore and set to inactive locally.
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">
+                Admin Password Required *
+            </label>
+            <input type="password" 
+                   id="admin-password" 
+                   placeholder="Enter admin password to confirm"
+                   class="form-input">
+            <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
+                Type "DELETE" to confirm permanent deletion
+            </div>
+        </div>
+        
+        <div id="delete-error" class="form-error"></div>
+        
+        <div class="form-actions">
+            <button type="button" id="cancel-delete" class="delete-cancel-btn">
+                Cancel
+            </button>
+            
+            <button type="button" id="confirm-delete" class="delete-confirm-btn">
+                <i class="fas fa-trash-alt"></i>
+                Delete Permanently
+            </button>
+        </div>
+    </div>
+`;
     
     // Show modal
     modal.style.display = 'flex';
