@@ -440,7 +440,7 @@ function updateCartUI() {
     
     // Calculate shipping
     const shippingThreshold = 1000;
-    const shippingCost = subtotal >= shippingThreshold ? 0 : 50;
+    const shippingCost = subtotal >= shippingThreshold ? 0 : 100;  // was 50
     const isFreeShipping = subtotal >= shippingThreshold;
     const finalTotal = subtotal + shippingCost;
     
@@ -645,9 +645,3 @@ function cartClickHandler(e) {
     };
 })();
 
-// Auto-initialize when DOM is ready
-//if (document.readyState === 'loading') {
- //   document.addEventListener('DOMContentLoaded', () => BeautyHubCart.init());
-//} else {
-//    BeautyHubCart.init();
-//}
