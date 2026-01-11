@@ -2,11 +2,11 @@
 const CustomerSearchManager = (function() {
     // Configuration
     const CONFIG = {
-        STORAGE_KEY: 'beautyhub_customers',
+        STORAGE_KEY: 'beautyhub_orders',  // Changed from 'beautyhub_customers'
         SEARCH_TIMEOUT: 3000, // ms for simulating network delay
         FIREBASE: {
             enabled: false, // Set to true when Firebase is ready
-            collection: 'customers'
+            collection: 'orders'  // Searching orders collection
         }
     };
     
@@ -14,21 +14,10 @@ const CustomerSearchManager = (function() {
     let searchContainer = null;
     let searchForm = null;
     
-    // Customer Schema
+    // Customer Schema (minimal - we're using orders as source)
     const CUSTOMER_SCHEMA = {
-        id: '',               // Auto-generated: CUST-YYYYMMDD-XXXX
-        firstName: '',        // First name
-        surname: '',          // Surname
-        phone: '',            // Primary phone
-        whatsApp: '',         // WhatsApp number
-        email: '',            // Email address
-        addresses: [],        // Array of shipping addresses (latest first)
-        orderCount: 0,        // Total orders placed
-        totalSpent: 0,        // Total amount spent
-        firstOrder: '',       // Date of first order
-        lastOrder: '',        // Date of last order
-        createdAt: '',        // Customer record creation date
-        updatedAt: ''         // Last update date
+        surname: '',          // Surname (from order)
+        phone: ''            // Primary phone (from order.customerPhone)
     };
     
     // Initialize
@@ -37,8 +26,8 @@ const CustomerSearchManager = (function() {
         setupEventListeners();
         return {
             searchCustomer,
-            saveCustomer,
             getCustomerByPhone
+            // Removed saveCustomer as we're using orders
         };
     }
     
