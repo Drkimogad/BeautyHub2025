@@ -64,6 +64,20 @@ const ProductsDisplay = (function() {
     // RENDER PRODUCTS FUNCTION
     // ==================================================
     function renderProducts() {
+        // Add this debug section
+console.log('=== DEBUG FOR PRODUCT: ' + product.name + ' ===');
+console.log('1. Product tags:', product.tags);
+console.log('2. Badges array created:', badges);
+console.log('3. Will badges display?', badges.length > 0);
+console.log('4. Badge conditions:');
+console.log('   - isOnSale:', isOnSale);
+console.log('   - hasDiscount:', hasDiscount);
+console.log('   - discountPercentage:', discountPercentage);
+console.log('   - has bestseller tag?', product.tags && product.tags.includes('bestseller'));
+console.log('   - has new tag?', product.tags && product.tags.includes('new'));
+console.log('   - has featured tag?', product.tags && product.tags.includes('featured'));
+console.log('=== END DEBUG ===');
+        
         const container = document.getElementById('products-container');
         if (!container) {
             console.error('[ProductsDisplay] Products container not found');
