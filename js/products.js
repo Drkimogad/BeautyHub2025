@@ -138,18 +138,24 @@ const ProductsDisplay = (function() {
 <div class="product-pricing">
     ${hasDiscount ? `
     <div class="pricing-with-discount">
-        <span class="original-price">
-            R${product.originalPrice.toFixed(2)}
-        </span>
-        <span class="current-price">
-            R${product.price.toFixed(2)} 
-            ${discountPercentage > 0 ? `<span class="discount-percentage">(-${discountPercentage}%)</span>` : ''}
-        </span>
-        ${isOnSale && hasDiscount ? `
-        <div class="sale-badge">
-            SALE
+        ${discountPercentage > 0 ? `
+        <div class="discount-percentage-display">
+            -${discountPercentage}% off
         </div>
         ` : ''}
+        <div class="price-row">
+            <span class="original-price">
+                R${product.originalPrice.toFixed(2)}
+            </span>
+            <span class="current-price">
+                R${product.price.toFixed(2)}
+            </span>
+            ${isOnSale && hasDiscount ? `
+            <div class="sale-badge">
+                SALE
+            </div>
+            ` : ''}
+        </div>
     </div>
     ` : `
     <span class="price">
