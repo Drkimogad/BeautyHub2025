@@ -1553,67 +1553,80 @@ header {
 }
 
 /* ====================================== */
-/* PRICING & DISCOUNT STYLES */
+/* PRICING & DISCOUNT STYLES - FORCED */
 /* ====================================== */
+
 /* Product Pricing Container */
 .product-pricing {
-    margin: 0.5rem 0;
+    margin: 0.5rem 0 !important;
+    display: block !important;
+    width: 100% !important;
 }
 
-/* Regular price (no discount) */
-.price {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #e91e63;
-}
-
-/* Discount percentage on its own line */
+/* Discount percentage on its own line - FORCED */
 .discount-percentage-line {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #e91e63;
-    margin-bottom: 8px;
-    text-align: center;
-    display: block;
-    width: 100%;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    color: #e91e63 !important;
+    margin-bottom: 8px !important;
+    text-align: center !important;
+    display: block !important;
+    width: 100% !important;
+    clear: both !important;
+    float: none !important;
 }
 
-/* Prices and badge on one line */
+/* Prices and badge on one line - FORCED */
 .price-line {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    justify-content: center;
-    flex-wrap: wrap;
-    width: 100%;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    clear: both !important;
+    margin-top: 0 !important;
 }
 
-/* Original price (strikethrough) */
+/* Original price (strikethrough) - FORCED */
 .original-price {
-    text-decoration: line-through;
-    color: #999;
-    font-size: 0.9rem;
+    text-decoration: line-through !important;
+    color: #999 !important;
+    font-size: 0.9rem !important;
+    display: inline !important;
+    margin: 0 !important;
 }
 
-/* Current price */
+/* Current price - FORCED */
 .current-price {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #e91e63;
+    font-size: 1.2rem !important;
+    font-weight: bold !important;
+    color: #e91e63 !important;
+    display: inline !important;
+    margin: 0 !important;
 }
 
-/* Sale badge */
+/* Sale badge - FORCED */
 .sale-badge {
-    display: inline-block;
-    background: linear-gradient(45deg, #e91e63, #ff4081);
-    color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    display: inline-block !important;
+    background: linear-gradient(45deg, #e91e63, #ff4081) !important;
+    color: white !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+    margin: 0 !important;
+    float: none !important;
 }
 
+/* Regular price (no discount) - FORCED */
+.price {
+    font-size: 1.2rem !important;
+    font-weight: bold !important;
+    color: #e91e63 !important;
+    display: block !important;
+}
 /* ================================================== */
 /* QUICK VIEW MODAL CSS */
 /* ================================================== */
