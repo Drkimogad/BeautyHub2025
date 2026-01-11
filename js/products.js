@@ -135,14 +135,15 @@ const ProductsDisplay = (function() {
                         ${product.description || 'Premium beauty product'}
                     </p>
                     
-                    <div class="product-pricing">
+<div class="product-pricing">
     ${hasDiscount ? `
     <div class="pricing-with-discount">
         <span class="original-price">
             R${product.originalPrice.toFixed(2)}
         </span>
         <span class="current-price">
-            R${product.price.toFixed(2)}
+            R${product.price.toFixed(2)} 
+            ${discountPercentage > 0 ? `<span class="discount-percentage">(-${discountPercentage}%)</span>` : ''}
         </span>
         ${isOnSale && hasDiscount ? `
         <div class="sale-badge">
@@ -223,10 +224,13 @@ const ProductsDisplay = (function() {
     // ==================================================
     function getProductById(productId) {
         if (typeof ProductsManager !== 'undefined' && 
-            ProductsManager.getProductById &&
-            ProductsManager.products && 
-            ProductsManager.products.length > 0) {
-            return ProductsManager.getProductById(productId);
+        //    ProductsManager.getProductById &&
+        //    ProductsManager.products && 
+         //   ProductsManager.products.length > 0) {
+          //  return ProductsManager.getProductById(productId);
+         ProductsManager.getProductById) {
+        // Don't check products.length, let ProductsManager handle it
+        return ProductsManager.getProductById(productId);
         }
         console.warn('[ProductsDisplay] ProductsManager not available');
         return null;
