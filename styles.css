@@ -1234,7 +1234,6 @@ header {
     border-radius: 3px;
 }
 
-/* Add to your main CSS file */
 /* ================================================== */
 /* PRODUCTS DISPLAY CSS - EXTRACTED FROM products.js */
 /* ================================================== */
@@ -1387,19 +1386,6 @@ header {
     height: 250px;
     object-fit: cover;
     border-radius: 8px;
-}
-
-.sale-badge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: #e91e63;
-    color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    z-index: 10;
 }
 
 /* Product Info */
