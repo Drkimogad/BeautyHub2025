@@ -25,8 +25,11 @@ const ProductsManager = (function() {
         name: '',            // Product name
         description: '',     // Product description
         category: '',        // From CONFIG.CATEGORIES
-        price: 0,           // Current price
         originalPrice: 0,    // Original price (for discounts)
+        discountPercent: 0,    // 0-100 percentage discount
+        price: 0,           // Current price
+        isOnSale: false,       // Flag for UI badges
+        saleEndDate: "",       // When sale ends (ISO string)
         stock: 0,           // Current stock quantity
         imageUrl: '',       // Main product image
         gallery: [],        // Additional images array
@@ -35,7 +38,6 @@ const ProductsManager = (function() {
         isActive: true,     // Active/inactive product
         createdAt: '',      // ISO string
         updatedAt: '',      // ISO string
-        lastRestock: '',    // ISO string - NEW
         salesCount: 0       // Total units sold - NEW
     };
     
@@ -275,112 +277,120 @@ const ProductsManager = (function() {
     }
     
     // Initialize sample products (keep existing, but add new fields)
-    function initializeSampleProducts() {
-        const sampleProducts = [
-            {
-                ...PRODUCT_SCHEMA,
-                id: generateProductId(),
-                name: 'Signature Perfumes',
-                description: 'Elegant scents that linger like a memory.',
-                category: 'perfumes',
-                price: 300.00,
-                originalPrice: 300.00,
-                stock: 15,
-                imageUrl: 'gallery/perfumes.jpg',
-                gallery: [],
-                tags: ['new', 'featured'],
-                specifications: {
-                    'Size': '50ml',
-                    'Fragrance Type': 'Eau de Parfum',
-                    'Longevity': '8-10 hours'
-                },
-                isActive: true,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                lastRestock: new Date().toISOString(),
-                salesCount: 0
+function initializeSampleProducts() {
+    const sampleProducts = [
+        {
+            ...PRODUCT_SCHEMA,
+            id: generateProductId(),
+            name: 'Signature Perfumes',
+            description: 'Elegant scents that linger like a memory.',
+            category: 'perfumes',
+            originalPrice: 350.00,  // Added original price
+            discountPercent: 14,    // Added discount percent (~14% off)
+            price: 300.00,
+            isOnSale: true,          // Added sale flag
+            saleEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+            stock: 15,
+            imageUrl: 'gallery/perfumes.jpg',
+            gallery: [],
+            tags: ['new', 'featured', 'bestseller'], // Added bestseller
+            specifications: {
+                'Size': '50ml',
+                'Fragrance Type': 'Eau de Parfum',
+                'Longevity': '8-10 hours'
             },
-            {
-                ...PRODUCT_SCHEMA,
-                id: generateProductId(),
-                name: 'Glam Lashes',
-                description: 'Dramatic or natural—find your perfect flutter.',
-                category: 'lashes',
-                price: 49.99,
-                originalPrice: 49.99,
-                stock: 25,
-                imageUrl: 'gallery/lashes.jpg',
-                gallery: [],
-                tags: ['bestseller'],
-                specifications: {
-                    'Style': 'Dramatic',
-                    'Material': 'Mink',
-                    'Reusable': 'Yes (up to 25 uses)'
-                },
-                isActive: true,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                lastRestock: new Date().toISOString(),
-                salesCount: 0
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            salesCount: 25           // Added sales count
+        },
+        {
+            ...PRODUCT_SCHEMA,
+            id: generateProductId(),
+            name: 'Glam Lashes',
+            description: 'Dramatic or natural—find your perfect flutter.',
+            category: 'lashes',
+            originalPrice: 59.99,    // Added original price
+            discountPercent: 17,     // Added discount percent (~17% off)
+            price: 49.99,
+            isOnSale: true,          // Added sale flag
+            saleEndDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
+            stock: 25,
+            imageUrl: 'gallery/lashes.jpg',
+            gallery: [],
+            tags: ['bestseller'],
+            specifications: {
+                'Style': 'Dramatic',
+                'Material': 'Mink',
+                'Reusable': 'Yes (up to 25 uses)'
             },
-            {
-                ...PRODUCT_SCHEMA,
-                id: generateProductId(),
-                name: 'Radiant Skincare',
-                description: 'Glow from within with our nourishing formulas.',
-                category: 'skincare',
-                price: 99.99,
-                originalPrice: 99.99,
-                stock: 8,
-                imageUrl: 'gallery/skincare.jpg',
-                gallery: [],
-                tags: ['bestseller'],
-                specifications: {
-                    'Skin Type': 'All skin types',
-                    'Volume': '30ml',
-                    'Key Ingredients': 'Vitamin C, Hyaluronic Acid'
-                },
-                isActive: true,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                lastRestock: new Date().toISOString(),
-                salesCount: 0
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            salesCount: 42           // Added sales count
+        },
+        {
+            ...PRODUCT_SCHEMA,
+            id: generateProductId(),
+            name: 'Radiant Skincare',
+            description: 'Glow from within with our nourishing formulas.',
+            category: 'skincare',
+            originalPrice: 99.99,    // No discount - same as price
+            discountPercent: 0,      // No discount
+            price: 99.99,
+            isOnSale: false,         // Not on sale
+            saleEndDate: "",         // Empty string
+            stock: 8,
+            imageUrl: 'gallery/skincare.jpg',
+            gallery: [],
+            tags: ['bestseller', 'featured'],
+            specifications: {
+                'Skin Type': 'All skin types',
+                'Volume': '30ml',
+                'Key Ingredients': 'Vitamin C, Hyaluronic Acid'
             },
-            {
-                ...PRODUCT_SCHEMA,
-                id: generateProductId(),
-                name: 'Luxury Wigs',
-                description: 'Silky, voluminous hair for every mood.',
-                category: 'wigs',
-                price: 599.99,
-                originalPrice: 599.99,
-                stock: 3,
-                imageUrl: 'gallery/wigs.jpg',
-                gallery: [],
-                tags: ['new'],
-                specifications: {
-                    'Length': '24 inches',
-                    'Material': 'Human Hair',
-                    'Cap Size': 'Average'
-                },
-                isActive: true,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                lastRestock: new Date().toISOString(),
-                salesCount: 0
-            }
-        ];
-        
-        products = sampleProducts;
-        saveProducts();
-        
-        // Also save to Firestore if enabled
-        if (CONFIG.USE_FIRESTORE) {
-            sampleProducts.forEach(product => {
-                saveProductToFirestore(product);
-            });
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            salesCount: 18           // Added sales count
+        },
+        {
+            ...PRODUCT_SCHEMA,
+            id: generateProductId(),
+            name: 'Luxury Wigs',
+            description: 'Silky, voluminous hair for every mood.',
+            category: 'wigs',
+            originalPrice: 699.99,   // Added original price
+            discountPercent: 14,     // Added discount percent (~14% off)
+            price: 599.99,
+            isOnSale: true,          // Added sale flag
+            saleEndDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days from now
+            stock: 3,
+            imageUrl: 'gallery/wigs.jpg',
+            gallery: [],
+            tags: ['new'],
+            specifications: {
+                'Length': '24 inches',
+                'Material': 'Human Hair',
+                'Cap Size': 'Average'
+            },
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            salesCount: 7            // Added sales count
         }
+    ];
+    
+    products = sampleProducts;
+    saveProducts();
+    
+    // Also save to Firestore if enabled
+    if (CONFIG.USE_FIRESTORE) {
+        sampleProducts.forEach(product => {
+            saveProductToFirestore(product);
+        });
     }
+}
     
     // ============================================
     // CRUD OPERATIONS (UPDATED FOR FIRESTORE)
