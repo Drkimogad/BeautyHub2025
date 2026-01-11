@@ -387,10 +387,3 @@ return {
         renderProducts // <-- ADD THIS LINE
 };
 })();
-
-// Auto-initialize
-//if (document.readyState === 'loading') {
-//    document.addEventListener('DOMContentLoaded', () => ProductsDisplay.init());
-//} else {
-//    ProductsDisplay.init();
-//}
