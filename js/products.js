@@ -135,31 +135,75 @@ const ProductsDisplay = (function() {
                         ${product.description || 'Premium beauty product'}
                     </p>
                     
-<div class="product-pricing">
+<div class="product-pricing" style="display: block !important; width: 100% !important; margin: 0.5rem 0 !important;">
     ${hasDiscount ? `
-    <div class="pricing-with-discount">
+    <div class="pricing-with-discount" style="display: block !important; width: 100% !important;">
         ${discountPercentage > 0 ? `
-        <div class="discount-percentage-line" style="display: block !important; width: 100% !important;">
+        <div class="discount-percentage-line" style="
+            display: block !important;
+            width: 100% !important;
+            font-size: 1.1rem !important;
+            font-weight: 700 !important;
+            color: #e91e63 !important;
+            margin-bottom: 8px !important;
+            text-align: center !important;
+            clear: both !important;
+        ">
             -${discountPercentage}% off
         </div>
         ` : ''}
         
-        <div class="price-line" style="display: flex !important; width: 100% !important;">
-            <span class="original-price" style="display: inline !important;">
+        <div class="price-line" style="
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            justify-content: center !important;
+            flex-wrap: wrap !important;
+            width: 100% !important;
+            clear: both !important;
+        ">
+            <span class="original-price" style="
+                text-decoration: line-through !important;
+                color: #999 !important;
+                font-size: 0.9rem !important;
+                display: inline !important;
+                margin: 0 !important;
+            ">
                 R${product.originalPrice.toFixed(2)}
             </span>
-            <span class="current-price" style="display: inline !important;">
+            <span class="current-price" style="
+                font-size: 1.2rem !important;
+                font-weight: bold !important;
+                color: #e91e63 !important;
+                display: inline !important;
+                margin: 0 !important;
+            ">
                 R${product.price.toFixed(2)}
             </span>
             ${isOnSale && hasDiscount ? `
-            <div class="sale-badge" style="display: inline-block !important;">
+            <div class="sale-badge" style="
+                display: inline-block !important;
+                background: linear-gradient(45deg, #e91e63, #ff4081) !important;
+                color: white !important;
+                padding: 4px 8px !important;
+                border-radius: 4px !important;
+                font-size: 0.8rem !important;
+                font-weight: 600 !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+                margin: 0 !important;
+            ">
                 SALE
             </div>
             ` : ''}
         </div>
     </div>
     ` : `
-    <span class="price" style="display: block !important;">
+    <span class="price" style="
+        font-size: 1.2rem !important;
+        font-weight: bold !important;
+        color: #e91e63 !important;
+        display: block !important;
+    ">
         R${product.price.toFixed(2)}
     </span>
     `}
