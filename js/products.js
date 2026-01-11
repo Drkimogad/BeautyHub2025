@@ -1,16 +1,7 @@
 // products.js - Products Display (CLEAN VERSION - NO FALLBACK)
-/*
-Summary of changes:
-✅ Removed ALL fallback products
-✅ Extracted ALL inline CSS to external file
-✅ Products come ONLY from ProductsManager
-✅ One source of truth
-✅ Maintained all functionality
-*/
 const ProductsDisplay = (function() {
     // MODULE-LEVEL VARIABLE
-    let fallbackCheck = null;
-    
+    let fallbackCheck = null;  
     // ==================================================
     // INIT FUNCTION
     // ==================================================
@@ -136,12 +127,6 @@ const ProductsDisplay = (function() {
                          class="product-img"
                          width="440" height="440"
                          loading="lazy">
-                    
-                    ${isOnSale && hasDiscount ? `
-                    <div class="sale-badge">
-                        SALE
-                    </div>
-                    ` : ''}
                 </div>
                 
                 <div class="product-info">
@@ -151,21 +136,26 @@ const ProductsDisplay = (function() {
                     </p>
                     
                     <div class="product-pricing">
-                        ${hasDiscount ? `
-                        <div class="pricing-with-discount">
-                            <span class="original-price">
-                                R${product.originalPrice.toFixed(2)}
-                            </span>
-                            <span class="current-price">
-                                R${product.price.toFixed(2)}
-                            </span>
-                        </div>
-                        ` : `
-                        <span class="price">
-                            R${product.price.toFixed(2)}
-                        </span>
-                        `}
-                    </div>
+    ${hasDiscount ? `
+    <div class="pricing-with-discount">
+        <span class="original-price">
+            R${product.originalPrice.toFixed(2)}
+        </span>
+        <span class="current-price">
+            R${product.price.toFixed(2)}
+        </span>
+        ${isOnSale && hasDiscount ? `
+        <div class="sale-badge">
+            SALE
+        </div>
+        ` : ''}
+    </div>
+    ` : `
+    <span class="price">
+        R${product.price.toFixed(2)}
+    </span>
+    `}
+</div>
                     
                     <div class="stock-indicator ${product.stock === 0 ? 'stock-out' : 
                                                product.stock <= 5 ? 'stock-low' : 'stock-ok'}">
