@@ -1553,30 +1553,35 @@ header {
 }
 
 /* ====================================== */
-/* PRICING & DISCOUNT STYLES - FORCED */
+/* NUCLEAR PRICING OVERRIDE - FIXED */
 /* ====================================== */
+
+/* Clear ALL inherited styles for pricing elements */
+.product-pricing * {
+    all: unset !important;
+    box-sizing: border-box !important;
+}
 
 /* Product Pricing Container */
 .product-pricing {
-    margin: 0.5rem 0 !important;
     display: block !important;
     width: 100% !important;
+    margin: 0.5rem 0 !important;
 }
 
-/* Discount percentage on its own line - FORCED */
+/* Discount percentage on its OWN line */
 .discount-percentage-line {
+    display: block !important;
+    width: 100% !important;
     font-size: 1.1rem !important;
     font-weight: 700 !important;
     color: #e91e63 !important;
     margin-bottom: 8px !important;
     text-align: center !important;
-    display: block !important;
-    width: 100% !important;
     clear: both !important;
-    float: none !important;
 }
 
-/* Prices and badge on one line - FORCED */
+/* Prices and badge on NEXT line */
 .price-line {
     display: flex !important;
     align-items: center !important;
@@ -1585,10 +1590,9 @@ header {
     flex-wrap: wrap !important;
     width: 100% !important;
     clear: both !important;
-    margin-top: 0 !important;
 }
 
-/* Original price (strikethrough) - FORCED */
+/* Original price (strikethrough) */
 .original-price {
     text-decoration: line-through !important;
     color: #999 !important;
@@ -1597,7 +1601,7 @@ header {
     margin: 0 !important;
 }
 
-/* Current price - FORCED */
+/* Current price */
 .current-price {
     font-size: 1.2rem !important;
     font-weight: bold !important;
@@ -1606,7 +1610,7 @@ header {
     margin: 0 !important;
 }
 
-/* Sale badge - FORCED */
+/* Sale badge */
 .sale-badge {
     display: inline-block !important;
     background: linear-gradient(45deg, #e91e63, #ff4081) !important;
@@ -1617,10 +1621,9 @@ header {
     font-weight: 600 !important;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
     margin: 0 !important;
-    float: none !important;
 }
 
-/* Regular price (no discount) - FORCED */
+/* Regular price (no discount) */
 .price {
     font-size: 1.2rem !important;
     font-weight: bold !important;
