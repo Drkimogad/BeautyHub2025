@@ -1234,6 +1234,39 @@ header {
     border-radius: 3px;
 }
 
+/* Add to your main CSS file */
+.product-card {
+    position: relative;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 1rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+    background: white;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.product-badges {
+    pointer-events: none;
+}
+
+.sale-badge {
+    background: linear-gradient(45deg, #e91e63, #ff4081);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+}
+
+
 /* ===== INVENTORY MANAGER CSS ===== */
 /* Inventory Report Cards */
 .inventory-report-card {
