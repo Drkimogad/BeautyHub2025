@@ -1859,21 +1859,6 @@ header {
         flex-direction: column;
     }
 }
-/* SALE BADGE - Positioned on TOP-RIGHT side */
-.sale-badge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: linear-gradient(45deg, #e91e63, #ff4081);
-    color: white;
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    z-index: 21;
-    pointer-events: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
 
 /* Quick View Sale Badge */
 .tag-sale {
@@ -1885,7 +1870,19 @@ header {
     font-weight: 600;
 }
 
-
+/*  Sale badge next to the price (not absolute positioning) */
+.sale-badge {
+    display: inline-block;
+    background: linear-gradient(45deg, #e91e63, #ff4081);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-left: 10px;
+    vertical-align: middle;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
 
 /* ===== INVENTORY MANAGER CSS ===== */
 /* Inventory Report Cards */
