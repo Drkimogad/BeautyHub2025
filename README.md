@@ -1,15 +1,31 @@
-// Clear ALL BeautyHub data
-localStorage.removeItem('beautyhub_products');
-localStorage.removeItem('beautyhub_products_cache');
-localStorage.removeItem('beautyhub_cart');
-localStorage.removeItem('beautyhub_orders');
-localStorage.removeItem('beautyhub_admin_session');
-localStorage.removeItem('beautyhub_order_id_counter');
-localStorage.removeItem('beautyhub_customers');
-localStorage.removeItem('beautyhub_inventory_transactions');
+// SIMPLIFIED but complete clearance
+console.log('Clearing BeautyHub session...');
 
-console.log('All BeautyHub data cleared. Reloading...');
-location.reload(true);
+// 1. Local Storage
+localStorage.clear();
+console.log('LocalStorage cleared');
+
+// 2. Session Storage  
+sessionStorage.clear();
+console.log('SessionStorage cleared');
+
+// 3. Firebase Sign Out (MOST IMPORTANT)
+if (typeof firebase !== 'undefined' && firebase.auth) {
+    firebase.auth().signOut();
+    console.log('Firebase signed out');
+}
+
+// 4. Clear all cookies
+document.cookie.split(";").forEach(cookie => {
+    document.cookie = cookie.replace(/^ +/, "").split("=")[0] + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+});
+
+// 5. Hard reload
+setTimeout(() => {
+    console.log('Reloading...');
+    window.location.href = window.location.origin + window.location.pathname;
+    // OR: location.reload(true); // true forces cache bypass
+}, 500);
 
 
 BeautyHub2025 - E-commerce PWA Project - UPDATED
