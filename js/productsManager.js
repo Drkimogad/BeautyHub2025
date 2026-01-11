@@ -397,75 +397,106 @@ function initializeSampleProducts() {
     // ============================================
     
     // Add new product (to both Firestore and local)
-    async function addProduct(productData) {
-        const newProduct = {
-            ...PRODUCT_SCHEMA,
-            id: generateProductId(),
-            name: productData.name.trim(),
-            description: productData.description?.trim() || '',
-            category: productData.category || CONFIG.CATEGORIES[0],
-            price: parseFloat(productData.price) || 0,
-            originalPrice: parseFloat(productData.originalPrice) || parseFloat(productData.price) || 0,
-            stock: parseInt(productData.stock) || 0,
-            imageUrl: productData.imageUrl?.trim() || CONFIG.DEFAULT_IMAGE,
-            gallery: productData.gallery || [],
-            tags: productData.tags || [],
-            specifications: productData.specifications || {},
-            isActive: productData.isActive !== undefined ? productData.isActive : true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            lastRestock: new Date().toISOString(),
-            salesCount: 0
-        };
-        
-        // 1. Save to Firestore (if enabled)
-        let firestoreSuccess = true;
-        if (CONFIG.USE_FIRESTORE) {
-            firestoreSuccess = await saveProductToFirestore(newProduct);
-        }
-        
-        // 2. Save to local (always)
-        products.push(newProduct);
-        saveProducts();
-        
-        console.log('[ProductsManager] Product added:', {
-            id: newProduct.id,
-            firestore: firestoreSuccess ? 'success' : 'failed',
-            local: 'success'
-        });
-        
-        return newProduct;
+async function addProduct(productData) {
+    // Calculate price if discount is provided
+    const originalPrice = parseFloat(productData.originalPrice) || parseFloat(productData.price) || 0;
+    const discountPercent = parseFloat(productData.discountPercent) || 0;
+    const calculatedPrice = discountPercent > 0 
+        ? calculateDiscountedPrice(originalPrice, discountPercent)
+        : parseFloat(productData.price) || originalPrice;
+    
+    const newProduct = {
+        ...PRODUCT_SCHEMA,
+        id: generateProductId(),
+        name: productData.name.trim(),
+        description: productData.description?.trim() || '',
+        category: productData.category || CONFIG.CATEGORIES[0],
+        originalPrice: originalPrice,
+        discountPercent: discountPercent,
+        price: calculatedPrice,
+        isOnSale: Boolean(productData.isOnSale) || (discountPercent > 0),
+        saleEndDate: productData.saleEndDate || "",
+        stock: parseInt(productData.stock) || 0,
+        imageUrl: productData.imageUrl?.trim() || CONFIG.DEFAULT_IMAGE,
+        gallery: productData.gallery || [],
+        tags: productData.tags || [],
+        specifications: productData.specifications || {},
+        isActive: productData.isActive !== undefined ? productData.isActive : true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        salesCount: parseInt(productData.salesCount) || 0
+    };
+    
+    // 1. Save to Firestore (if enabled)
+    let firestoreSuccess = true;
+    if (CONFIG.USE_FIRESTORE) {
+        firestoreSuccess = await saveProductToFirestore(newProduct);
     }
     
+    // 2. Save to local (always)
+    products.push(newProduct);
+    saveProducts();
+    
+    console.log('[ProductsManager] Product added:', {
+        id: newProduct.id,
+        price: newProduct.price,
+        discount: `${newProduct.discountPercent}%`,
+        firestore: firestoreSuccess ? 'success' : 'failed',
+        local: 'success'
+    });
+    
+    return newProduct;
+}
+    
     // Update product (in both Firestore and local)
-    async function updateProduct(productId, updateData) {
-        const index = products.findIndex(p => p.id === productId);
-        if (index === -1) return false;
-        
-        const updatedProduct = {
-            ...products[index],
-            ...updateData,
-            updatedAt: new Date().toISOString()
-        };
-        
-        // 1. Update Firestore (if enabled)
-        let firestoreSuccess = true;
-        if (CONFIG.USE_FIRESTORE) {
-            firestoreSuccess = await updateProductInFirestore(productId, updateData);
-        }
-        
-        // 2. Update local (always)
-        products[index] = updatedProduct;
-        saveProducts();
-        
-        console.log('[ProductsManager] Product updated:', {
-            id: productId,
-            firestore: firestoreSuccess ? 'success' : 'failed',
-            local: 'success'
-        });
-        
-        return true;
+async function updateProduct(productId, updateData) {
+    const index = products.findIndex(p => p.id === productId);
+    if (index === -1) return false;
+    
+    // Calculate price if discount or original price is being updated
+    let updatedPrice = updateData.price;
+    const originalPrice = updateData.originalPrice !== undefined 
+        ? parseFloat(updateData.originalPrice) 
+        : products[index].originalPrice;
+    const discountPercent = updateData.discountPercent !== undefined 
+        ? parseFloat(updateData.discountPercent) 
+        : products[index].discountPercent;
+    
+    // Recalculate price if discount or original price changed
+    if (updateData.discountPercent !== undefined || updateData.originalPrice !== undefined) {
+        updatedPrice = calculateDiscountedPrice(originalPrice, discountPercent);
     }
+    
+    const updatedProduct = {
+        ...products[index],
+        ...updateData,
+        price: updatedPrice !== undefined ? updatedPrice : products[index].price,
+        isOnSale: updateData.isOnSale !== undefined 
+            ? updateData.isOnSale 
+            : (discountPercent > 0) || products[index].isOnSale,
+        updatedAt: new Date().toISOString()
+    };
+    
+    // 1. Update Firestore (if enabled)
+    let firestoreSuccess = true;
+    if (CONFIG.USE_FIRESTORE) {
+        firestoreSuccess = await updateProductInFirestore(productId, updateData);
+    }
+    
+    // 2. Update local (always)
+    products[index] = updatedProduct;
+    saveProducts();
+    
+    console.log('[ProductsManager] Product updated:', {
+        id: productId,
+        price: updatedProduct.price,
+        discount: `${updatedProduct.discountPercent}%`,
+        firestore: firestoreSuccess ? 'success' : 'failed',
+        local: 'success'
+    });
+    
+    return true;
+}
     
     // Delete product (soft delete in both)
     async function deleteProduct(productId) {
@@ -564,6 +595,16 @@ function initializeSampleProducts() {
         const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
         return `PROD-${year}${month}${day}-${random}`;
     }
+
+//====================================
+   // ADD THIS HELPER FUNCTION
+//========================================
+// Calculate price with discount
+function calculateDiscountedPrice(originalPrice, discountPercent) {
+    if (!originalPrice || originalPrice <= 0) return 0;
+    const discount = originalPrice * (discountPercent / 100);
+    return Math.max(0, originalPrice - discount);
+}
     
     // ============================================
     // UI FUNCTIONS FROM ORIGINAL CODE
@@ -1030,64 +1071,128 @@ setupProductEventListeners();
                             resize: vertical;
                         ">${product?.description || ''}</textarea>
                     </div>
-                    
+                    FROM HERE***********************************************
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                        <div>
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
-                                Price (R) *
-                            </label>
-                            <input type="number" 
-                                   id="product-price" 
-                                   required 
-                                   min="0" 
-                                   step="0.01"
-                                   value="${product?.price || ''}"
-                                   style="
-                                        width: 100%;
-                                        padding: 0.75rem;
-                                        border: 2px solid #e0e0e0;
-                                        border-radius: 8px;
-                                        font-size: 1rem;
-                                   ">
-                        </div>
-                        
-                        <div>
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
-                                Original Price (R)
-                            </label>
-                            <input type="number" 
-                                   id="product-original-price" 
-                                   min="0" 
-                                   step="0.01"
-                                   value="${product?.originalPrice || ''}"
-                                   style="
-                                        width: 100%;
-                                        padding: 0.75rem;
-                                        border: 2px solid #e0e0e0;
-                                        border-radius: 8px;
-                                        font-size: 1rem;
-                                   ">
-                        </div>
-                        
-                        <div>
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
-                                Stock Quantity *
-                            </label>
-                            <input type="number" 
-                                   id="product-stock" 
-                                   required 
-                                   min="0"
-                                   value="${product?.stock || ''}"
-                                   style="
-                                        width: 100%;
-                                        padding: 0.75rem;
-                                        border: 2px solid #e0e0e0;
-                                        border-radius: 8px;
-                                        font-size: 1rem;
-                                   ">
-                        </div>
-                    </div>
-                    
+    <div>
+        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+            Price (R) *
+        </label>
+        <input type="number" 
+               id="product-price" 
+               required 
+               min="0" 
+               step="0.01"
+               value="${product?.price || ''}"
+               style="
+                    width: 100%;
+                    padding: 0.75rem;
+                    border: 2px solid #e0e0e0;
+                    border-radius: 8px;
+                    font-size: 1rem;
+               ">
+    </div>
+    
+    <div>
+        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+            Original Price (R)
+        </label>
+        <input type="number" 
+               id="product-original-price" 
+               min="0" 
+               step="0.01"
+               value="${product?.originalPrice || product?.price || ''}"
+               style="
+                    width: 100%;
+                    padding: 0.75rem;
+                    border: 2px solid #e0e0e0;
+                    border-radius: 8px;
+                    font-size: 1rem;
+               ">
+    </div>
+    
+    <div>
+        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+            Stock Quantity *
+        </label>
+        <input type="number" 
+               id="product-stock" 
+               required 
+               min="0"
+               value="${product?.stock || ''}"
+               style="
+                    width: 100%;
+                    padding: 0.75rem;
+                    border: 2px solid #e0e0e0;
+                    border-radius: 8px;
+                    font-size: 1rem;
+               ">
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+    <div>
+        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+            Discount (%)
+        </label>
+        <input type="number" 
+               id="product-discount" 
+               min="0" 
+               max="100" 
+               step="0.01"
+               value="${product?.discountPercent || 0}"
+               style="
+                    width: 100%;
+                    padding: 0.75rem;
+                    border: 2px solid #e0e0e0;
+                    border-radius: 8px;
+                    font-size: 1rem;
+               ">
+    </div>
+    
+    <div>
+        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+            Sale End Date
+        </label>
+        <input type="datetime-local" 
+               id="product-sale-end"
+               value="${product?.saleEndDate ? new Date(product.saleEndDate).toISOString().slice(0, 16) : ''}"
+               style="
+                    width: 100%;
+                    padding: 0.75rem;
+                    border: 2px solid #e0e0e0;
+                    border-radius: 8px;
+                    font-size: 1rem;
+               ">
+    </div>
+    
+    <div>
+        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+            Total Sales
+        </label>
+        <input type="number" 
+               id="product-sales-count" 
+               min="0"
+               value="${product?.salesCount || 0}"
+               style="
+                    width: 100%;
+                    padding: 0.75rem;
+                    border: 2px solid #e0e0e0;
+                    border-radius: 8px;
+                    font-size: 1rem;
+               ">
+    </div>
+</div>
+
+<div style="margin-bottom: 1rem;">
+    <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600;">
+        <input type="checkbox" 
+               id="product-is-on-sale" 
+               ${product?.isOnSale ? 'checked' : ''}
+               style="transform: scale(1.2);">
+        Mark as On Sale
+    </label>
+</div>
+                    UNTILL HERE*****************************************
                     <div style="margin-bottom: 1rem;">
                         <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
                             Image URL
@@ -1182,62 +1287,78 @@ setupProductEventListeners();
     }
     
     // Handle product form submission
-    function handleProductFormSubmit(productId = null) {
-        console.log('[ProductsManager] Handling product form submit:', productId);
-        
-        // Get form data
-        const formData = {
-            name: document.getElementById('product-name').value,
-            description: document.getElementById('product-description').value,
-            category: document.getElementById('product-category').value,
-            price: parseFloat(document.getElementById('product-price').value),
-            originalPrice: parseFloat(document.getElementById('product-original-price').value) || 
-                         parseFloat(document.getElementById('product-price').value),
-            stock: parseInt(document.getElementById('product-stock').value),
-            imageUrl: document.getElementById('product-image-url').value || CONFIG.DEFAULT_IMAGE,
-            tags: document.getElementById('product-tags').value
-                .split(',')
-                .map(tag => tag.trim())
-                .filter(tag => tag.length > 0),
-            gallery: [],
-            specifications: {},
-            isActive: true
-        };
-        
-        // Validate
-        const errors = [];
-        if (!formData.name.trim()) errors.push('Product name is required');
-        if (isNaN(formData.price) || formData.price < 0) errors.push('Valid price is required');
-        if (isNaN(formData.stock) || formData.stock < 0) errors.push('Valid stock quantity is required');
-        
-        if (errors.length > 0) {
-            const errorDiv = document.getElementById('product-form-error');
-            errorDiv.innerHTML = errors.join('<br>');
-            errorDiv.style.display = 'block';
-            return;
-        }
-        
-        // Save product
-        if (productId) {
-            console.log('[ProductsManager] Updating product:', productId);
-            if (updateProduct(productId, formData)) {
-                console.log('[ProductsManager] Update successful');
-                closeProductForm();
-                renderProductsAdmin();
-            } else {
-                console.log('[ProductsManager] Update failed');
-            }
+function handleProductFormSubmit(productId = null) {
+    console.log('[ProductsManager] Handling product form submit:', productId);
+    
+    // Get form data
+    const originalPrice = parseFloat(document.getElementById('product-original-price').value) || 
+                         parseFloat(document.getElementById('product-price').value);
+    const discountPercent = parseFloat(document.getElementById('product-discount').value) || 0;
+    const calculatedPrice = calculateDiscountedPrice(originalPrice, discountPercent);
+    
+    const formData = {
+        name: document.getElementById('product-name').value,
+        description: document.getElementById('product-description').value,
+        category: document.getElementById('product-category').value,
+        originalPrice: originalPrice,
+        discountPercent: discountPercent,
+        price: calculatedPrice,
+        isOnSale: document.getElementById('product-is-on-sale').checked || (discountPercent > 0),
+        saleEndDate: document.getElementById('product-sale-end').value || "",
+        stock: parseInt(document.getElementById('product-stock').value),
+        imageUrl: document.getElementById('product-image-url').value || CONFIG.DEFAULT_IMAGE,
+        tags: document.getElementById('product-tags').value
+            .split(',')
+            .map(tag => tag.trim())
+            .filter(tag => tag.length > 0),
+        salesCount: parseInt(document.getElementById('product-sales-count').value) || 0,
+        gallery: [],
+        specifications: {},
+        isActive: true
+    };
+    
+    // Validate
+    const errors = [];
+    if (!formData.name.trim()) errors.push('Product name is required');
+    if (isNaN(formData.price) || formData.price < 0) errors.push('Valid price is required');
+    if (isNaN(formData.stock) || formData.stock < 0) errors.push('Valid stock quantity is required');
+    if (formData.discountPercent < 0 || formData.discountPercent > 100) errors.push('Discount must be between 0-100%');
+    if (formData.saleEndDate && !isValidDate(formData.saleEndDate)) errors.push('Invalid sale end date');
+    
+    if (errors.length > 0) {
+        const errorDiv = document.getElementById('product-form-error');
+        errorDiv.innerHTML = errors.join('<br>');
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    // Save product
+    if (productId) {
+        console.log('[ProductsManager] Updating product:', productId);
+        if (updateProduct(productId, formData)) {
+            console.log('[ProductsManager] Update successful');
+            closeProductForm();
+            renderProductsAdmin();
         } else {
-            console.log('[ProductsManager] Adding new product');
-            if (addProduct(formData)) {
-                console.log('[ProductsManager] Add successful');
-                closeProductForm();
-                renderProductsAdmin();
-            } else {
-                console.log('[ProductsManager] Add failed');
-            }
+            console.log('[ProductsManager] Update failed');
+        }
+    } else {
+        console.log('[ProductsManager] Adding new product');
+        if (addProduct(formData)) {
+            console.log('[ProductsManager] Add successful');
+            closeProductForm();
+            renderProductsAdmin();
+        } else {
+            console.log('[ProductsManager] Add failed');
         }
     }
+}
+
+// Add this helper function for date validation
+function isValidDate(dateString) {
+    const date = new Date(dateString);
+    return date instanceof Date && !isNaN(date);
+}
     
     // Show stock adjustment form
     function showStockAdjustmentForm(productId) {
