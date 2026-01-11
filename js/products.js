@@ -138,12 +138,15 @@ const ProductsDisplay = (function() {
 <div class="product-pricing">
     ${hasDiscount ? `
     <div class="pricing-with-discount">
+        <!-- DISCOUNT PERCENTAGE ON ITS OWN LINE -->
         ${discountPercentage > 0 ? `
-        <div class="discount-percentage-display">
+        <div class="discount-percentage-line">
             -${discountPercentage}% off
         </div>
         ` : ''}
-        <div class="price-row">
+        
+        <!-- PRICES AND SALE BADGE ON NEXT LINE -->
+        <div class="price-line">
             <span class="original-price">
                 R${product.originalPrice.toFixed(2)}
             </span>
