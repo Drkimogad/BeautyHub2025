@@ -84,6 +84,9 @@ const OrdersManager = (function() {
             customerWhatsApp: customerData.customerWhatsApp?.trim() || '',
             customerEmail: customerData.customerEmail?.trim() || '',
             shippingAddress: customerData.shippingAddress.trim(),
+            // ADD THESE 2 FIELDS:
+            preferredPaymentMethod: 'manual', // or derive from customer history
+            priority: 'normal',              // 'low', 'normal', 'high', 'rush'
             items: customerData.cartItems.map(item => ({
                 productId: item.productId,
                 productName: item.productName,
@@ -834,6 +837,30 @@ function renderCompletedOrders(containerId = 'completed-orders-list') {
                         ${order.customerEmail}
                     </div>
                     ` : ''}
+
+${order.preferredPaymentMethod ? `
+<div style="margin-bottom: 0.25rem; color: #555;">
+    <i class="fas fa-credit-card" style="margin-right: 0.5rem; color: #666;"></i>
+    Preferred: ${order.preferredPaymentMethod}
+</div>
+` : ''}
+
+${order.priority && order.priority !== 'normal' ? `
+<div style="margin-top: 0.25rem;">
+    <span style="
+        background: ${order.priority === 'rush' ? '#ff5252' : 
+                     order.priority === 'high' ? '#ff9800' : 
+                     order.priority === 'low' ? '#9e9e9e' : '#4CAF50'};
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    ">
+        ${order.priority.toUpperCase()}
+    </span>
+</div>
+` : ''}
                 </div>
                 
                 <div class="shipping-info">
@@ -852,6 +879,7 @@ function renderCompletedOrders(containerId = 'completed-orders-list') {
                     ">${order.shippingAddress}</div>
                 </div>
             </div>
+            
             
             <div class="order-items-detailed" style="margin-bottom: 1rem;">
                 <h4 style="
