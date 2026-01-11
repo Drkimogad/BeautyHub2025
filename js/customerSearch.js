@@ -2,11 +2,11 @@
 const CustomerSearchManager = (function() {
     // Configuration
     const CONFIG = {
-        STORAGE_KEY: 'beautyhub_orders',  // Changed from 'beautyhub_customers'
-        SEARCH_TIMEOUT: 3000, // ms for simulating network delay
+        STORAGE_KEY: 'beautyhub_orders',  // Searching orders, not customers
+        SEARCH_TIMEOUT: 1000, // Reduced from 3000ms
         FIREBASE: {
-            enabled: false, // Set to true when Firebase is ready
-            collection: 'orders'  // Searching orders collection
+            enabled: false,
+            collection: 'orders'
         }
     };
     
@@ -14,20 +14,14 @@ const CustomerSearchManager = (function() {
     let searchContainer = null;
     let searchForm = null;
     
-    // Customer Schema (minimal - we're using orders as source)
-    const CUSTOMER_SCHEMA = {
-        surname: '',          // Surname (from order)
-        phone: ''            // Primary phone (from order.customerPhone)
-    };
-    
     // Initialize
     function init(containerSelector = '#checkout-form') {
         createSearchUI();
         setupEventListeners();
         return {
             searchCustomer,
-            getCustomerByPhone
-            // Removed saveCustomer as we're using orders
+            autoFillForm,
+            normalizePhone
         };
     }
     
@@ -177,10 +171,10 @@ const CustomerSearchManager = (function() {
     }
     
     // ============================================
-    // SEARCH LOGIC
+    // SEARCH LOGIC - FIXED
     // ============================================
     function searchCustomer(surname, phone) {
-        console.log('Searching customer:', { surname, phone });
+        console.log('Searching orders for:', { surname, phone });
         
         // Show loading
         showLoading(true);
@@ -190,23 +184,14 @@ const CustomerSearchManager = (function() {
         // Simulate network delay
         setTimeout(() => {
             try {
-                let customer = null;
+                // Search in localStorage orders
+                const searchResult = searchOrders(surname, phone);
                 
-                if (CONFIG.FIREBASE.enabled) {
-                    // Firebase implementation (placeholder)
-                    console.log('Firebase search would execute here');
-                    // customer = await searchFirebaseCustomer(surname, phone);
+                if (searchResult.found) {
+                    showSearchResult(searchResult);
+                    autoFillForm(searchResult.latestOrder);
                 } else {
-                    // LocalStorage implementation
-                    customer = searchLocalStorageCustomer(surname, phone);
-                }
-                
-                // Handle result
-                if (customer) {
-                    showSearchResult(customer);
-                    autoFillForm(customer);
-                } else {
-                    showError('No customer found with these details. Please check and try again, or fill in the form below as a new customer.');
+                    showError('No previous orders found. Please fill in your details as a new customer.');
                 }
                 
             } catch (error) {
@@ -218,270 +203,119 @@ const CustomerSearchManager = (function() {
         }, CONFIG.SEARCH_TIMEOUT);
     }
     
-    // LocalStorage search implementation
-function searchLocalStorageCustomer(surname, phone) {
-    try {
-        // Get all orders from localStorage
-        const ordersJSON = localStorage.getItem('beautyhub_orders');
-        if (!ordersJSON) return null;
-        
-        const orders = JSON.parse(ordersJSON) || [];
-        if (orders.length === 0) return null;
-        
-        // Normalize search parameters
-        const searchSurname = surname.toLowerCase().trim();
-        const searchPhone = normalizePhone(phone);
-        
-        // Find matching customer in orders
-        for (const order of orders) {
-            if (!order.surname) continue; // Changed from customerName to surname
-            
-            // Get surname directly from order - NEW METHOD
-            const orderSurname = order.surname.toLowerCase().trim();
-            const orderPhone = normalizePhone(order.customerPhone);
-            
-            // Check match (case-insensitive)
-            if (orderSurname === searchSurname && orderPhone === searchPhone) {
-                // Found matching customer - create customer record
-                return createCustomerFromOrder(order);
-            }
-        }
-        
-        return null;
-        
-    } catch (error) {
-        console.error('LocalStorage search error:', error);
-        return null;
-    }
-}
-    
-    // Firebase search (placeholder for future implementation)
-    async function searchFirebaseCustomer(surname, phone) {
-        // This will be implemented when Firebase is ready
-        console.log('Firebase search called:', { surname, phone });
-        
+    // Search orders by surname and phone
+    function searchOrders(surname, phone) {
         try {
-            // Example Firebase code (commented out for now):
-            /*
-            const db = firebase.firestore();
-            const customersRef = db.collection(CONFIG.FIREBASE.collection);
+            // Get all orders from localStorage
+            const ordersJSON = localStorage.getItem(CONFIG.STORAGE_KEY);
+            if (!ordersJSON) return { found: false };
             
-            const querySnapshot = await customersRef
-                .where('surname', '==', surname.toLowerCase())
-                .where('phone', '==', normalizePhone(phone))
-                .limit(1)
-                .get();
+            const allOrders = JSON.parse(ordersJSON) || [];
+            if (allOrders.length === 0) return { found: false };
             
-            if (!querySnapshot.empty) {
-                const doc = querySnapshot.docs[0];
-                return { id: doc.id, ...doc.data() };
-            }
-            */
+            // Normalize search parameters
+            const searchSurname = surname.toLowerCase().trim();
+            const searchPhone = normalizePhone(phone);
             
-            return null;
-        } catch (error) {
-            console.error('Firebase search error:', error);
-            throw error;
-        }
-    }
-    
-    // ============================================
-    // CUSTOMER DATA MANAGEMENT
-    // ============================================
-function createCustomerFromOrder(order) {  //UPDATED
-    return {
-        ...CUSTOMER_SCHEMA,
-        id: generateCustomerId(),
-        firstName: order.firstName || '',
-        surname: order.surname || '',
-        phone: order.customerPhone || '',
-        whatsApp: order.customerWhatsApp || '',
-        email: order.customerEmail || '',
-        addresses: [order.shippingAddress || ''],
-        orderCount: 1,
-        totalSpent: order.totalAmount || 0,
-        firstOrder: order.createdAt || new Date().toISOString(),
-        lastOrder: order.createdAt || new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    };
-}
-    
-    function saveCustomer(customerData) {
-        try {
-            if (CONFIG.FIREBASE.enabled) {
-                // Save to Firebase (placeholder)
-                console.log('Would save to Firebase:', customerData);
-                // await saveCustomerToFirebase(customerData);
-            } else {
-                // Save to localStorage
-                saveCustomerToLocalStorage(customerData);
+            // Find all matching orders
+            const matchingOrders = allOrders.filter(order => {
+                if (!order.surname || !order.customerPhone) return false;
+                
+                const orderSurname = order.surname.toLowerCase().trim();
+                const orderPhone = normalizePhone(order.customerPhone);
+                
+                return orderSurname === searchSurname && orderPhone === searchPhone;
+            });
+            
+            if (matchingOrders.length === 0) {
+                return { found: false };
             }
             
-            console.log('Customer saved successfully');
-            return true;
+            // Get most recent order (by createdAt)
+            const latestOrder = matchingOrders.sort((a, b) => 
+                new Date(b.createdAt) - new Date(a.createdAt)
+            )[0];
+            
+            return {
+                found: true,
+                latestOrder: latestOrder,
+                matchingOrders: matchingOrders,
+                orderCount: matchingOrders.length,
+                totalSpent: matchingOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0)
+            };
             
         } catch (error) {
-            console.error('Save customer error:', error);
-            return false;
+            console.error('Search orders error:', error);
+            return { found: false };
         }
     }
     
-    function saveCustomerToLocalStorage(customer) {
-        try {
-            // Get existing customers
-            const existingJSON = localStorage.getItem(CONFIG.STORAGE_KEY);
-            const customers = existingJSON ? JSON.parse(existingJSON) : {};
-            
-            // Use phone as key for easy lookup
-            const phoneKey = normalizePhone(customer.phone);
-            
-            // Update or add customer
-            if (customers[phoneKey]) {
-                // Update existing customer
-                customers[phoneKey] = {
-                    ...customers[phoneKey],
-                    ...customer,
-                    updatedAt: new Date().toISOString()
-                };
-            } else {
-                // Add new customer
-                customers[phoneKey] = customer;
+    // ============================================
+    // FORM AUTO-FILL - FIXED (uses order data directly)
+    // ============================================
+    function autoFillForm(order) {
+        console.log('Auto-filling from order:', order.id);
+        
+        // Map order data to form fields
+        const fieldMapping = {
+            'customer-firstname': order.firstName || '',
+            'customer-surname': order.surname || '',
+            'customer-phone': order.customerPhone || '',
+            'customer-whatsapp': order.customerWhatsApp || '',
+            'customer-email': order.customerEmail || '',
+            'shipping-address': order.shippingAddress || ''
+        };
+        
+        // Fill each form field
+        Object.entries(fieldMapping).forEach(([fieldId, value]) => {
+            const field = document.getElementById(fieldId);
+            if (field && value) {
+                field.value = value;
+                
+                // Trigger change event for any validation
+                field.dispatchEvent(new Event('input', { bubbles: true }));
+                field.dispatchEvent(new Event('change', { bubbles: true }));
             }
-            
-            // Save back to localStorage
-            localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(customers));
-            console.log('Customer saved to localStorage:', phoneKey);
-            
-        } catch (error) {
-            console.error('LocalStorage save error:', error);
-            throw error;
-        }
-    }
-    
-    function getCustomerByPhone(phone) {
-        try {
-            const normalizedPhone = normalizePhone(phone);
-            const customersJSON = localStorage.getItem(CONFIG.STORAGE_KEY);
-            
-            if (!customersJSON) return null;
-            
-            const customers = JSON.parse(customersJSON);
-            return customers[normalizedPhone] || null;
-            
-        } catch (error) {
-            console.error('Get customer error:', error);
-            return null;
+        });
+        
+        // Focus on special instructions field for convenience
+        const notesField = document.getElementById('order-notes');
+        if (notesField) {
+            setTimeout(() => notesField.focus(), 100);
         }
     }
     
     // ============================================
-    // FORM AUTO-FILL FUNCTIONALITY
+    // UI FEEDBACK FUNCTIONS - UPDATED
     // ============================================
-function autoFillForm(customer) {  // UPDATED
-    console.log('Auto-filling form with customer:', customer);
-    
-    // Map customer data to form fields
-    const fieldMapping = {
-        'customer-firstname': customer.firstName || '',
-        'customer-surname': customer.surname || '',
-        'customer-phone': customer.phone,
-        'customer-whatsapp': customer.whatsApp || '',
-        'customer-email': customer.email || '',
-        'shipping-address': customer.addresses && customer.addresses.length > 0 
-            ? customer.addresses[0] 
-            : ''
-    };
-    
-    // Fill each form field
-    Object.entries(fieldMapping).forEach(([fieldId, value]) => {
-        const field = document.getElementById(fieldId);
-        if (field && value) {
-            field.value = value;
-            
-            // Trigger change event for any validation
-            field.dispatchEvent(new Event('input', { bubbles: true }));
-            field.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-    });
-    
-    // Focus on special instructions field for convenience
-    const notesField = document.getElementById('order-notes');
-    if (notesField) {
-        setTimeout(() => notesField.focus(), 100);
-    }
-}
-    
-    // ============================================
-    // UTILITY FUNCTIONS
-    // ============================================
-    function normalizePhone(phone) {
-        if (!phone) return '';
-        
-        // Remove all non-digit characters
-        let normalized = phone.replace(/\D/g, '');
-        
-        // Handle South African numbers
-        if (normalized.startsWith('27') && normalized.length === 11) {
-            normalized = '0' + normalized.substring(2);
-        } else if (normalized.startsWith('27') && normalized.length === 12) {
-            normalized = '0' + normalized.substring(3);
-        }
-        
-        return normalized;
-    }
-    
-    function generateCustomerId() {
-        const date = new Date();
-        const year = date.getFullYear();
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-        
-        return `CUST-${year}${month}${day}-${random}`;
-    }
-    
-    function validateSearchInput(surname, phone) {
-        const errors = [];
-        
-        if (!surname || surname.trim().length < 2) {
-            errors.push('Surname must be at least 2 characters');
-        }
-        
-        if (!phone || normalizePhone(phone).length < 10) {
-            errors.push('Please enter a valid South African phone number');
-        }
-        
-        return errors;
-    }
-    
-    // ============================================
-    // UI FEEDBACK FUNCTIONS
-    // ============================================
-    function showSearchResult(customer) {
+    function showSearchResult(searchResult) {
         const resultDiv = document.getElementById('search-result');
         const contentDiv = document.getElementById('result-content');
         
         if (!resultDiv || !contentDiv) return;
         
-        // Format result message
-        const orderCount = customer.orderCount || 1;
-        const lastOrder = customer.lastOrder 
-            ? new Date(customer.lastOrder).toLocaleDateString() 
-            : 'No previous orders';
+        const customer = searchResult.latestOrder;
+        const orderCount = searchResult.orderCount;
+        const totalSpent = searchResult.totalSpent;
+        const lastOrderDate = new Date(customer.createdAt).toLocaleDateString();
         
         contentDiv.innerHTML = `
             <div style="display: flex; align-items: center; justify-content: space-between;">
                 <div>
                     <div style="color: #4CAF50; font-weight: 500; margin-bottom: 4px;">
                         <i class="fas fa-check-circle" style="margin-right: 6px;"></i>
-                        Customer Found!
+                        Returning Customer Found!
                     </div>
                     <div style="font-size: 0.9rem; color: #555;">
-                        ${customer.firstName ? customer.firstName + ' ' : ''}${customer.surname} • 
-                        Previous orders: ${orderCount} • 
-                        Last order: ${lastOrder}
+                        ${customer.firstName} ${customer.surname} • 
+                        ${orderCount} previous order${orderCount > 1 ? 's' : ''} • 
+                        Last order: ${lastOrderDate}
                     </div>
+                    ${orderCount > 1 ? `
+                    <div style="font-size: 0.85rem; color: #666; margin-top: 2px;">
+                        Total spent: R${totalSpent.toFixed(2)}
+                    </div>
+                    ` : ''}
                 </div>
                 <button type="button" id="clear-search" style="
                     background: none;
@@ -508,28 +342,43 @@ function autoFillForm(customer) {  // UPDATED
         }
     }
     
+    // ============================================
+    // UTILITY FUNCTIONS (KEEP EXISTING)
+    // ============================================
+    function normalizePhone(phone) {
+        if (!phone) return '';
+        let normalized = phone.replace(/\D/g, '');
+        if (normalized.startsWith('27') && normalized.length === 11) {
+            normalized = '0' + normalized.substring(2);
+        } else if (normalized.startsWith('27') && normalized.length === 12) {
+            normalized = '0' + normalized.substring(3);
+        }
+        return normalized;
+    }
+    
+    function validateSearchInput(surname, phone) {
+        const errors = [];
+        if (!surname || surname.trim().length < 2) {
+            errors.push('Surname must be at least 2 characters');
+        }
+        if (!phone || normalizePhone(phone).length < 10) {
+            errors.push('Please enter a valid South African phone number');
+        }
+        return errors;
+    }
+    
+    // Clear search result function
     function clearSearchResult() {
         hideResult();
         hideError();
-        
-        // Clear search inputs
         const surnameInput = document.getElementById('search-surname');
         const phoneInput = document.getElementById('search-phone');
-        
         if (surnameInput) surnameInput.value = '';
         if (phoneInput) phoneInput.value = '';
-        
-        // Clear form fields (optional - depending on your preference)
-        // const formFields = ['customer-name', 'customer-phone', 'customer-whatsapp', 'customer-email', 'shipping-address'];
-        // formFields.forEach(fieldId => {
-        //     const field = document.getElementById(fieldId);
-        //     if (field) field.value = '';
-        // });
-        
-        // Focus on surname field
         if (surnameInput) surnameInput.focus();
     }
     
+    // UI helper functions (keep existing)
     function showError(message) {
         const errorDiv = document.getElementById('search-error');
         if (errorDiv) {
@@ -556,23 +405,17 @@ function autoFillForm(customer) {  // UPDATED
     }
     
     // ============================================
-    // EVENT HANDLERS
+    // EVENT HANDLERS (KEEP EXISTING)
     // ============================================
     function handleSearchSubmit(event) {
         event.preventDefault();
-        
-        // Get search values
         const surname = document.getElementById('search-surname')?.value || '';
         const phone = document.getElementById('search-phone')?.value || '';
-        
-        // Validate
         const errors = validateSearchInput(surname, phone);
         if (errors.length > 0) {
             showError(errors.join('<br>'));
             return;
         }
-        
-        // Perform search
         searchCustomer(surname, phone);
     }
     
@@ -581,13 +424,11 @@ function autoFillForm(customer) {  // UPDATED
             searchForm.addEventListener('submit', handleSearchSubmit);
         }
         
-        // Auto-format phone number
+        // Auto-format phone number (keep existing)
         const phoneInput = document.getElementById('search-phone');
         if (phoneInput) {
             phoneInput.addEventListener('input', function(e) {
                 let value = e.target.value.replace(/\D/g, '');
-                
-                // Format as South African phone number
                 if (value.length <= 2) {
                     value = value;
                 } else if (value.length <= 5) {
@@ -597,7 +438,6 @@ function autoFillForm(customer) {  // UPDATED
                 } else {
                     value = value.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3');
                 }
-                
                 e.target.value = value;
             });
         }
@@ -609,21 +449,7 @@ function autoFillForm(customer) {  // UPDATED
     return {
         init,
         searchCustomer,
-        saveCustomer,
-        getCustomerByPhone,
-        normalizePhone,
-        autoFillForm
+        autoFillForm,
+        normalizePhone
     };
 })();
-
-
-// Export the manager for integration
-// Call CustomerSearchManager.init() when checkout form is ready
-
-// Auto-initialize when DOM is ready
-// Note: Call this after checkout form is created
-// if (document.readyState === 'loading') {
-//     document.addEventListener('DOMContentLoaded', () => CustomerSearchManager.init());
-// } else {
-//     CustomerSearchManager.init();
-// }
