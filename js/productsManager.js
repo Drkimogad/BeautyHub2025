@@ -171,35 +171,31 @@ const ProductsManager = (function() {
         }
     }
     
-    // Delete product from Firestore
-    async function deleteProductFromFirestore(productId) {
-        console.log('[ProductsManager] Attempting soft delete in Firestore:', productId);
-        
-        if (!CONFIG.FIREBASE_READY() || !CONFIG.USE_FIRESTORE) {
-            console.log('[ProductsManager] Firestore disabled or not ready');
-            return false;
-        }
-        
-        try {
-            const db = firebase.firestore();
-            const productRef = db.collection(CONFIG.FIRESTORE_COLLECTION).doc(productId);
-            
-            const softDeleteData = {
-                isActive: false,
-                updatedAt: new Date().toISOString()
-            };
-            
-            console.log('[ProductsManager] Soft deleting in Firestore:', softDeleteData);
-            await productRef.update(softDeleteData);
-            
-            console.log(`[ProductsManager] Soft-deleted in Firestore: ${productId}`);
-            return true;
-            
-        } catch (error) {
-            console.error('[ProductsManager] Firestore delete error:', error);
-            return false;
-        }
+
+// Permanently delete product from Firestore
+async function permanentlyDeleteFromFirestore(productId) {
+    console.log('[ProductsManager] Attempting permanent delete from Firestore:', productId);
+    
+    if (!CONFIG.FIREBASE_READY() || !CONFIG.USE_FIRESTORE) {
+        console.log('[ProductsManager] Firestore disabled or not ready');
+        return false;
     }
+    
+    try {
+        const db = firebase.firestore();
+        const productRef = db.collection(CONFIG.FIRESTORE_COLLECTION).doc(productId);
+        
+        console.log('[ProductsManager] Permanently deleting from Firestore');
+        await productRef.delete();
+        
+        console.log(`[ProductsManager] Permanently deleted from Firestore: ${productId}`);
+        return true;
+        
+    } catch (error) {
+        console.error('[ProductsManager] Firestore permanent delete error:', error);
+        return false;
+    }
+}
     
     // ============================================
     // CORE PRODUCT FUNCTIONS (UPDATED)
@@ -900,6 +896,10 @@ const ProductsManager = (function() {
                             <button class="${toggleBtnClass}" data-product-id="${product.id}" data-active="${product.isActive}">
                                 <i class="fas ${product.isActive ? 'fa-eye-slash' : 'fa-eye'}"></i>
                             </button>
+                            <!-- NEW DELETE BUTTON GOES HERE -->
+                            <button class="delete-product-btn" data-product-id="${product.id}" style="...">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </div>
                     </div>
                 `;
@@ -916,7 +916,9 @@ const ProductsManager = (function() {
         console.log('[ProductsManager] Products admin rendering complete');
     }
     
+    // ==========
     // Setup event listeners for product actions
+    //===============
     function setupProductEventListeners() {
         console.log('[ProductsManager] Setting up product event listeners');
         
@@ -994,6 +996,14 @@ const ProductsManager = (function() {
                 }
             });
         });
+        // Delete product buttons
+document.querySelectorAll('.delete-product-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const productId = this.dataset.productId;
+        console.log('[ProductsManager] Delete product clicked:', productId);
+        showDeleteConfirmation(productId);
+    });
+});
         
         console.log('[ProductsManager] Event listeners setup complete');
     }
@@ -1484,6 +1494,264 @@ const ProductsManager = (function() {
             console.log('[ProductsManager] Stock modal closed');
         }
     }
+    //=======
+    // delete confirmation modal
+    //======
+    // Show delete confirmation modal
+function showDeleteConfirmation(productId) {
+    console.log('[ProductsManager] Showing delete confirmation for:', productId);
+    
+    const product = getProductById(productId);
+    if (!product) {
+        console.log('[ProductsManager] Product not found for delete:', productId);
+        return;
+    }
+    
+    // Create or get modal
+    let modal = document.getElementById('delete-confirmation-modal');
+    if (!modal) {
+        console.log('[ProductsManager] Creating delete confirmation modal');
+        modal = document.createElement('div');
+        modal.id = 'delete-confirmation-modal';
+        modal.className = 'delete-modal';
+        modal.style.cssText = `
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1007;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    modal.innerHTML = `
+        <div style="
+            background: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+            position: relative;
+        ">
+            <button id="close-delete-modal" style="
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                cursor: pointer;
+                color: #666;
+            ">&times;</button>
+            
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <div style="
+                    width: 80px;
+                    height: 80px;
+                    background: linear-gradient(135deg, #ff5252, #ff4081);
+                    border-radius: 50%;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-bottom: 1rem;
+                ">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: white;"></i>
+                </div>
+                
+                <h2 style="margin-top: 0; color: #333; margin-bottom: 0.5rem;">
+                    Delete Product
+                </h2>
+                <p style="color: #666; margin-bottom: 1.5rem;">
+                    Are you sure you want to delete this product permanently?
+                </p>
+            </div>
+            
+            <div style="
+                background: #fff8e1;
+                border-left: 4px solid #ff9800;
+                padding: 1rem;
+                border-radius: 4px;
+                margin-bottom: 1.5rem;
+            ">
+                <div style="font-weight: 600; color: #333; margin-bottom: 0.5rem;">
+                    Product Details
+                </div>
+                <div style="color: #666; font-size: 0.9rem;">
+                    <div><strong>Name:</strong> ${product.name}</div>
+                    <div><strong>ID:</strong> ${product.id}</div>
+                    <div><strong>Category:</strong> ${product.category}</div>
+                    <div><strong>Current Stock:</strong> ${product.stock} units</div>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <div style="font-weight: 600; color: #333; margin-bottom: 0.5rem;">
+                    Warning
+                </div>
+                <div style="color: #ff5252; font-size: 0.9rem; background: #ffebee; padding: 0.75rem; border-radius: 6px;">
+                    <i class="fas fa-exclamation-circle"></i> 
+                    This action cannot be undone. The product will be permanently removed from Firestore and set to inactive locally.
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">
+                    Admin Password Required *
+                </label>
+                <input type="password" 
+                       id="admin-password" 
+                       placeholder="Enter admin password to confirm"
+                       style="
+                            width: 100%;
+                            padding: 0.75rem;
+                            border: 2px solid #e0e0e0;
+                            border-radius: 8px;
+                            font-size: 1rem;
+                       ">
+                <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
+                    Type "DELETE" to confirm permanent deletion
+                </div>
+            </div>
+            
+            <div id="delete-error" style="
+                background: #ffebee;
+                color: #d32f2f;
+                padding: 1rem;
+                border-radius: 8px;
+                margin-bottom: 1.5rem;
+                display: none;
+            "></div>
+            
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" id="cancel-delete" style="
+                    background: white;
+                    color: #666;
+                    border: 2px solid #e0e0e0;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 8px;
+                    font-size: 1rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                ">
+                    Cancel
+                </button>
+                
+                <button type="button" id="confirm-delete" style="
+                    background: #ff5252;
+                    color: white;
+                    border: none;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 8px;
+                    font-size: 1rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                ">
+                    <i class="fas fa-trash-alt"></i>
+                    Delete Permanently
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Show modal
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Setup event listeners
+    document.getElementById('close-delete-modal').onclick = closeDeleteModal;
+    document.getElementById('cancel-delete').onclick = closeDeleteModal;
+    
+    document.getElementById('confirm-delete').onclick = async function() {
+        await handlePermanentDelete(productId);
+    };
+    
+    // Allow Enter key to trigger delete
+    document.getElementById('admin-password').addEventListener('keypress', async function(e) {
+        if (e.key === 'Enter') {
+            await handlePermanentDelete(productId);
+        }
+    });
+}
+
+// Handle permanent delete with password confirmation
+async function handlePermanentDelete(productId) {
+    console.log('[ProductsManager] Handling permanent delete for:', productId);
+    
+    const password = document.getElementById('admin-password').value;
+    const errorDiv = document.getElementById('delete-error');
+    
+    // Validate password
+    if (password !== 'DELETE') {
+        errorDiv.innerHTML = 'Incorrect password. Please type "DELETE" to confirm.';
+        errorDiv.style.display = 'block';
+        console.log('[ProductsManager] Delete password incorrect');
+        return;
+    }
+    
+    const product = getProductById(productId);
+    if (!product) {
+        errorDiv.innerHTML = 'Product not found.';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    console.log('[ProductsManager] Password verified, proceeding with delete');
+    
+    // 1. Perform soft delete locally (set isActive: false)
+    const softDeleteSuccess = await deleteProduct(productId);
+    
+    // 2. Perform permanent delete from Firestore
+    let firestoreDeleteSuccess = true;
+    if (CONFIG.USE_FIRESTORE) {
+        firestoreDeleteSuccess = await permanentlyDeleteFromFirestore(productId);
+    }
+    
+    if (softDeleteSuccess) {
+        console.log('[ProductsManager] Delete successful:', {
+            id: productId,
+            firestore: firestoreDeleteSuccess ? 'permanently deleted' : 'failed',
+            local: 'soft deleted'
+        });
+        
+        // Show success message
+        errorDiv.style.background = '#e8f5e9';
+        errorDiv.style.color = '#4CAF50';
+        errorDiv.innerHTML = '<i class="fas fa-check-circle"></i> Product deleted successfully!';
+        errorDiv.style.display = 'block';
+        
+        // Close modal after 1.5 seconds
+        setTimeout(() => {
+            closeDeleteModal();
+            renderProductsAdmin();
+        }, 1500);
+        
+    } else {
+        console.log('[ProductsManager] Delete failed');
+        errorDiv.innerHTML = 'Failed to delete product. Please try again.';
+        errorDiv.style.display = 'block';
+    }
+}
+
+// Close delete modal
+function closeDeleteModal() {
+    console.log('[ProductsManager] Closing delete modal');
+    const modal = document.getElementById('delete-confirmation-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+}
+
+
     
     // Public API
     console.log('[ProductsManager] Creating public API');
