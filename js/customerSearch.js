@@ -15,15 +15,25 @@ const CustomerSearchManager = (function() {
     let searchForm = null;
     
     // Initialize
-    function init(containerSelector = '#checkout-form') {
-        createSearchUI();
-        setupEventListeners();
+function init(containerSelector = '#checkout-form') {
+    // Don't create search UI unless checkout form exists
+    if (!document.getElementById('checkout-form')) {
+        console.log('[CustomerSearch] No checkout form found on this page');
         return {
             searchCustomer,
             autoFillForm,
             normalizePhone
         };
     }
+    
+    createSearchUI();
+    setupEventListeners();
+    return {
+        searchCustomer,
+        autoFillForm,
+        normalizePhone
+    };
+}
     
     // ============================================
     // SEARCH UI COMPONENT
