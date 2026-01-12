@@ -279,13 +279,14 @@ function autoFillForm(order) {
     });
     
     // Store the original order ID for updating later
-    const form = document.getElementById('checkout-form');
-    if (form) {
-        form.dataset.existingCustomerId = order.id;
-        form.dataset.existingCustomer = 'true';
+    const checkoutForm = document.getElementById('checkout-form');
+    if (checkoutForm) {
+        checkoutForm.dataset.existingCustomerId = order.id;
+        checkoutForm.dataset.existingCustomer = 'true';
+        console.log('[CustomerSearch] Marked as existing customer:', order.id);
     }
     
-    // Show message that fields can be edited
+    // Show message
     showMessage('Customer details loaded. You can edit any field if needed.', 'info');
     
     // Focus on special instructions field for convenience
