@@ -108,13 +108,15 @@ const ProductsManager = (function() {
             console.log(`[ProductsManager] Firestore loaded: ${firestoreProducts.length} products`);
             // Ensure it's always an array before assigning
               if (Array.isArray(firestoreProducts)) {
-              products = firestoreProducts;
-             console.log('[ProductsManager] Products array updated from Firestore');
+             // DON'T update products array here - let the caller decide
+             // products = firestoreProducts; // <-- REMOVE THIS LINE
+                console.log('[ProductsManager] Products array updated from Firestore');
                   } else {
                    products = [];
                      console.warn('[ProductsManager] Firestore returned non-array, resetting products');
                }
-            return firestoreProducts;
+        return firestoreProducts; // Just return the data
+            
         } catch (error) {
             console.error('[ProductsManager] Firestore load error:', error);
             return null;
@@ -257,7 +259,7 @@ async function loadProducts() {
         console.log('[ProductsManager] No cache found, loading from Firestore...');
         const firestoreProducts = await loadProductsFromFirestore();
         if (firestoreProducts !== null) {
-            products = firestoreProducts;
+            products = firestoreProducts; // Update array HERE
             console.log('[ProductsManager] Loaded from Firestore, count:', products.length);
             saveProductsToCache();
             saveProductsToLocalStorage();
@@ -273,10 +275,13 @@ async function updateFromFirestoreInBackground() {
     try {
         const firestoreProducts = await loadProductsFromFirestore();
         if (firestoreProducts && firestoreProducts.length > 0) {
+            // Update the products array HERE, in the background function
             products = firestoreProducts;
             saveProductsToCache();
             saveProductsToLocalStorage();
             console.log('[ProductsManager] Background Firestore update complete');
+            
+            // Notify UI to refresh if needed
             window.dispatchEvent(new CustomEvent('productsUpdated'));
         }
     } catch (error) {
