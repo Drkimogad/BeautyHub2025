@@ -5,15 +5,22 @@ const CustomerOrderManager = (function() {
     let checkoutForm = null;
     
     // Initialize order system MODIFIED
-    function init() {
+function init() {
+    // Check if checkout button exists (indicates we need checkout functionality)
+    const checkoutButton = document.querySelector('[onclick*="openCheckout"], [onclick*="CustomerOrderManager"]');
+    if (!checkoutButton && !document.getElementById('checkout-form')) {
+        console.log('[CustomerOrder] No checkout UI found, skipping initialization');
+        return;
+    }
+    
     createCheckoutModal();
     setupEventListeners();
     
-    // Initialize customer search if available
+    // Initialize customer search
     if (typeof CustomerSearchManager !== 'undefined') {
         CustomerSearchManager.init();
     }
-}    
+}
 // ===== MODAL CREATION =====
     function createCheckoutModal() {
         // Remove existing modal if present
