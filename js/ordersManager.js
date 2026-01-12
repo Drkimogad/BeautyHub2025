@@ -454,6 +454,36 @@ function renderOrders(statusFilter = 'pending', containerId = 'pending-orders') 
                         ${order.customerEmail}
                     </div>
                     ` : ''}
+                    ${order.customerType && order.customerType !== 'personal' ? `
+<div style="margin-bottom: 0.25rem; color: #555;">
+    <i class="fas fa-tag" style="margin-right: 0.5rem; color: #666;"></i>
+    Type: ${order.customerType.charAt(0).toUpperCase() + order.customerType.slice(1)}
+</div>
+` : ''}
+
+${order.preferredPaymentMethod ? `
+<div style="margin-bottom: 0.25rem; color: #555;">
+    <i class="fas fa-credit-card" style="margin-right: 0.5rem; color: #666;"></i>
+    Preferred: ${order.preferredPaymentMethod}
+</div>
+` : ''}
+
+${order.priority && order.priority !== 'normal' ? `
+<div style="margin-top: 0.25rem;">
+    <span style="
+        background: ${order.priority === 'rush' ? '#ff5252' : 
+                     order.priority === 'high' ? '#ff9800' : 
+                     order.priority === 'low' ? '#9e9e9e' : '#4CAF50'};
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    ">
+        ${order.priority.toUpperCase()}
+    </span>
+</div>
+` : ''}
                 </div>
                 
                 <div class="shipping-info">
@@ -1151,6 +1181,23 @@ function showOrderDetails(orderId) {
                     ${order.customerEmail ? `<div style="margin-bottom: 0.5rem;">
                         <strong>Email:</strong> ${order.customerEmail}
                     </div>` : ''}
+                    ${order.customerType ? `
+<div style="margin-bottom: 0.5rem;">
+    <strong>Customer Type:</strong> ${order.customerType.charAt(0).toUpperCase() + order.customerType.slice(1)}
+</div>
+` : ''}
+
+${order.preferredPaymentMethod ? `
+<div style="margin-bottom: 0.5rem;">
+    <strong>Preferred Payment:</strong> ${order.preferredPaymentMethod}
+</div>
+` : ''}
+
+${order.priority ? `
+<div style="margin-bottom: 0.5rem;">
+    <strong>Priority:</strong> ${order.priority.toUpperCase()}
+</div>
+` : ''}
                     <div style="margin-bottom: 0.5rem;">
                         <strong>Order Date:</strong> ${orderDate}
                     </div>
@@ -1517,6 +1564,9 @@ function printOrderDetails(order) {
                 <p><strong>Customer Name:</strong> ${order.firstName} ${order.surname}</p>
                 <p><strong>Customer ID:</strong> ${order.customerId || 'N/A'}</p>
                 <p><strong>Phone:</strong> ${order.customerPhone}</p>
+                ${order.customerType ? `<p><strong>Customer Type:</strong> ${order.customerType.charAt(0).toUpperCase() + order.customerType.slice(1)}</p>` : ''}
+                ${order.preferredPaymentMethod ? `<p><strong>Preferred Payment:</strong> ${order.preferredPaymentMethod}</p>` : ''}
+                ${order.priority ? `<p><strong>Priority:</strong> ${order.priority.toUpperCase()}</p>` : ''}
                 <p><strong>Shipping Address:</strong> ${order.shippingAddress}</p>
                 <p><strong>Shipping Date:</strong> ${shippingDate}</p>
                 <p><strong>Status:</strong> ${order.status.toUpperCase()}</p>
