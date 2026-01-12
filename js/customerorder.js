@@ -138,6 +138,64 @@ const CustomerOrderManager = (function() {
                             box-sizing: border-box;
                         ">
                     </div>
+
+<div style="margin-bottom: 1rem;">
+    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+        Customer Type
+    </label>
+    <select id="customer-type" style="
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+        background: white;
+    ">
+        <option value="personal">Personal</option>
+        <option value="retailer">Retailer</option>
+        <option value="wholesaler">Wholesaler</option>
+        <option value="corporate">Corporate</option>
+    </select>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+    <div>
+        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+            Preferred Payment Method
+        </label>
+        <select id="preferred-payment-method" style="
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background: white;
+        ">
+            <option value="manual">Manual/Cash</option>
+            <option value="payfast">PayFast</option>
+            <option value="credit_card">Credit Card</option>
+            <option value="eft">EFT</option>
+        </select>
+    </div>
+    
+    <div>
+        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+            Order Priority
+        </label>
+        <select id="order-priority" style="
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background: white;
+        ">
+            <option value="normal">Normal</option>
+            <option value="low">Low</option>
+            <option value="high">High</option>
+            <option value="rush">Rush</option>
+        </select>
+    </div>
+</div>
                     
                     <div style="margin-bottom: 1rem;">
                         <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
@@ -357,6 +415,9 @@ if (!formData.surname?.trim()) {
         return errors;
     }
     
+//=====================================
+    // SubmitOrder function
+//======================================
     function submitOrder(event) {
         event.preventDefault();
     // DEBUG: Check form values
@@ -366,13 +427,16 @@ if (!formData.surname?.trim()) {
         phone: document.getElementById('customer-phone').value
     });
         
-        // Get form data
+// Get form data
 const formData = {
     firstName: document.getElementById('customer-firstname').value,
     surname: document.getElementById('customer-surname').value,
     customerPhone: document.getElementById('customer-phone').value,
     customerWhatsApp: document.getElementById('customer-whatsapp').value,
     customerEmail: document.getElementById('customer-email').value,
+    customerType: document.getElementById('customer-type').value,
+    preferredPaymentMethod: document.getElementById('preferred-payment-method').value,
+    priority: document.getElementById('order-priority').value,
     shippingAddress: document.getElementById('shipping-address').value,
     orderNotes: document.getElementById('order-notes').value,
     cartItems: BeautyHubCart.getCartItems(),
