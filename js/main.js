@@ -25,8 +25,7 @@ const AppManager = (function() {
         console.log('BeautyHub2025 PWA Initialized');
     }
     
-  // Initialize all modules in correct order
-// Initialize all modules in correct order
+// In main.js initializeModules() function:
 function initializeModules() {
     console.log('[Main] Initializing modules...');
     
@@ -35,25 +34,27 @@ function initializeModules() {
         console.log('[Main] Initializing ProductsManager...');
         ProductsManager.init();
         console.log('[Main] ProductsManager initialized');
-    } else {
-        console.error('[Main] CRITICAL: ProductsManager not loaded');
-        return; // Can't continue without products
     }
     
     if (typeof ProductsDisplay !== 'undefined') {
         console.log('[Main] Initializing ProductsDisplay...');
         ProductsDisplay.init();
-    } else {
-        console.error('[Main] CRITICAL: ProductsDisplay not loaded');
     }
     
-    // 2. HOME PAGE MODULES - Only if elements exist
+    // 2. CART MODULES
     if (typeof BeautyHubCart !== 'undefined' && document.getElementById('cart-count')) {
         console.log('[Main] Initializing Cart...');
         BeautyHubCart.init();
     }
     
-    if (typeof InventoryManager !== 'undefined' && typeof ProductsManager !== 'undefined') {
+    // 3. CUSTOMER ORDER/CHECKOUT MODULE - CRITICAL FIX
+    if (typeof CustomerOrderManager !== 'undefined') {
+        console.log('[Main] Initializing CustomerOrder (checkout modal)...');
+        CustomerOrderManager.init();
+    }
+    
+    // 4. OTHER MODULES
+    if (typeof InventoryManager !== 'undefined') {
         console.log('[Main] Initializing Inventory...');
         InventoryManager.init(ProductsManager, null);
     }
@@ -62,10 +63,6 @@ function initializeModules() {
         console.log('[Main] Initializing Admin...');
         AdminManager.init();
     }
-    
-    // 3. CHECKOUT MODULES - Only load if checkout form might be used
-    // (These will be loaded lazily when checkout is opened)
-    // Don't initialize on homepage - saves resources
     
     console.log('[Main] Module initialization complete');
 }
