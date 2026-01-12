@@ -9,12 +9,11 @@ const CustomerSearchManager = (function() {
             collection: 'orders'
         }
     };
-    
     // DOM Elements
     let searchContainer = null;
     let searchForm = null;
     
-    // Initialize
+// Initialize
 function init(containerSelector = '#checkout-form') {
     // Don't create search UI unless checkout form exists
     if (!document.getElementById('checkout-form')) {
