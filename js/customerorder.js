@@ -1,4 +1,4 @@
-// customerorder.js - Customer Order Form & Submission
+// customerorder.js - Customer Order Form & Submission.
 const CustomerOrderManager = (function() {
     // DOM Elements
     let checkoutModal = null;
