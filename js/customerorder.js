@@ -329,7 +329,7 @@ function updateOrderSummary(cartItems, subtotal) {
     if (!summaryContainer || !totalElement) return;
     
     const shippingThreshold = 1000;
-    const shippingCost = subtotal >= shippingThreshold ? 0 : 50;
+    const shippingCost = subtotal >= shippingThreshold ? 0 : 100; // was 50
     const isFreeShipping = subtotal >= shippingThreshold;
     const total = subtotal + shippingCost;
     
