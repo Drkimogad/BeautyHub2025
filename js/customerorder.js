@@ -479,7 +479,7 @@ async function submitOrder(event) {
         console.log('[CustomerOrder] Updating existing customer details:', existingOrderId);
         
         // Update the original order with new customer details
-        await updateExistingCustomerDetails(existingOrderId, {
+           updateExistingCustomerDetails(existingOrderId, {
             firstName: formData.firstName,
             surname: formData.surname,
             customerPhone: formData.customerPhone,
@@ -531,33 +531,28 @@ function updateExistingCustomerDetails(orderId, updatedDetails) {
     console.log('[CustomerOrder] Updating customer details for order:', orderId, updatedDetails);
     
     try {
-        // Update in localStorage (orders collection)
+        // Update in localStorage
         const ordersJSON = localStorage.getItem('beautyhub_orders');
         if (ordersJSON) {
             const orders = JSON.parse(ordersJSON) || [];
             const orderIndex = orders.findIndex(order => order.id === orderId);
             
             if (orderIndex !== -1) {
-                // Merge old order with updated customer details
                 orders[orderIndex] = {
                     ...orders[orderIndex],
                     ...updatedDetails
                 };
-                
                 localStorage.setItem('beautyhub_orders', JSON.stringify(orders));
                 console.log('[CustomerOrder] Updated customer details in localStorage');
             }
         }
         
-        // Also update in Firestore if available
+        // Update Firestore WITHOUT await (fire and forget)
         if (typeof firebase !== 'undefined' && firebase.firestore) {
-            try {
-                const db = firebase.firestore();
-                await db.collection('orders').doc(orderId).update(updatedDetails);
-                console.log('[CustomerOrder] Updated customer details in Firestore');
-            } catch (firestoreError) {
-                console.warn('[CustomerOrder] Could not update Firestore:', firestoreError);
-            }
+            const db = firebase.firestore();
+            db.collection('orders').doc(orderId).update(updatedDetails)
+                .then(() => console.log('[CustomerOrder] Updated customer details in Firestore'))
+                .catch(error => console.warn('[CustomerOrder] Firestore update failed:', error));
         }
         
         return true;
