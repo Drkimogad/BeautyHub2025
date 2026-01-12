@@ -564,55 +564,19 @@ function updateCartUI() {
     
     // ===== EVENT HANDLERS =====
 function setupCheckoutButton() {
-    setTimeout(() => {
-        const checkoutBtn = document.getElementById('checkout-btn');
-        if (checkoutBtn) {
-            console.log('[Cart] Setting up checkout button...');
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             
-            // Remove and recreate to avoid duplicate listeners
-            const newCheckoutBtn = checkoutBtn.cloneNode(true);
-            checkoutBtn.parentNode.replaceChild(newCheckoutBtn, checkoutBtn);
-            
-            newCheckoutBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                console.log('[Cart] Checkout button clicked');
-                
-                // 1. Check cart items
-                if (BeautyHubCart.getCartCount() === 0) {
-                    alert('Your cart is empty. Add items before checkout.');
-                    return;
-                }
-                
-                // 2. Ensure CustomerOrderManager is initialized
-                if (typeof CustomerOrderManager !== 'undefined') {
-                    // Try to initialize if not already done
-                    if (typeof CustomerOrderManager.init === 'function') {
-                        CustomerOrderManager.init();
-                    }
-                    
-                    // Check if modal was created
-                    const modalExists = !!document.getElementById('checkout-modal');
-                    console.log('[Cart] Checkout modal exists:', modalExists);
-                    
-                    if (!modalExists) {
-                        alert('Checkout system loading... Please click checkout again.');
-                        return;
-                    }
-                    
-                    // 3. Open checkout
-                    try {
-                        CustomerOrderManager.openCheckout();
-                    } catch (error) {
-                        console.error('[Cart] openCheckout error:', error);
-                        alert('Checkout error: ' + error.message);
-                    }
-                } else {
-                    console.error('[Cart] CustomerOrderManager not available');
-                    alert('Checkout system not available. Please refresh the page.');
-                }
-            });
-        }
-    }, 500);
+            if (typeof CustomerOrderManager !== 'undefined') {
+                CustomerOrderManager.openCheckout();
+            } else {
+                console.error('CustomerOrderManager not loaded');
+                alert('Checkout system is not available. Please refresh the page.');
+            }
+        });
+    }
 }
     
 function setupEventListeners() {
