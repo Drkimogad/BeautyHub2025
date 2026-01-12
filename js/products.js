@@ -63,7 +63,8 @@ const ProductsDisplay = (function() {
     // ==================================================
     // RENDER PRODUCTS FUNCTION
     // ==================================================
-    function renderProducts() {        
+    function renderProducts() {   
+    try {
         const container = document.getElementById('products-container');
         if (!container) {
             console.error('[ProductsDisplay] Products container not found');
@@ -75,16 +76,26 @@ const ProductsDisplay = (function() {
         // Get products ONLY from ProductsManager
         let products = [];
         
-        if (typeof ProductsManager !== 'undefined' && ProductsManager.getProducts) {
-            products = ProductsManager.getProducts({ activeOnly: true });
-            console.log('[ProductsDisplay] Loaded from ProductsManager:', products.length, 'products');
-        }
+    if (typeof ProductsManager !== 'undefined' && ProductsManager.getProducts) {
+        products = ProductsManager.getProducts({ activeOnly: true });
+        console.log('[ProductsDisplay] Loaded from ProductsManager:', products);
+        console.log('[ProductsDisplay] Products type:', typeof products);
+        console.log('[ProductsDisplay] Is array?', Array.isArray(products));
+        console.log('[ProductsDisplay] Products count:', products.length);
+    }
+
         
-        // Show empty state if no products
-        if (products.length === 0) {
-            showEmptyState();
-            return;
-        }
+ // Show empty state if no products
+    if (!Array.isArray(products)) {
+        console.error('[ProductsDisplay] Products is not an array!', products);
+        showEmptyState();
+        return;
+    }
+            if (products.length === 0) {
+        console.log('[ProductsDisplay] Products array is empty');
+        showEmptyState();
+        return;
+    }
         
         // Render products
         let html = `
@@ -279,6 +290,11 @@ const ProductsDisplay = (function() {
         
         container.innerHTML = html;
         console.log('[ProductsDisplay] Products rendered successfully');
+          } catch (error) {
+        console.error('[ProductsDisplay] Error rendering products:', error);
+        console.error('[ProductsDisplay] Error stack:', error.stack);
+        showEmptyState();
+    }
     }
     
     // ==================================================
@@ -297,26 +313,19 @@ const ProductsDisplay = (function() {
         `;
     }
     
-    // ==================================================
+// ==================================================
     // GET PRODUCT BY ID FUNCTION
-    // ==================================================
-    function getProductById(productId) {
-        if (typeof ProductsManager !== 'undefined' && 
-        //    ProductsManager.getProductById &&
-        //    ProductsManager.products && 
-         //   ProductsManager.products.length > 0) {
-          //  return ProductsManager.getProductById(productId);
-         ProductsManager.getProductById) {
-        // Don't check products.length, let ProductsManager handle it
+// ==================================================
+function getProductById(productId) {
+    if (typeof ProductsManager !== 'undefined' && ProductsManager.getProductById) {
         return ProductsManager.getProductById(productId);
-        }
-        console.warn('[ProductsDisplay] ProductsManager not available');
-        return null;
     }
-    
-    // ==================================================
+    console.warn('[ProductsDisplay] ProductsManager not available');
+    return null;
+}   
+// ==================================================
     // SETUP EVENT LISTENERS FUNCTION
-    // ==================================================
+// ==================================================
     function setupEventListeners() {
         console.log('[ProductsDisplay] Setting up event listeners'); 
         
