@@ -567,6 +567,7 @@ function setupCheckoutButton() {
     const checkoutBtn = document.getElementById('checkout-btn');
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', function(e) {
+            console.log('[Cart] Checkout clicked');
             e.preventDefault();
             
             if (typeof CustomerOrderManager !== 'undefined') {
