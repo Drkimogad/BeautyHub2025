@@ -311,14 +311,22 @@ function openCheckout() {
     document.body.style.overflow = 'hidden';
 }
     
-    function closeCheckout() {
-        if (!checkoutModal) return;
-        
-        checkoutModal.style.display = 'none';
-        document.body.style.overflow = '';
-        clearError();
-        resetForm();
+function closeCheckout() {
+    if (!checkoutModal) return;
+    
+    checkoutModal.style.display = 'none';
+    document.body.style.overflow = '';
+    clearError();
+    resetForm();
+    
+    // Clear customer tracking data
+    const checkoutForm = document.getElementById('checkout-form');
+    if (checkoutForm) {
+        delete checkoutForm.dataset.existingCustomer;
+        delete checkoutForm.dataset.existingCustomerId;
     }
+}
+    
 //==========================================
     // UPDATEORDERSUMMARY
 //=================================
@@ -418,97 +426,173 @@ if (!formData.surname?.trim()) {
 //=====================================
     // SubmitOrder function
 //======================================
-    function submitOrder(event) {
-        event.preventDefault();
+async function submitOrder(event) {
+    event.preventDefault();
+    
     // DEBUG: Check form values
     console.log('DEBUG Form Values:', {
         firstName: document.getElementById('customer-firstname').value,
         surname: document.getElementById('customer-surname').value,
         phone: document.getElementById('customer-phone').value
     });
-        
-// Get form data
-const formData = {
-    firstName: document.getElementById('customer-firstname').value,
-    surname: document.getElementById('customer-surname').value,
-    customerPhone: document.getElementById('customer-phone').value,
-    customerWhatsApp: document.getElementById('customer-whatsapp').value,
-    customerEmail: document.getElementById('customer-email').value,
-    customerType: document.getElementById('customer-type').value,
-    preferredPaymentMethod: document.getElementById('preferred-payment-method').value,
-    priority: document.getElementById('order-priority').value,
-    shippingAddress: document.getElementById('shipping-address').value,
-    orderNotes: document.getElementById('order-notes').value,
-    cartItems: BeautyHubCart.getCartItems(),
-    totalAmount: BeautyHubCart.getCartTotal()
-};
-        
-        // Validate
-        const errors = validateForm(formData);
-        if (errors.length > 0) {
-            showError(errors.join('<br>'));
-            return;
-        }
-        
-        // Check if OrdersManager exists
-        if (typeof OrdersManager === 'undefined') {
-            showError('Order system not available');
-            return;
-        }
-        
-        // Create order via OrdersManager
-        const order = OrdersManager.createOrder(formData);
-        
-        if (order) {
-            // Success - show confirmation
-            showSuccess();
-            
-            // Clear cart
-            BeautyHubCart.clearCart();
-            
-            // Dispatch order created event
-            if (typeof AppManager !== 'undefined') {
-                AppManager.dispatchOrderCreated();
-            }
-            
-            // Close modal after delay
-            setTimeout(() => {
-                closeCheckout();
-            }, 2000);
-        } else {
-            showError('Failed to place order. Please try again.');
-        }
+    
+    // Get form data
+    const formData = {
+        firstName: document.getElementById('customer-firstname').value,
+        surname: document.getElementById('customer-surname').value,
+        customerPhone: document.getElementById('customer-phone').value,
+        customerWhatsApp: document.getElementById('customer-whatsapp').value,
+        customerEmail: document.getElementById('customer-email').value,
+        customerType: document.getElementById('customer-type').value,
+        preferredPaymentMethod: document.getElementById('preferred-payment-method').value,
+        priority: document.getElementById('order-priority').value,
+        shippingAddress: document.getElementById('shipping-address').value,
+        orderNotes: document.getElementById('order-notes').value,
+        cartItems: BeautyHubCart.getCartItems(),
+        totalAmount: BeautyHubCart.getCartTotal()
+    };
+    
+    // Validate
+    const errors = validateForm(formData);
+    if (errors.length > 0) {
+        showError(errors.join('<br>'));
+        return;
     }
     
-    // ===== UI FEEDBACK =====
-    function showSuccess() {
-        const form = document.getElementById('checkout-form');
-        if (!form) return;
-        
-        form.innerHTML = `
-            <div style="text-align: center; padding: 2rem;">
-                <div style="
-                    background: #4CAF50;
-                    color: white;
-                    width: 60px;
-                    height: 60px;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    margin: 0 auto 1rem;
-                    font-size: 2rem;
-                ">
-                    ✓
-                </div>
-                <h3 style="color: #4CAF50;">Order Placed Successfully!</h3>
-                <p>Thank you for your order. We will contact you shortly.</p>
-                <p style="font-size: 0.9rem; color: #666;">
-                    Order ID: <strong>${OrdersManager.getLastOrderId() || 'N/A'}</strong>
-                </p>
-            </div>
-        `;
+    // Check if OrdersManager exists
+    if (typeof OrdersManager === 'undefined') {
+        showError('Order system not available');
+        return;
     }
+    
+    // ===== NEW CODE: Check if existing customer =====
+    const checkoutForm = document.getElementById('checkout-form');
+    const isExistingCustomer = checkoutForm && checkoutForm.dataset.existingCustomer === 'true';
+    const existingOrderId = checkoutForm ? checkoutForm.dataset.existingCustomerId : null;
+    
+    if (isExistingCustomer && existingOrderId) {
+        console.log('[CustomerOrder] Updating existing customer details:', existingOrderId);
+        
+        // Update the original order with new customer details
+        await updateExistingCustomerDetails(existingOrderId, {
+            firstName: formData.firstName,
+            surname: formData.surname,
+            customerPhone: formData.customerPhone,
+            customerWhatsApp: formData.customerWhatsApp,
+            customerEmail: formData.customerEmail,
+            shippingAddress: formData.shippingAddress,
+            customerType: formData.customerType,
+            preferredPaymentMethod: formData.preferredPaymentMethod,
+            updatedAt: new Date().toISOString()
+        });
+    }
+    
+    // Create NEW order (this happens whether new or existing customer)
+    const order = OrdersManager.createOrder(formData);
+    
+    if (order) {
+        // Success - show confirmation with appropriate message
+        const successMessage = isExistingCustomer 
+            ? `Order #${order.id} placed! Customer details updated.`
+            : `Order #${order.id} placed successfully!`;
+        
+        showSuccess(successMessage, order.id);
+        
+        // Clear cart
+        BeautyHubCart.clearCart();
+        
+        // Clear customer tracking data
+        if (checkoutForm) {
+            delete checkoutForm.dataset.existingCustomer;
+            delete checkoutForm.dataset.existingCustomerId;
+        }
+        
+        // Dispatch order created event
+        if (typeof AppManager !== 'undefined') {
+            AppManager.dispatchOrderCreated();
+        }
+        
+        // Close modal after delay
+        setTimeout(() => {
+            closeCheckout();
+        }, 3000);
+    } else {
+        showError('Failed to place order. Please try again.');
+    }
+}
+
+// ===== UPDATE EXISTING CUSTOMER DETAILS =====
+function updateExistingCustomerDetails(orderId, updatedDetails) {
+    console.log('[CustomerOrder] Updating customer details for order:', orderId, updatedDetails);
+    
+    try {
+        // Update in localStorage (orders collection)
+        const ordersJSON = localStorage.getItem('beautyhub_orders');
+        if (ordersJSON) {
+            const orders = JSON.parse(ordersJSON) || [];
+            const orderIndex = orders.findIndex(order => order.id === orderId);
+            
+            if (orderIndex !== -1) {
+                // Merge old order with updated customer details
+                orders[orderIndex] = {
+                    ...orders[orderIndex],
+                    ...updatedDetails
+                };
+                
+                localStorage.setItem('beautyhub_orders', JSON.stringify(orders));
+                console.log('[CustomerOrder] Updated customer details in localStorage');
+            }
+        }
+        
+        // Also update in Firestore if available
+        if (typeof firebase !== 'undefined' && firebase.firestore) {
+            try {
+                const db = firebase.firestore();
+                await db.collection('orders').doc(orderId).update(updatedDetails);
+                console.log('[CustomerOrder] Updated customer details in Firestore');
+            } catch (firestoreError) {
+                console.warn('[CustomerOrder] Could not update Firestore:', firestoreError);
+            }
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('[CustomerOrder] Error updating customer details:', error);
+        return false;
+    }
+}
+
+// ===== UI FEEDBACK =====
+    function showSuccess(message, orderId) {
+    const form = document.getElementById('checkout-form');
+    if (!form) return;
+    
+    form.innerHTML = `
+        <div style="text-align: center; padding: 2rem;">
+            <div style="
+                background: #4CAF50;
+                color: white;
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 1rem;
+                font-size: 2rem;
+            ">
+                ✓
+            </div>
+            <h3 style="color: #4CAF50;">${message || 'Order Placed Successfully!'}</h3>
+            <p>Thank you for your order. We will contact you shortly.</p>
+            ${orderId ? `
+            <p style="font-size: 0.9rem; color: #666;">
+                Order ID: <strong>${orderId}</strong>
+            </p>
+            ` : ''}
+        </div>
+    `;
+}
     
     function showError(message) {
         const errorDiv = document.getElementById('checkout-error');
