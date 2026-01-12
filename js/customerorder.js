@@ -1,5 +1,4 @@
 // customerorder.js - Customer Order Form & Submission
-
 const CustomerOrderManager = (function() {
     // DOM Elements
     let checkoutModal = null;
@@ -14,9 +13,8 @@ const CustomerOrderManager = (function() {
     if (typeof CustomerSearchManager !== 'undefined') {
         CustomerSearchManager.init();
     }
-}
-    
-    // ===== MODAL CREATION =====
+}    
+// ===== MODAL CREATION =====
     function createCheckoutModal() {
         // Remove existing modal if present
         const existingModal = document.getElementById('checkout-modal');
@@ -278,7 +276,7 @@ const CustomerOrderManager = (function() {
         checkoutForm = document.getElementById('checkout-form');
     }
     
-    // ===== MODAL CONTROLS =====
+// ===== MODAL CONTROLS =====
 function openCheckout() {
     if (!checkoutModal) return;
     
@@ -395,7 +393,7 @@ function updateOrderSummary(cartItems, subtotal) {
     totalElement.textContent = `R${total.toFixed(2)}`;
 }
     
-    // ===== FORM HANDLING =====
+// ===== FORM HANDLING =====
     function validateForm(formData) {
         const errors = [];
         
@@ -616,7 +614,7 @@ function updateExistingCustomerDetails(orderId, updatedDetails) {
         }
     }
     
-    // ===== EVENT HANDLERS =====
+// ===== EVENT HANDLERS =====
     function setupEventListeners() {
         // Close modal
         document.addEventListener('click', function(e) {
@@ -637,19 +635,11 @@ function updateExistingCustomerDetails(orderId, updatedDetails) {
         if (checkoutForm) {
             checkoutForm.addEventListener('submit', submitOrder);
         }
-    }
-    
-    // ===== PUBLIC API =====
+    }    
+// ===== PUBLIC API =====
     return {
         init,
         openCheckout,
         closeCheckout
     };
 })();
-
-// Auto-initialize
-//if (document.readyState === 'loading') {
-//    document.addEventListener('DOMContentLoaded', () => CustomerOrderManager.init());
-//} else {
-//    CustomerOrderManager.init();
-//}
