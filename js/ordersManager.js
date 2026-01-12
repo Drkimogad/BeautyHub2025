@@ -86,6 +86,7 @@ const OrdersManager = (function() {
             shippingAddress: customerData.shippingAddress.trim(),
             // ADD THESE 2 FIELDS:
             preferredPaymentMethod: 'manual', // or derive from customer history
+            customerType: 'personal', // 'personal', 'retailer', 'wholesaler'
             priority: 'normal',              // 'low', 'normal', 'high', 'rush'
             items: customerData.cartItems.map(item => ({
                 productId: item.productId,
@@ -837,6 +838,12 @@ function renderCompletedOrders(containerId = 'completed-orders-list') {
                         ${order.customerEmail}
                     </div>
                     ` : ''}
+                    ${order.customerType && order.customerType !== 'personal' ? `
+<div style="margin-bottom: 0.25rem; color: #555;">
+    <i class="fas fa-tag" style="margin-right: 0.5rem; color: #666;"></i>
+    Type: ${order.customerType.charAt(0).toUpperCase() + order.customerType.slice(1)}
+</div>
+` : ''}
 
 ${order.preferredPaymentMethod ? `
 <div style="margin-bottom: 0.25rem; color: #555;">
