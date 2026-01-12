@@ -84,6 +84,11 @@ const OrdersManager = (function() {
             customerWhatsApp: customerData.customerWhatsApp?.trim() || '',
             customerEmail: customerData.customerEmail?.trim() || '',
             shippingAddress: customerData.shippingAddress.trim(),
+            cancellationReason: '',      // When cancelled
+           refundAmount: 0,            // Refund amount if any
+           cancelledAt: '',            // Cancellation timestamp
+           cancelledBy: '',            // Who cancelled (admin/user)
+
             // ADD THESE 2 FIELDS:
             preferredPaymentMethod: 'manual', // or derive from customer history
             customerType: 'personal', // 'personal', 'retailer', 'wholesaler'
@@ -202,6 +207,43 @@ function markAsShipped(orderId, shippingDate = '') {
     }
     
     return updateOrderStatus(orderId, 'shipped', shippingDate);
+}
+
+//=======================================
+  // Cancel order with reason and refund
+//===========================================
+function cancelOrder(orderId, cancellationData) {
+    const orderIndex = orders.findIndex(order => order.id === orderId);
+    
+    if (orderIndex === -1) {
+        console.error(`Order ${orderId} not found`);
+        return false;
+    }
+    
+    // Update order with cancellation data
+    orders[orderIndex].status = 'cancelled';
+    orders[orderIndex].cancellationReason = cancellationData.reason || '';
+    orders[orderIndex].refundAmount = parseFloat(cancellationData.refundAmount) || 0;
+    orders[orderIndex].cancelledAt = new Date().toISOString();
+    orders[orderIndex].cancelledBy = cancellationData.cancelledBy || 'admin';
+    orders[orderIndex].updatedAt = new Date().toISOString();
+    
+    // If refund > 0, add note
+    if (orders[orderIndex].refundAmount > 0) {
+        orders[orderIndex].adminNotes = (orders[orderIndex].adminNotes || '') + 
+            `\n[Refund issued: R${orders[orderIndex].refundAmount.toFixed(2)}]`;
+    }
+    
+    // Restore stock if order was shipped/pending
+    if (typeof ProductsManager !== 'undefined') {
+        orders[orderIndex].items.forEach(item => {
+            ProductsManager.updateStock(item.productId, item.quantity);
+        });
+    }
+    
+    saveOrders();
+    updateAdminBadge();
+    return true;
 }
     
     // Delete order
@@ -580,6 +622,22 @@ ${order.priority && order.priority !== 'normal' ? `
                     Mark as Paid
                 </button>
                 ` : ''}
+                ${order.status === 'pending' || order.status === 'paid' ? `
+<button class="action-btn cancel-order" data-order-id="${order.id}" style="
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    background: #ff9800;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+">
+    <i class="fas fa-ban" style="margin-right: 0.5rem;"></i>
+    Cancel Order
+</button>
+` : ''}
                 
                 ${order.status !== 'shipped' ? `
                 <button class="action-btn mark-shipped" data-order-id="${order.id}" style="
@@ -1007,12 +1065,14 @@ ${order.priority && order.priority !== 'normal' ? `
                     <i class="fas fa-trash" style="margin-right: 0.5rem;"></i>
                     Delete
                 </button>
+
             </div>
         </div>`;
     });
     
     container.innerHTML = html;
 }
+    
 //===================================================================    
 // Show order details modal - UPDATED with financial breakdown
 //==========================================================
@@ -1635,6 +1695,199 @@ function printOrderDetails(order) {
         
         return markAsShipped(orderId, shippingDate);
     }
+
+//  Create cancellation modal function:
+// Show cancellation modal
+function showCancellationModal(orderId) {
+    const order = getOrderById(orderId);
+    if (!order) return;
+    
+    // Create modal
+    const modal = document.createElement('div');
+    modal.id = 'cancellation-modal';
+    modal.className = 'cancellation-modal';
+    modal.style.cssText = `
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 10010;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+            position: relative;
+        ">
+            <button id="close-cancel-modal" style="
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                cursor: pointer;
+                color: #666;
+            ">&times;</button>
+            
+            <h2 style="margin-top: 0; color: #333;">Cancel Order: ${order.id}</h2>
+            
+            <div style="
+                background: #fff8e1;
+                border-left: 4px solid #ff9800;
+                padding: 1rem;
+                border-radius: 4px;
+                margin-bottom: 1.5rem;
+            ">
+                <div style="font-weight: 600; margin-bottom: 0.5rem;">Customer:</div>
+                <div>${order.firstName} ${order.surname}</div>
+                <div>${order.customerPhone}</div>
+                <div style="margin-top: 0.5rem; font-weight: 600;">Total: R${order.totalAmount.toFixed(2)}</div>
+            </div>
+            
+            <form id="cancellation-form">
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                        Cancellation Reason *
+                    </label>
+                    <select id="cancellation-reason" required style="
+                        width: 100%;
+                        padding: 0.75rem;
+                        border: 2px solid #e0e0e0;
+                        border-radius: 8px;
+                        font-size: 1rem;
+                        background: white;
+                    ">
+                        <option value="">Select a reason</option>
+                        <option value="customer_requested">Customer Requested</option>
+                        <option value="out_of_stock">Out of Stock</option>
+                        <option value="payment_failed">Payment Failed</option>
+                        <option value="fraudulent">Fraudulent Order</option>
+                        <option value="delivery_issue">Delivery Issue</option>
+                        <option value="price_dispute">Price Dispute</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                        Refund Amount (R)
+                    </label>
+                    <input type="number" 
+                           id="refund-amount" 
+                           min="0" 
+                           max="${order.totalAmount}"
+                           step="0.01"
+                           value="${order.totalAmount}"
+                           style="
+                                width: 100%;
+                                padding: 0.75rem;
+                                border: 2px solid #e0e0e0;
+                                border-radius: 8px;
+                                font-size: 1rem;
+                           ">
+                    <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
+                        Enter 0 for no refund. Max: R${order.totalAmount.toFixed(2)}
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                        Additional Notes
+                    </label>
+                    <textarea id="cancel-notes" rows="3" style="
+                        width: 100%;
+                        padding: 0.75rem;
+                        border: 2px solid #e0e0e0;
+                        border-radius: 8px;
+                        font-size: 1rem;
+                        resize: vertical;
+                    "></textarea>
+                </div>
+                
+                <div id="cancel-error" style="
+                    background: #ffebee;
+                    color: #d32f2f;
+                    padding: 1rem;
+                    border-radius: 8px;
+                    margin-bottom: 1.5rem;
+                    display: none;
+                "></div>
+                
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" id="cancel-cancel" style="
+                        background: white;
+                        color: #666;
+                        border: 2px solid #e0e0e0;
+                        padding: 0.75rem 1.5rem;
+                        border-radius: 8px;
+                        font-size: 1rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                    ">
+                        Back
+                    </button>
+                    
+                    <button type="submit" style="
+                        background: #ff5252;
+                        color: white;
+                        border: none;
+                        padding: 0.75rem 1.5rem;
+                        border-radius: 8px;
+                        font-size: 1rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                    ">
+                        <i class="fas fa-ban" style="margin-right: 0.5rem;"></i>
+                        Confirm Cancellation
+                    </button>
+                </div>
+            </form>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Form submission
+    document.getElementById('cancellation-form').onsubmit = function(e) {
+        e.preventDefault();
+        
+        const cancellationData = {
+            reason: document.getElementById('cancellation-reason').value,
+            refundAmount: document.getElementById('refund-amount').value,
+            notes: document.getElementById('cancel-notes').value,
+            cancelledBy: 'admin'
+        };
+        
+        if (!cancellationData.reason) {
+            document.getElementById('cancel-error').textContent = 'Please select a cancellation reason';
+            document.getElementById('cancel-error').style.display = 'block';
+            return;
+        }
+        
+        if (cancelOrder(orderId, cancellationData)) {
+            modal.remove();
+            renderOrders();
+            renderCompletedOrders();
+            alert(`Order ${orderId} cancelled successfully.${cancellationData.refundAmount > 0 ? ` Refund: R${parseFloat(cancellationData.refundAmount).toFixed(2)}` : ''}`);
+        }
+    };
+    
+    // Close buttons
+    document.getElementById('close-cancel-modal').onclick = () => modal.remove();
+    document.getElementById('cancel-cancel').onclick = () => modal.remove();
+}  // end of cancellation modal
+    
     
     // Setup event listeners
     function setupEventListeners() {
@@ -1680,6 +1933,10 @@ function printOrderDetails(order) {
                     }
                 }
             }
+            // Cancel order button
+if (e.target.classList.contains('cancel-order')) {
+    showCancellationModal(orderId);
+}
             
             // View details
             if (e.target.classList.contains('view-details')) {
