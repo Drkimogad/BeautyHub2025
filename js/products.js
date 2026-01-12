@@ -94,45 +94,49 @@ const ProductsDisplay = (function() {
         `;
         
         products.forEach(product => {
-                    // Add this debug section
-console.log('=== DEBUG FOR PRODUCT: ' + product.name + ' ===');
-console.log('1. Product tags:', product.tags);
-console.log('2. Badges array created:', badges);
-console.log('3. Will badges display?', badges.length > 0);
-console.log('4. Badge conditions:');
-console.log('   - isOnSale:', isOnSale);
-console.log('   - hasDiscount:', hasDiscount);
-console.log('   - discountPercentage:', discountPercentage);
-console.log('   - has bestseller tag?', product.tags && product.tags.includes('bestseller'));
-console.log('   - has new tag?', product.tags && product.tags.includes('new'));
-console.log('   - has featured tag?', product.tags && product.tags.includes('featured'));
-console.log('=== END DEBUG ===');
-            const displayId = product.id;
-            const isOnSale = product.isOnSale || product.discountPercent > 0;
-            const hasDiscount = product.discountPercent > 0 && product.originalPrice > product.price;
-            const discountAmount = hasDiscount ? product.originalPrice - product.price : 0;
-            const discountPercentage = product.discountPercent || 
-                                      (hasDiscount ? Math.round((discountAmount / product.originalPrice) * 100) : 0);
-            
-            // Determine badges
-            let badges = [];
-            if (isOnSale && hasDiscount) badges.push(`-${discountPercentage}%`);
-            if (product.tags && product.tags.includes('bestseller')) badges.push('BESTSELLER');
-            if (product.tags && product.tags.includes('new')) badges.push('NEW');
-            if (product.tags && product.tags.includes('featured')) badges.push('FEATURED');
-            
-            html += `
-            <article class="product-card" data-product-id="${displayId}">
-                ${badges.length > 0 ? `
-                <div class="product-badges">
-                    ${badges.map(badge => `
-                        <div class="product-badge ${badge.includes('%') ? 'badge-discount' : 
-                                                   badge === 'BESTSELLER' ? 'badge-bestseller' : 
-                                                   badge === 'NEW' ? 'badge-new' : 'badge-featured'}">
-                            ${badge}
-                        </div>
-                    `).join('')}
-                </div>` : ''}
+    // Move the debug section HERE, at the beginning of the loop
+    console.log('=== DEBUG FOR PRODUCT: ' + product.name + ' ===');
+    console.log('1. Product tags:', product.tags);
+    
+    const displayId = product.id;
+    const isOnSale = product.isOnSale || product.discountPercent > 0;
+    const hasDiscount = product.discountPercent > 0 && product.originalPrice > product.price;
+    const discountAmount = hasDiscount ? product.originalPrice - product.price : 0;
+    const discountPercentage = product.discountPercent || 
+                              (hasDiscount ? Math.round((discountAmount / product.originalPrice) * 100) : 0);
+    
+    // Determine badges
+    let badges = [];
+    if (isOnSale && hasDiscount) badges.push(`-${discountPercentage}%`);
+    if (product.tags && product.tags.includes('bestseller')) badges.push('BESTSELLER');
+    if (product.tags && product.tags.includes('new')) badges.push('NEW');
+    if (product.tags && product.tags.includes('featured')) badges.push('FEATURED');
+    
+    // Now continue with the rest of the debug info
+    console.log('2. Badges array created:', badges);
+    console.log('3. Will badges display?', badges.length > 0);
+    console.log('4. Badge conditions:');
+    console.log('   - isOnSale:', isOnSale);
+    console.log('   - hasDiscount:', hasDiscount);
+    console.log('   - discountPercentage:', discountPercentage);
+    console.log('   - has bestseller tag?', product.tags && product.tags.includes('bestseller'));
+    console.log('   - has new tag?', product.tags && product.tags.includes('new'));
+    console.log('   - has featured tag?', product.tags && product.tags.includes('featured'));
+    console.log('=== END DEBUG ===');
+    
+    // Continue with the HTML generation...
+    html += `
+    <article class="product-card" data-product-id="${displayId}">
+        ${badges.length > 0 ? `
+        <div class="product-badges">
+            ${badges.map(badge => `
+                <div class="product-badge ${badge.includes('%') ? 'badge-discount' : 
+                                           badge === 'BESTSELLER' ? 'badge-bestseller' : 
+                                           badge === 'NEW' ? 'badge-new' : 'badge-featured'}">
+                    ${badge}
+                </div>
+            `).join('')}
+        </div>` : ''}
                 
                 <div class="product-image-container">
                     <img src="${product.imageUrl || 'gallery/placeholder.jpg'}" 
