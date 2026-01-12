@@ -26,45 +26,75 @@ const AppManager = (function() {
     }
     
 // In main.js initializeModules() function:
+// Initialize all modules in correct order
 function initializeModules() {
-    console.log('[Main] Initializing modules...');
+    // Check module dependencies
+    const modules = {
+        ProductsManager: typeof ProductsManager !== 'undefined',
+        ProductsDisplay: typeof ProductsDisplay !== 'undefined',
+        BeautyHubCart: typeof BeautyHubCart !== 'undefined',
+        OrdersManager: typeof OrdersManager !== 'undefined',
+        CustomerOrderManager: typeof CustomerOrderManager !== 'undefined',
+        AdminManager: typeof AdminManager !== 'undefined',
+        CustomerSearchManager: typeof CustomerSearchManager !== 'undefined',
+        InventoryManager: typeof InventoryManager !== 'undefined'
+    };
     
-    // 1. CORE MODULES - Always needed
-    if (typeof ProductsManager !== 'undefined') {
+    // Log missing modules
+    Object.entries(modules).forEach(([name, loaded]) => {
+        if (!loaded) console.error(`${name} not loaded`);
+    });
+    
+    // Initialize in dependency order
+    let productsManager, inventoryManager;
+    
+    // 1. Products data (core data) - MUST BE FIRST
+    if (modules.ProductsManager) {
         console.log('[Main] Initializing ProductsManager...');
-        ProductsManager.init();
+        productsManager = ProductsManager.init();
         console.log('[Main] ProductsManager initialized');
     }
     
-    if (typeof ProductsDisplay !== 'undefined') {
+    // 2. Products display (UI) - AFTER ProductsManager
+    if (modules.ProductsDisplay) {
         console.log('[Main] Initializing ProductsDisplay...');
-        ProductsDisplay.init();
+        ProductsDisplay.init(); // ADDED: Render products to page
     }
     
-    // 2. CART MODULES
-    if (typeof BeautyHubCart !== 'undefined' && document.getElementById('cart-count')) {
-        console.log('[Main] Initializing Cart...');
+    // 3. Inventory (needs products data for stock checks)
+    if (modules.InventoryManager && modules.ProductsManager) {
+        inventoryManager = InventoryManager.init(ProductsManager, null);
+    }
+    
+    // 4. Cart (needs products display + inventory for stock checks)
+    if (modules.BeautyHubCart) {
         BeautyHubCart.init();
     }
     
-    // 3. CUSTOMER ORDER/CHECKOUT MODULE - CRITICAL FIX
-    if (typeof CustomerOrderManager !== 'undefined') {
-        console.log('[Main] Initializing CustomerOrder (checkout modal)...');
+    // 5. Orders (needs cart)
+    if (modules.OrdersManager) {
+        OrdersManager.init();
+    }
+    
+    // 6. Checkout (needs orders)
+    if (modules.CustomerOrderManager) {
         CustomerOrderManager.init();
     }
     
-    // 4. OTHER MODULES
-    if (typeof InventoryManager !== 'undefined') {
-        console.log('[Main] Initializing Inventory...');
-        InventoryManager.init(ProductsManager, null);
+    // 7. Search (needs checkout/customer data)
+    if (modules.CustomerSearchManager) {
+        CustomerSearchManager.init();
     }
     
-    if (typeof AdminManager !== 'undefined' && document.getElementById('admin-btn')) {
-        console.log('[Main] Initializing Admin...');
+    // 8. Admin (needs everything)
+    if (modules.AdminManager) {
         AdminManager.init();
     }
     
-    console.log('[Main] Module initialization complete');
+    // 9. Finalize Inventory with Orders dependency
+    if (inventoryManager && modules.OrdersManager) {
+        // Already initialized above, just update Orders reference if needed
+    }
 }
     
     // ===== NAVIGATION HANDLERS =====
