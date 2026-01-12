@@ -12,6 +12,9 @@ const BeautyHubCart = (function() {
         updateCartUI();
         setupEventListeners();
         setupCheckoutButton();
+            // Debug: Check if checkout system is available
+    console.log('[Cart] CustomerOrderManager available:', typeof CustomerOrderManager !== 'undefined');
+    console.log('[Cart] Checkout button exists:', !!document.getElementById('checkout-btn'));
     }
     
     // ===== CART STORAGE FUNCTIONS =====
@@ -560,21 +563,34 @@ function updateCartUI() {
     }
     
     // ===== EVENT HANDLERS =====
-    function setupCheckoutButton() {
+function setupCheckoutButton() {
+    // Wait a bit to ensure DOM is ready, then set up the button
+    setTimeout(() => {
         const checkoutBtn = document.getElementById('checkout-btn');
         if (checkoutBtn) {
-            checkoutBtn.addEventListener('click', function(e) {
+            console.log('[Cart] Setting up checkout button...');
+            
+            // Remove existing listener first
+            const newCheckoutBtn = checkoutBtn.cloneNode(true);
+            checkoutBtn.parentNode.replaceChild(newCheckoutBtn, checkoutBtn);
+            
+            // Add event listener to the new button
+            newCheckoutBtn.addEventListener('click', function(e) {
                 e.preventDefault();
+                console.log('[Cart] Checkout button clicked');
                 
-                if (typeof CustomerOrderManager !== 'undefined') {
+                if (typeof CustomerOrderManager !== 'undefined' && CustomerOrderManager.openCheckout) {
                     CustomerOrderManager.openCheckout();
                 } else {
-                    console.error('CustomerOrderManager not loaded');
+                    console.error('[Cart] CustomerOrderManager not loaded');
                     alert('Checkout system is not available. Please refresh the page.');
                 }
             });
+        } else {
+            console.warn('[Cart] Checkout button not found in DOM');
         }
-    }
+    }, 100); // Small delay to ensure DOM is ready
+}
     
 function setupEventListeners() {
     // Remove existing listeners first to prevent duplicates
