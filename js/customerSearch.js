@@ -1,4 +1,4 @@
-// customerSearch.js - Customer Search & Auto-fill Manager
+// customerSearch.js - Customer Search & Auto-fill Manager.
 const CustomerSearchManager = (function() {
     // Configuration
     const CONFIG = {
