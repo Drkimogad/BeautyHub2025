@@ -35,9 +35,9 @@ function init(containerSelector = '#checkout-form') {
     };
 }
     
-    // ============================================
+// ============================================
     // SEARCH UI COMPONENT
-    // ============================================
+// ============================================
     function createSearchUI() {
         // Remove existing search UI if present
         const existingSearch = document.getElementById('customer-search-container');
@@ -169,7 +169,7 @@ function init(containerSelector = '#checkout-form') {
             </div>
         `;
         
-        // Insert into checkout form (if exists)
+// Insert into checkout form (if exists)
         const checkoutForm = document.querySelector('#checkout-form');
         if (checkoutForm) {
             checkoutForm.parentNode.insertBefore(searchContainer, checkoutForm);
@@ -180,9 +180,9 @@ function init(containerSelector = '#checkout-form') {
         searchForm = document.getElementById('customer-search-form');
     }
     
-    // ============================================
+// ============================================
     // SEARCH LOGIC - FIXED
-    // ============================================
+// ============================================
     function searchCustomer(surname, phone) {
         console.log('Searching orders for:', { surname, phone });
         
@@ -213,7 +213,7 @@ function init(containerSelector = '#checkout-form') {
         }, CONFIG.SEARCH_TIMEOUT);
     }
     
-    // Search orders by surname and phone
+// Search orders by surname and phone
     function searchOrders(surname, phone) {
         try {
             // Get all orders from localStorage
@@ -260,9 +260,9 @@ function init(containerSelector = '#checkout-form') {
         }
     }
     
-    // ============================================
+// ============================================
     // FORM AUTO-FILL - FIXED (uses order data directly)
-    // ============================================
+// ============================================
 function autoFillForm(order) {
     console.log('Auto-filling from order:', order.id);
     
@@ -348,9 +348,9 @@ function showMessage(message, type = 'info') {
         searchResult.parentNode.insertBefore(messageDiv, searchResult.nextSibling);
     }
 }
-    // ============================================
+// ============================================
     // UI FEEDBACK FUNCTIONS - UPDATED
-    // ============================================
+// ============================================
     function showSearchResult(searchResult) {
         const resultDiv = document.getElementById('search-result');
         const contentDiv = document.getElementById('result-content');
