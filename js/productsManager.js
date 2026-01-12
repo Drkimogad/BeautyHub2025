@@ -106,11 +106,15 @@ const ProductsManager = (function() {
             });
             
             console.log(`[ProductsManager] Firestore loaded: ${firestoreProducts.length} products`);
-            // ADD THIS CRITICAL LINE:
-            products = firestoreProducts; // <-- THIS IS MISSING
-            console.log('[ProductsManager] Products array updated from Firestore');
+            // Ensure it's always an array before assigning
+              if (Array.isArray(firestoreProducts)) {
+              products = firestoreProducts;
+             console.log('[ProductsManager] Products array updated from Firestore');
+                  } else {
+                   products = [];
+                     console.warn('[ProductsManager] Firestore returned non-array, resetting products');
+               }
             return firestoreProducts;
-            
         } catch (error) {
             console.error('[ProductsManager] Firestore load error:', error);
             return null;
@@ -200,63 +204,85 @@ async function permanentlyDeleteFromFirestore(productId) {
     // ============================================
     // CORE PRODUCT FUNCTIONS (UPDATED)
     // ============================================
+async function loadProducts() {
+    console.log('[ProductsManager] Starting product loading process');
     
-    // Load products with Firestore priority
-    async function loadProducts() {
-        console.log('[ProductsManager] Starting product loading process');
+    // 1. Try cache FIRST (with 1-hour expiry)
+    console.log('[ProductsManager] Checking cache first...');
+    const cached = loadProductsFromCache();
+    
+    if (cached && cached.products && cached.products.length > 0) {
+        products = cached.products;
+        console.log('[ProductsManager] Loaded from cache, count:', products.length);
         
-        // 1. Try Firestore first (if enabled)
-        if (CONFIG.USE_FIRESTORE) {
-            console.log('[ProductsManager] Attempting to load from Firestore (primary source)');
-            const firestoreProducts = await loadProductsFromFirestore();
-            if (firestoreProducts && firestoreProducts.length > 0) {
-                products = firestoreProducts; // <-- THIS MUST EXIST
-                console.log('[ProductsManager] Products loaded from Firestore, count:', products.length);
-                saveProductsToCache();
-                saveProductsToLocalStorage(); // Keep local backup
-                console.log('[ProductsManager] Primary: Loaded from Firestore');
-                console.log('[ProductsManager] Dispatching productsManagerReady event');
-                window.dispatchEvent(new CustomEvent('productsManagerReady'));
-                return;
-            } else {
-                console.log('[ProductsManager] Firestore load returned no products or failed');
-            }
-        } else {
-            console.log('[ProductsManager] Firestore is disabled in configuration');
+        // ALWAYS dispatch immediately with cached data
+        console.log('[ProductsManager] Dispatching productsManagerReady event (cache)');
+        window.dispatchEvent(new CustomEvent('productsManagerReady'));
+        
+        // Optional: Check if cache is getting old (> 30 min) and update in background
+        const cacheAge = Date.now() - cached.timestamp;
+        const REFRESH_THRESHOLD = 30 * 60 * 1000; // 30 minutes
+        
+        if (CONFIG.USE_FIRESTORE && cacheAge > REFRESH_THRESHOLD) {
+            console.log('[ProductsManager] Cache is ' + Math.round(cacheAge/1000/60) + 
+                       ' minutes old, refreshing from Firestore in background...');
+            updateFromFirestoreInBackground();
         }
-        
-        // 2. Try cache (if Firestore failed or disabled)
-        console.log('[ProductsManager] Falling back to cache...');
-        const cached = loadProductsFromCache();
-        if (cached && cached.products && cached.products.length > 0) {
-            products = cached.products;
-            console.log('[ProductsManager] Fallback: Loaded from cache, count:', products.length);
-            return;
-        }
-        
-        // 3. Fallback to localStorage
-        console.log('[ProductsManager] Falling back to localStorage...');
-        const saved = localStorage.getItem(CONFIG.STORAGE_KEY);
-        if (saved) {
-            try {
-                products = JSON.parse(saved) || [];
-                console.log('[ProductsManager] Fallback: Loaded from localStorage, count:', products.length);
-            } catch (e) {
-                products = [];
-                console.error('[ProductsManager] Error loading products from localStorage:', e);
-            }
-        } else {
-            console.log('[ProductsManager] No data found in localStorage');
-        }
-        
-        // 4. Initialize sample products if empty
-        if (products.length === 0) {
-            console.log('[ProductsManager] Initializing sample products');
-            initializeSampleProducts();
-        }
-        
-        console.log('[ProductsManager] Final products count:', products.length);
+        return;
     }
+    
+    // 2. If cache empty, try localStorage
+    console.log('[ProductsManager] Cache empty, checking localStorage...');
+    const saved = localStorage.getItem(CONFIG.STORAGE_KEY);
+    if (saved) {
+        try {
+            products = JSON.parse(saved) || [];
+            console.log('[ProductsManager] Loaded from localStorage, count:', products.length);
+            console.log('[ProductsManager] Dispatching productsManagerReady event (localStorage)');
+            window.dispatchEvent(new CustomEvent('productsManagerReady'));
+            
+            // Update from Firestore in background
+            if (CONFIG.USE_FIRESTORE) {
+                updateFromFirestoreInBackground();
+            }
+            return;
+        } catch (e) {
+            products = [];
+            console.error('[ProductsManager] Error loading from localStorage:', e);
+        }
+    }
+    
+    // 3. If no cache/localStorage, ONLY THEN try Firestore
+    if (CONFIG.USE_FIRESTORE) {
+        console.log('[ProductsManager] No cache found, loading from Firestore...');
+        const firestoreProducts = await loadProductsFromFirestore();
+        if (firestoreProducts !== null) {
+            products = firestoreProducts;
+            console.log('[ProductsManager] Loaded from Firestore, count:', products.length);
+            saveProductsToCache();
+            saveProductsToLocalStorage();
+        }
+    }
+    
+    // Always dispatch event
+    console.log('[ProductsManager] Dispatching productsManagerReady event (final)');
+    window.dispatchEvent(new CustomEvent('productsManagerReady'));
+}
+//HELPER  Background Firestore update function
+async function updateFromFirestoreInBackground() {
+    try {
+        const firestoreProducts = await loadProductsFromFirestore();
+        if (firestoreProducts && firestoreProducts.length > 0) {
+            products = firestoreProducts;
+            saveProductsToCache();
+            saveProductsToLocalStorage();
+            console.log('[ProductsManager] Background Firestore update complete');
+            window.dispatchEvent(new CustomEvent('productsUpdated'));
+        }
+    } catch (error) {
+        console.log('[ProductsManager] Background Firestore update failed:', error);
+    }
+}
     
     // Save products to localStorage (backup)
     function saveProductsToLocalStorage() {
@@ -327,156 +353,7 @@ async function permanentlyDeleteFromFirestore(productId) {
         localStorage.removeItem(CONFIG.CACHE_KEY);
         console.log('[ProductsManager] Cache invalidated');
     }
-    
-    // Initialize sample products (keep existing, but add new fields)
-    function initializeSampleProducts() {
-        console.log('[ProductsManager] Creating sample products');
-        
-        const sampleProducts = [
-            {
-                ...PRODUCT_SCHEMA,
-                id: generateProductId(),
-                name: 'Signature Perfumes',
-                description: 'Elegant scents that linger like a memory.',
-                category: 'perfumes',
-                originalPrice: 350.00,  // Added original price
-                discountPercent: 14,    // Added discount percent (~14% off)
-                price: 300.00,
-                isOnSale: true,          // Added sale flag
-                saleEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
-                stock: 15,
-                imageUrl: 'gallery/perfumes.jpg',
-                gallery: [],
-                tags: ['new', 'featured', 'bestseller'], // Added bestseller
-                specifications: {
-                    'Size': '50ml',
-                    'Fragrance Type': 'Eau de Parfum',
-                    'Longevity': '8-10 hours'
-                },
-                isActive: true,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                salesCount: 25           // Added sales count
-            },
-            {
-                ...PRODUCT_SCHEMA,
-                id: generateProductId(),
-                name: 'Glam Lashes',
-                description: 'Dramatic or natural—find your perfect flutter.',
-                category: 'lashes',
-                originalPrice: 59.99,    // Added original price
-                discountPercent: 17,     // Added discount percent (~17% off)
-                price: 49.99,
-                isOnSale: true,          // Added sale flag
-                saleEndDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
-                stock: 25,
-                imageUrl: 'gallery/lashes.jpg',
-                gallery: [],
-                tags: ['bestseller'],
-                specifications: {
-                    'Style': 'Dramatic',
-                    'Material': 'Mink',
-                    'Reusable': 'Yes (up to 25 uses)'
-                },
-                isActive: true,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                salesCount: 42           // Added sales count
-            },
-            {
-                ...PRODUCT_SCHEMA,
-                id: generateProductId(),
-                name: 'Radiant Skincare',
-                description: 'Glow from within with our nourishing formulas.',
-                category: 'skincare',
-                originalPrice: 99.99,    // No discount - same as price
-                discountPercent: 0,      // No discount
-                price: 99.99,
-                isOnSale: false,         // Not on sale
-                saleEndDate: "",         // Empty string
-                stock: 8,
-                imageUrl: 'gallery/skincare.jpg',
-                gallery: [],
-                tags: ['bestseller', 'featured'],
-                specifications: {
-                    'Skin Type': 'All skin types',
-                    'Volume': '30ml',
-                    'Key Ingredients': 'Vitamin C, Hyaluronic Acid'
-                },
-                isActive: true,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                salesCount: 18           // Added sales count
-            },
-            {
-                ...PRODUCT_SCHEMA,
-                id: generateProductId(),
-                name: 'Dubai Special Perfume',
-                description: 'Our best seller perfume with exotic Middle Eastern scents.',
-                category: 'perfumes',
-                originalPrice: 500.00,
-                discountPercent: 20,  // 20% discount
-                price: 400.00,  // Auto-calculated: 500 - (500 * 0.20) = 400
-                isOnSale: true,
-                saleEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-                stock: 10,
-                imageUrl: 'gallery/perfumes.jpg', // You need to add this image
-                gallery: [],
-                tags: ['bestseller', 'featured', 'sale'],
-                specifications: {
-                    'Size': '100ml',
-                    'Fragrance Type': 'Eau de Parfum',
-                    'Longevity': '12+ hours',
-                    'Origin': 'Dubai, UAE'
-                },
-                isActive: true,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                salesCount: 158
-            },
-            {
-                ...PRODUCT_SCHEMA,
-                id: generateProductId(),
-                name: 'Luxury Wigs',
-                description: 'Silky, voluminous hair for every mood.',
-                category: 'wigs',
-                originalPrice: 699.99,   // Added original price
-                discountPercent: 14,     // Added discount percent (~14% off)
-                price: 599.99,
-                isOnSale: true,          // Added sale flag
-                saleEndDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days from now
-                stock: 3,
-                imageUrl: 'gallery/wigs.jpg',
-                gallery: [],
-                tags: ['new'],
-                specifications: {
-                    'Length': '24 inches',
-                    'Material': 'Human Hair',
-                    'Cap Size': 'Average'
-                },
-                isActive: true,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                salesCount: 7            // Added sales count
-            }
-        ];
-        
-        console.log('[ProductsManager] Sample products created:', sampleProducts.length);
-        
-        products = sampleProducts;
-        saveProducts();
-        
-        // Also save to Firestore if enabled
-        if (CONFIG.USE_FIRESTORE) {
-            console.log('[ProductsManager] Saving sample products to Firestore');
-            sampleProducts.forEach(product => {
-                saveProductToFirestore(product);
-            });
-        }
-        
-        console.log('[ProductsManager] Sample products initialization complete');
-    }
-    
+      
     // ============================================
     // CRUD OPERATIONS (UPDATED FOR FIRESTORE)
     // ============================================
