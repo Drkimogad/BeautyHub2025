@@ -253,38 +253,90 @@ const CustomerSearchManager = (function() {
     // ============================================
     // FORM AUTO-FILL - FIXED (uses order data directly)
     // ============================================
-    function autoFillForm(order) {
-        console.log('Auto-filling from order:', order.id);
-        
-        // Map order data to form fields
-        const fieldMapping = {
-            'customer-firstname': order.firstName || '',
-            'customer-surname': order.surname || '',
-            'customer-phone': order.customerPhone || '',
-            'customer-whatsapp': order.customerWhatsApp || '',
-            'customer-email': order.customerEmail || '',
-            'shipping-address': order.shippingAddress || ''
-        };
-        
-        // Fill each form field
-        Object.entries(fieldMapping).forEach(([fieldId, value]) => {
-            const field = document.getElementById(fieldId);
-            if (field && value) {
-                field.value = value;
-                
-                // Trigger change event for any validation
-                field.dispatchEvent(new Event('input', { bubbles: true }));
-                field.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-        });
-        
-        // Focus on special instructions field for convenience
-        const notesField = document.getElementById('order-notes');
-        if (notesField) {
-            setTimeout(() => notesField.focus(), 100);
+function autoFillForm(order) {
+    console.log('Auto-filling from order:', order.id);
+    
+    // Map order data to form fields
+    const fieldMapping = {
+        'customer-firstname': order.firstName || '',
+        'customer-surname': order.surname || '',
+        'customer-phone': order.customerPhone || '',
+        'customer-whatsapp': order.customerWhatsApp || '',
+        'customer-email': customerEmail || '',
+        'shipping-address': order.shippingAddress || ''
+    };
+    
+    // Fill each form field
+    Object.entries(fieldMapping).forEach(([fieldId, value]) => {
+        const field = document.getElementById(fieldId);
+        if (field && value) {
+            field.value = value;
+            
+            // Trigger change event for any validation
+            field.dispatchEvent(new Event('input', { bubbles: true }));
+            field.dispatchEvent(new Event('change', { bubbles: true }));
         }
+    });
+    
+    // Store the original order ID for updating later
+    const form = document.getElementById('checkout-form');
+    if (form) {
+        form.dataset.existingCustomerId = order.id;
+        form.dataset.existingCustomer = 'true';
     }
     
+    // Show message that fields can be edited
+    showMessage('Customer details loaded. You can edit any field if needed.', 'info');
+    
+    // Focus on special instructions field for convenience
+    const notesField = document.getElementById('order-notes');
+    if (notesField) {
+        setTimeout(() => notesField.focus(), 100);
+    }
+}
+//==========
+// showMessage() helper function
+//========
+function showMessage(message, type = 'info') {
+    // Remove existing message
+    const existingMsg = document.getElementById('customer-search-message');
+    if (existingMsg) existingMsg.remove();
+    
+    // Create message element
+    const messageDiv = document.createElement('div');
+    messageDiv.id = 'customer-search-message';
+    messageDiv.className = `customer-search-message ${type}`;
+    messageDiv.style.cssText = `
+        margin: 0.75rem 0;
+        padding: 0.75rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    `;
+    
+    // Set colors based on type
+    if (type === 'success') {
+        messageDiv.style.background = '#e8f5e9';
+        messageDiv.style.color = '#2e7d32';
+        messageDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+    } else if (type === 'error') {
+        messageDiv.style.background = '#ffebee';
+        messageDiv.style.color = '#d32f2f';
+        messageDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+    } else {
+        messageDiv.style.background = '#e3f2fd';
+        messageDiv.style.color = '#1565c0';
+        messageDiv.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
+    }
+    
+    // Insert after search result
+    const searchResult = document.getElementById('search-result');
+    if (searchResult && searchResult.parentNode) {
+        searchResult.parentNode.insertBefore(messageDiv, searchResult.nextSibling);
+    }
+}
     // ============================================
     // UI FEEDBACK FUNCTIONS - UPDATED
     // ============================================
