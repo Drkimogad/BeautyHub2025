@@ -1,52 +1,211 @@
+// ========================================================
 // ordersManager.js - Central Order Management System
+// Core Functionalities:
+// 1. Order lifecycle management (pending → paid → shipped → cancelled)
+// 2. Financial breakdown with subtotal, shipping, discounts, and taxes
+// 3. Integration with inventory system for stock management
+// 4. Customer classification (personal/retailer/wholesaler)
+// 5. Order prioritization and payment method tracking
+// 6. Detailed order views with printing capabilities
+// 7. Comprehensive cancellation system with refund handling
+// ========================================================
+
 const OrdersManager = (function() {
-    // Storage keys
-    const STORAGE_KEYS = {
-        ORDERS: 'beautyhub_orders',
-        ORDER_COUNTER: 'beautyhub_order_id_counter'
+    // ========================================================
+    // CONFIGURATION & CONSTANTS
+    // ========================================================
+    const CONFIG = {
+        STORAGE_KEYS: {
+            ORDERS: 'beautyhub_orders',
+            ORDER_COUNTER: 'beautyhub_order_id_counter'
+        },
+        SHIPPING: {
+            THRESHOLD: 1000,
+            COST: 100
+        },
+        VAT_PERCENTAGE: 15,
+        ORDER_STATUSES: ['pending', 'paid', 'shipped', 'cancelled'],
+        CUSTOMER_TYPES: ['personal', 'retailer', 'wholesaler', 'corporate'],
+        PAYMENT_METHODS: ['manual', 'payfast', 'credit_card', 'eft'],
+        ORDER_PRIORITIES: ['low', 'normal', 'high', 'rush']
     };
-       
-    // Initialize order system
+
+    // ========================================================
+    // STATE MANAGEMENT
+    // ========================================================
     let orders = [];
     let orderIdCounter = 1000;
-    
-    // Initialize from localStorage
+
+    // ========================================================
+    // INITIALIZATION
+    // ========================================================
     function init() {
-        loadOrders();
-        setupEventListeners();
+        console.log('[OrdersManager] Initializing order management system...');
+        
+        try {
+            loadOrders();
+            setupEventListeners();
+            
+            console.log(`[OrdersManager] Loaded ${orders.length} orders from storage`);
+            console.log(`[OrdersManager] Pending orders: ${getPendingCount()}`);
+            
+        } catch (error) {
+            console.error('[OrdersManager] Initialization failed:', error);
+            throw new Error('Order system initialization failed: ' + error.message);
+        }
+        
         return {
             orders,
             getPendingCount: getPendingCount
         };
     }
-    
-    // Load orders from localStorage
+
+    // ========================================================
+    // STORAGE FUNCTIONS
+    // ========================================================
     function loadOrders() {
-        // Load orders
-        const savedOrders = localStorage.getItem(STORAGE_KEYS.ORDERS);
-        if (savedOrders) {
-            try {
-                orders = JSON.parse(savedOrders) || [];
-            } catch (e) {
-                orders = [];
-                console.error('Error loading orders:', e);
-            }
-        }
+        console.log('[OrdersManager] Loading orders from storage...');
         
-        // Load counter
-        const savedCounter = localStorage.getItem(STORAGE_KEYS.ORDER_COUNTER);
-        if (savedCounter) {
-            orderIdCounter = parseInt(savedCounter) || 1000;
+        try {
+            const savedOrders = localStorage.getItem(CONFIG.STORAGE_KEYS.ORDERS);
+            if (savedOrders) {
+                orders = JSON.parse(savedOrders) || [];
+                console.log(`[OrdersManager] Successfully loaded ${orders.length} orders`);
+            } else {
+                orders = [];
+                console.log('[OrdersManager] No saved orders found');
+            }
+            
+            const savedCounter = localStorage.getItem(CONFIG.STORAGE_KEYS.ORDER_COUNTER);
+            if (savedCounter) {
+                orderIdCounter = parseInt(savedCounter) || 1000;
+            }
+            
+        } catch (error) {
+            console.error('[OrdersManager] Failed to load orders:', error);
+            orders = [];
+            orderIdCounter = 1000;
+            saveOrders(); // Reset corrupted storage
         }
     }
-    
-    // Save orders to localStorage
+
     function saveOrders() {
-        localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
-        localStorage.setItem(STORAGE_KEYS.ORDER_COUNTER, orderIdCounter.toString());
+        try {
+            localStorage.setItem(CONFIG.STORAGE_KEYS.ORDERS, JSON.stringify(orders));
+            localStorage.setItem(CONFIG.STORAGE_KEYS.ORDER_COUNTER, orderIdCounter.toString());
+            console.log('[OrdersManager] Orders saved to storage');
+        } catch (error) {
+            console.error('[OrdersManager] Failed to save orders:', error);
+        }
     }
-    
-    // Generate order ID
+
+    // ========================================================
+    // ORDER CREATION
+    // ========================================================
+    function createOrder(customerData) {
+        console.log('[OrdersManager] Creating new order...', customerData);
+        
+        try {
+            // Validate input
+            if (!customerData || !customerData.cartItems || customerData.cartItems.length === 0) {
+                console.error('[OrdersManager] Cannot create order: No cart items');
+                throw new Error('No cart items provided');
+            }
+
+            // Generate order ID
+            const orderId = generateOrderId();
+            console.log(`[OrdersManager] Generated order ID: ${orderId}`);
+            
+            // Calculate financials
+            const subtotal = customerData.totalAmount || calculateSubtotal(customerData.cartItems);
+            const shipping = calculateShipping(subtotal);
+            const total = subtotal + shipping;
+            const isFreeShipping = shipping === 0;
+            
+            // Build order object
+            const newOrder = {
+                id: orderId,
+                // Customer Information
+                firstName: customerData.firstName?.trim() || '',
+                surname: customerData.surname?.trim() || '',
+                customerPhone: customerData.customerPhone?.trim() || '',
+                customerWhatsApp: customerData.customerWhatsApp?.trim() || '',
+                customerEmail: customerData.customerEmail?.trim() || '',
+                shippingAddress: customerData.shippingAddress?.trim() || '',
+                
+                // Customer Classification
+                customerType: validateCustomerType(customerData.customerType),
+                preferredPaymentMethod: validatePaymentMethod(customerData.preferredPaymentMethod),
+                priority: validatePriority(customerData.priority),
+                
+                // Order Items
+                items: customerData.cartItems.map(item => ({
+                    productId: item.productId || '',
+                    productName: item.productName || '',
+                    price: parseFloat(item.price) || 0,
+                    quantity: parseInt(item.quantity) || 1,
+                    imageUrl: item.imageUrl || 'gallery/placeholder.jpg',
+                    isDiscounted: item.isDiscounted || false,
+                    finalPrice: item.finalPrice || item.price
+                })),
+                
+                // Financial Information
+                subtotal: subtotal,
+                shippingCost: shipping,
+                shippingThreshold: CONFIG.SHIPPING.THRESHOLD,
+                isFreeShipping: isFreeShipping,
+                discount: parseFloat(customerData.discount) || 0,
+                tax: calculateTax(subtotal),
+                totalAmount: total,
+                
+                // Order Status
+                status: 'pending',
+                paymentMethod: customerData.paymentMethod || 'manual',
+                shippingDate: '',
+                
+                // Timestamps
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                
+                // Notes
+                notes: customerData.orderNotes?.trim() || '',
+                adminNotes: customerData.adminNotes?.trim() || '',
+                
+                // Cancellation Info
+                cancellationReason: '',
+                refundAmount: 0,
+                cancelledAt: '',
+                cancelledBy: '',
+                
+                // Policies
+                returnPolicy: "No returns on damaged products. 7-day return for unused items with original packaging.",
+                
+                // Analytics
+                hasDiscount: (customerData.discount || 0) > 0,
+                usedFreeShipping: isFreeShipping
+            };
+
+            // Add to orders array
+            orders.push(newOrder);
+            saveOrders();
+            
+            // Update admin badge
+            updateAdminBadge();
+            
+            console.log(`[OrdersManager] Order created successfully: ${orderId}`);
+            console.log(`[OrdersManager] Order summary: Subtotal R${subtotal.toFixed(2)}, Shipping R${shipping.toFixed(2)}, Total R${total.toFixed(2)}`);
+            
+            return newOrder;
+            
+        } catch (error) {
+            console.error('[OrdersManager] Order creation failed:', error);
+            return null;
+        }
+    }
+
+    // ========================================================
+    // ORDER ID GENERATION
+    // ========================================================
     function generateOrderId() {
         const date = new Date();
         const year = date.getFullYear().toString().slice(-2);
@@ -56,1902 +215,744 @@ const OrdersManager = (function() {
         
         return `ORD${year}${month}${day}${counter}`;
     }
-    
-    // Create new order
-    function createOrder(customerData) {
-        console.log('DEBUG Order Creation:', {
-        firstName: customerData.firstName,
-        surname: customerData.surname,
-        fullData: customerData
-    });
-        
-        if (!customerData || !customerData.cartItems || customerData.cartItems.length === 0) {
-            console.error('Cannot create order: No cart items');
-            return null;
-        }
-        
-        const orderId = generateOrderId();
-        const now = new Date().toISOString();
-        const shippingThreshold = 1000;
-    const shippingCost = customerData.totalAmount >= shippingThreshold ? 0 : 50;
-    const isFreeShipping = customerData.totalAmount >= shippingThreshold;
-        
-        const newOrder = {
-    id: orderId,
-    firstName: customerData.firstName.trim(),
-    surname: customerData.surname.trim(),
-    customerPhone: customerData.customerPhone.trim(),
-            customerWhatsApp: customerData.customerWhatsApp?.trim() || '',
-            customerEmail: customerData.customerEmail?.trim() || '',
-            shippingAddress: customerData.shippingAddress.trim(),
-            cancellationReason: '',      // When cancelled
-           refundAmount: 0,            // Refund amount if any
-           cancelledAt: '',            // Cancellation timestamp
-           cancelledBy: '',            // Who cancelled (admin/user)
 
-            // ADD THESE 2 FIELDS:
-            preferredPaymentMethod: 'manual', // or derive from customer history
-            customerType: 'personal', // 'personal', 'retailer', 'wholesaler'
-            priority: 'normal',              // 'low', 'normal', 'high', 'rush'
-            items: customerData.cartItems.map(item => ({
-                productId: item.productId,
-                productName: item.productName,
-                price: item.price,
-                quantity: item.quantity,
-                imageUrl: item.imageUrl
-            })),
-            totalAmount: customerData.totalAmount,
-            status: 'pending',
-            paymentMethod: 'manual',
-            shippingDate: '',
-            createdAt: now,
-            updatedAt: now,
-            notes: customerData.orderNotes?.trim() || '',
-            adminNotes: '',
-            // FINANCIAL FIELDS - ADD THESE
-        subtotal: customerData.totalAmount,
-        shippingCost: shippingCost,
-        shippingThreshold: shippingThreshold,
-        isFreeShipping: isFreeShipping,
-        discount: 0.00,
-        tax: 0.00,
-        totalAmount: customerData.totalAmount + shippingCost,
-        
-        // POLICY FIELD
-        returnPolicy: "No returns on damaged products. 7-day return for unused items with original packaging.",
-         // ANALYTICS FIELDS
-        hasDiscount: false,
-        usedFreeShipping: isFreeShipping
-        };
-        
-        // Add to orders array
-        orders.push(newOrder);
-        saveOrders();
-        
-        // Update admin badge if exists
-        updateAdminBadge();
-        
-        console.log(`Order created: ${orderId}`);
-        return newOrder;
+    // ========================================================
+    // FINANCIAL CALCULATIONS
+    // ========================================================
+    function calculateSubtotal(items) {
+        try {
+            return items.reduce((total, item) => {
+                const price = item.finalPrice || item.price || 0;
+                const quantity = item.quantity || 1;
+                return total + (price * quantity);
+            }, 0);
+        } catch (error) {
+            console.error('[OrdersManager] Subtotal calculation failed:', error);
+            return 0;
+        }
     }
-    
-    // Get all orders (filter by status if provided)
+
+    function calculateShipping(subtotal) {
+        return subtotal >= CONFIG.SHIPPING.THRESHHOLD ? 0 : CONFIG.SHIPPING.COST;
+    }
+
+    function calculateTax(amount) {
+        return parseFloat((amount * (CONFIG.VAT_PERCENTAGE / 100)).toFixed(2));
+    }
+
+    // ========================================================
+    // VALIDATION FUNCTIONS
+    // ========================================================
+    function validateCustomerType(type) {
+        return CONFIG.CUSTOMER_TYPES.includes(type) ? type : 'personal';
+    }
+
+    function validatePaymentMethod(method) {
+        return CONFIG.PAYMENT_METHODS.includes(method) ? method : 'manual';
+    }
+
+    function validatePriority(priority) {
+        return CONFIG.ORDER_PRIORITIES.includes(priority) ? priority : 'normal';
+    }
+
+    // ========================================================
+    // ORDER QUERY FUNCTIONS
+    // ========================================================
     function getOrders(status = null) {
         if (!status) return [...orders];
         return orders.filter(order => order.status === status);
     }
-    
-    // Get order by ID
+
     function getOrderById(orderId) {
         return orders.find(order => order.id === orderId);
     }
-    
-    // Get pending orders count
+
     function getPendingCount() {
         return orders.filter(order => order.status === 'pending').length;
     }
-    
-    // Update order status
-    function updateOrderStatus(orderId, newStatus, shippingDate = '') {
-        const orderIndex = orders.findIndex(order => order.id === orderId);
-        
-        if (orderIndex === -1) {
-            console.error(`Order ${orderId} not found`);
-            return false;
-        }
-        
-        orders[orderIndex].status = newStatus;
-        orders[orderIndex].updatedAt = new Date().toISOString();
-        
-        if (newStatus === 'shipped' && shippingDate) {
-            orders[orderIndex].shippingDate = shippingDate;
-        }
-        
-        saveOrders();
-        updateAdminBadge();
-        return true;
-    }
-    
-    // Mark order as paid
-    function markAsPaid(orderId) {
-        return updateOrderStatus(orderId, 'paid');
-    }
-    
-// Mark order as shipped (with date input)  UPDATED
-function markAsShipped(orderId, shippingDate = '') {
-    if (!shippingDate) {
-        // Default to today if no date provided
-        shippingDate = new Date().toISOString().split('T')[0];
-    }
-    
-    // Stock deduction - ADDED INTEGRATION
-    const order = getOrderById(orderId);
-    if (order && typeof ProductsManager !== 'undefined') {
-        // Deduct stock for each item in the order
-        let allStockDeducted = true;
-        const failedItems = [];
-        
-        order.items.forEach(item => {
-            const success = ProductsManager.updateStock(item.productId, -item.quantity);
-            if (!success) {
-                allStockDeducted = false;
-                failedItems.push(item.productName);
-            }
-        });
-        
-        // If stock deduction failed, alert and cancel shipment
-        if (!allStockDeducted) {
-            alert(`Cannot ship order ${orderId}. Insufficient stock for: ${failedItems.join(', ')}`);
-            return false;
-        }
-    }
-    
-    return updateOrderStatus(orderId, 'shipped', shippingDate);
-}
 
-//=======================================
-  // Cancel order with reason and refund
-//===========================================
-function cancelOrder(orderId, cancellationData) {
-    const orderIndex = orders.findIndex(order => order.id === orderId);
-    
-    if (orderIndex === -1) {
-        console.error(`Order ${orderId} not found`);
-        return false;
-    }
-    
-    // Update order with cancellation data
-    orders[orderIndex].status = 'cancelled';
-    orders[orderIndex].cancellationReason = cancellationData.reason || '';
-    orders[orderIndex].refundAmount = parseFloat(cancellationData.refundAmount) || 0;
-    orders[orderIndex].cancelledAt = new Date().toISOString();
-    orders[orderIndex].cancelledBy = cancellationData.cancelledBy || 'admin';
-    orders[orderIndex].updatedAt = new Date().toISOString();
-    
-    // If refund > 0, add note
-    if (orders[orderIndex].refundAmount > 0) {
-        orders[orderIndex].adminNotes = (orders[orderIndex].adminNotes || '') + 
-            `\n[Refund issued: R${orders[orderIndex].refundAmount.toFixed(2)}]`;
-    }
-    
-    // Restore stock if order was shipped/pending
-    if (typeof ProductsManager !== 'undefined') {
-        orders[orderIndex].items.forEach(item => {
-            ProductsManager.updateStock(item.productId, item.quantity);
-        });
-    }
-    
-    saveOrders();
-    updateAdminBadge();
-    return true;
-}
-    
-    // Delete order
-    function deleteOrder(orderId) {
-        const initialLength = orders.length;
-        orders = orders.filter(order => order.id !== orderId);
-        
-        if (orders.length < initialLength) {
-            saveOrders();
-            updateAdminBadge();
-            return true;
-        }
-        return false;
-    }
-    
-    // Get last order ID (for confirmation display)
     function getLastOrderId() {
         if (orders.length === 0) return null;
         return orders[orders.length - 1].id;
     }
-    
-    // Update admin badge count
-    function updateAdminBadge() {
-        const badge = document.getElementById('admin-badge');
-        if (badge) {
-            const count = getPendingCount();
-            badge.textContent = count > 0 ? count.toString() : '';
-            badge.style.display = count > 0 ? 'flex' : 'none';
-        }
-    }
-    
-// Render orders in admin panel - UPDATED with financial breakdown
-function renderOrders(statusFilter = 'pending', containerId = 'pending-orders') {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    
-    const filteredOrders = getOrders(statusFilter);
-    
-    if (filteredOrders.length === 0) {
-        container.innerHTML = '<div class="no-orders">No orders found</div>';
-        return;
-    }
-    
-    let html = '';
-    filteredOrders.forEach(order => {
-        const orderDate = new Date(order.createdAt).toLocaleDateString();
-        const orderTime = new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        
-        // Build items list with images
-        let itemsHtml = '';
-        order.items.forEach(item => {
-            const itemPrice = item.finalPrice || item.price;
-            const itemTotal = itemPrice * item.quantity;
-            itemsHtml += `
-            <div class="detailed-item" style="
-                display: flex;
-                align-items: center;
-                padding: 0.75rem 0;
-                border-bottom: 1px solid #f0f0f0;
-            ">
-                <img src="${item.imageUrl || 'gallery/placeholder.jpg'}" 
-                     alt="${item.productName}"
-                     style="
-                        width: 50px;
-                        height: 50px;
-                        object-fit: cover;
-                        border-radius: 6px;
-                        margin-right: 1rem;
-                     ">
-                <div class="item-details" style="flex: 1;">
-                    <div class="item-name" style="
-                        font-weight: 600;
-                        margin-bottom: 0.25rem;
-                    ">${item.productName}
-                    ${item.isDiscounted ? '<span style="color:#e91e63; font-size:0.8em; margin-left:0.5rem;">(Discounted)</span>' : ''}
-                    </div>
-                    <div class="item-meta" style="
-                        font-size: 0.9rem;
-                        color: #666;
-                        display: flex;
-                        gap: 1rem;
-                    ">
-                        <span class="item-quantity">×${item.quantity}</span>
-                        <span class="item-price">R${itemPrice.toFixed(2)} each</span>
-                    </div>
-                </div>
-                <div class="item-total" style="
-                    font-weight: 600;
-                    min-width: 80px;
-                    text-align: right;
-                ">R${itemTotal.toFixed(2)}</div>
-            </div>`;
-        });
-        
-        // Financial breakdown - NEW
-        const financialBreakdown = `
-        <div class="order-financial-breakdown" style="
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
-            border-left: 4px solid #2196f3;
-        ">
-            <h4 style="margin-top: 0; margin-bottom: 0.75rem; color: #333;">Order Summary</h4>
-            
-            <div style="
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 0.5rem;
-                font-size: 0.95rem;
-            ">
-                <span>Subtotal:</span>
-                <span>R${order.subtotal.toFixed(2)}</span>
-            </div>
-            
-            <div style="
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 0.5rem;
-                font-size: 0.95rem;
-            ">
-                <span>Shipping:</span>
-                <span style="color: ${order.shippingCost === 0 ? '#4CAF50' : '#333'}; font-weight: ${order.shippingCost === 0 ? '600' : 'normal'}">
-                    ${order.shippingCost === 0 ? 'FREE' : `R${order.shippingCost.toFixed(2)}`}
-                </span>
-            </div>
-            
-            ${order.discount > 0 ? `
-            <div style="
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 0.5rem;
-                font-size: 0.95rem;
-                color: #e91e63;
-            ">
-                <span>Discount:</span>
-                <span>-R${order.discount.toFixed(2)}</span>
-            </div>
-            ` : ''}
-            
-            ${order.tax > 0 ? `
-            <div style="
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 0.5rem;
-                font-size: 0.95rem;
-            ">
-                <span>Tax:</span>
-                <span>R${order.tax.toFixed(2)}</span>
-            </div>
-            ` : ''}
-            
-            <div style="
-                display: flex;
-                justify-content: space-between;
-                margin-top: 0.75rem;
-                padding-top: 0.75rem;
-                border-top: 2px solid #ddd;
-                font-weight: bold;
-                font-size: 1.1rem;
-                color: #333;
-            ">
-                <span>Total Amount:</span>
-                <span>R${order.totalAmount.toFixed(2)}</span>
-            </div>
-            
-            ${order.isFreeShipping ? `
-            <div style="
-                margin-top: 0.5rem;
-                padding: 0.5rem;
-                background: #e8f5e9;
-                border-radius: 4px;
-                font-size: 0.85rem;
-                color: #2e7d32;
-                text-align: center;
-            ">
-                <i class="fas fa-shipping-fast" style="margin-right: 0.5rem;"></i>
-                Free shipping applied (over R${order.shippingThreshold})
-            </div>
-            ` : ''}
-        </div>
-        `;
-        
-        html += `
-        <div class="order-card-detailed" data-order-id="${order.id}" style="
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border: 1px solid #e0e0e0;
-        ">
-            <div class="order-header-detailed" style="
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                margin-bottom: 1rem;
-                padding-bottom: 1rem;
-                border-bottom: 2px solid #f0f0f0;
-            ">
-                <div class="order-id-date">
-                    <h3 style="margin: 0 0 0.5rem 0; color: #333;">${order.id}</h3>
-                    <div class="order-timestamp" style="
-                        font-size: 0.9rem;
-                        color: #666;
-                    ">${orderDate} ${orderTime}</div>
-                    ${order.customerId ? `
-                    <div style="font-size: 0.85rem; color: #888; margin-top: 0.25rem;">
-                        <i class="fas fa-id-card" style="margin-right: 0.25rem;"></i>
-                        Customer ID: ${order.customerId}
-                    </div>
-                    ` : ''}
-                </div>
-                <div class="order-status-detailed">
-                    <span class="status-badge status-${order.status}" style="
-                        background: ${order.status === 'pending' ? '#ff9800' : 
-                                    order.status === 'paid' ? '#2196f3' : 
-                                    order.status === 'shipped' ? '#4caf50' : '#9e9e9e'};
-                        color: white;
-                        padding: 0.35rem 1rem;
-                        border-radius: 20px;
-                        font-size: 0.85rem;
-                        font-weight: 600;
-                        display: inline-block;
-                    ">${order.status.toUpperCase()}</span>
-                </div>
-            </div>
-            
-            <div class="order-customer-detailed" style="
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 1.5rem;
-                margin-bottom: 1.5rem;
-                padding-bottom: 1.5rem;
-                border-bottom: 1px solid #f0f0f0;
-            ">
-                <div class="customer-info">
-                    <div style="
-                        font-weight: 600;
-                        margin-bottom: 0.5rem;
-                        font-size: 1.1rem;
-                    ">${order.firstName} ${order.surname}</div>
-                    <div style="margin-bottom: 0.25rem; color: #555;">
-                        <i class="fas fa-phone" style="margin-right: 0.5rem; color: #666;"></i>
-                        ${order.customerPhone}
-                    </div>
-                    ${order.customerEmail ? `
-                    <div style="margin-bottom: 0.25rem; color: #555;">
-                        <i class="fas fa-envelope" style="margin-right: 0.5rem; color: #666;"></i>
-                        ${order.customerEmail}
-                    </div>
-                    ` : ''}
-                    ${order.customerType && order.customerType !== 'personal' ? `
-<div style="margin-bottom: 0.25rem; color: #555;">
-    <i class="fas fa-tag" style="margin-right: 0.5rem; color: #666;"></i>
-    Type: ${order.customerType.charAt(0).toUpperCase() + order.customerType.slice(1)}
-</div>
-` : ''}
 
-${order.preferredPaymentMethod ? `
-<div style="margin-bottom: 0.25rem; color: #555;">
-    <i class="fas fa-credit-card" style="margin-right: 0.5rem; color: #666;"></i>
-    Preferred: ${order.preferredPaymentMethod}
-</div>
-` : ''}
-
-${order.priority && order.priority !== 'normal' ? `
-<div style="margin-top: 0.25rem;">
-    <span style="
-        background: ${order.priority === 'rush' ? '#ff5252' : 
-                     order.priority === 'high' ? '#ff9800' : 
-                     order.priority === 'low' ? '#9e9e9e' : '#4CAF50'};
-        color: white;
-        padding: 0.2rem 0.6rem;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    ">
-        ${order.priority.toUpperCase()}
-    </span>
-</div>
-` : ''}
-                </div>
-                
-                <div class="shipping-info">
-                    <div style="
-                        font-weight: 600;
-                        margin-bottom: 0.5rem;
-                        color: #333;
-                    ">
-                        <i class="fas fa-truck" style="margin-right: 0.5rem;"></i>
-                        Shipping Address:
-                    </div>
-                    <div class="address-text" style="
-                        color: #555;
-                        line-height: 1.5;
-                        font-size: 0.95rem;
-                    ">${order.shippingAddress}</div>
-                </div>
-            </div>
-            
-            <div class="order-items-detailed" style="margin-bottom: 1rem;">
-                <h4 style="
-                    margin-top: 0;
-                    margin-bottom: 1rem;
-                    color: #333;
-                    font-size: 1.1rem;
-                ">
-                    <i class="fas fa-shopping-basket" style="margin-right: 0.5rem;"></i>
-                    Order Items:
-                </h4>
-                ${itemsHtml}
-            </div>
-            
-            ${financialBreakdown}
-            
-            ${order.notes ? `
-            <div class="order-notes" style="
-                margin-top: 1rem;
-                padding: 1rem;
-                background: #fff8e1;
-                border-radius: 8px;
-                border-left: 4px solid #ffc107;
-            ">
-                <div style="
-                    font-weight: 600;
-                    margin-bottom: 0.5rem;
-                    color: #333;
-                ">
-                    <i class="fas fa-sticky-note" style="margin-right: 0.5rem;"></i>
-                    Customer Notes:
-                </div>
-                <div class="notes-text" style="
-                    color: #555;
-                    font-size: 0.95rem;
-                    line-height: 1.5;
-                ">${order.notes}</div>
-            </div>
-            ` : ''}
-            
-            ${order.returnPolicy ? `
-            <div style="
-                margin-top: 1rem;
-                padding: 0.75rem;
-                background: #f3e5f5;
-                border-radius: 6px;
-                font-size: 0.85rem;
-                color: #7b1fa2;
-                border-left: 3px solid #9c27b0;
-            ">
-                <i class="fas fa-undo" style="margin-right: 0.5rem;"></i>
-                <strong>Return Policy:</strong> ${order.returnPolicy}
-            </div>
-            ` : ''}
-            
-            <div class="order-actions-detailed" style="
-                display: flex;
-                gap: 0.75rem;
-                margin-top: 1.5rem;
-                padding-top: 1.5rem;
-                border-top: 2px solid #f0f0f0;
-            ">
-                ${order.status === 'pending' ? `
-                <button class="action-btn mark-paid" data-order-id="${order.id}" style="
-                    flex: 1;
-                    padding: 0.75rem 1.5rem;
-                    background: #2196f3;
-                    color: white;
-                    border: none;
-                    border-radius: 6px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: background 0.2s;
-                ">
-                    <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>
-                    Mark as Paid
-                </button>
-                ` : ''}
-                ${order.status === 'pending' || order.status === 'paid' ? `
-<button class="action-btn cancel-order" data-order-id="${order.id}" style="
-    flex: 1;
-    padding: 0.75rem 1.5rem;
-    background: #ff9800;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-">
-    <i class="fas fa-ban" style="margin-right: 0.5rem;"></i>
-    Cancel Order
-</button>
-` : ''}
-                
-                ${order.status !== 'shipped' ? `
-                <button class="action-btn mark-shipped" data-order-id="${order.id}" style="
-                    flex: 1;
-                    padding: 0.75rem 1.5rem;
-                    background: #4CAF50;
-                    color: white;
-                    border: none;
-                    border-radius: 6px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: background 0.2s;
-                ">
-                    <i class="fas fa-shipping-fast" style="margin-right: 0.5rem;"></i>
-                    Mark as Shipped
-                </button>
-                ` : ''}
-                
-                <button class="action-btn delete-order" data-order-id="${order.id}" style="
-                    padding: 0.75rem 1.5rem;
-                    background: #ff5252;
-                    color: white;
-                    border: none;
-                    border-radius: 6px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: background 0.2s;
-                ">
-                    <i class="fas fa-trash" style="margin-right: 0.5rem;"></i>
-                    Delete
-                </button>
-            </div>
-        </div>`;
-    });
-    
-    container.innerHTML = html;
-}
-    
-    
-// Render completed orders - UPDATED with financial breakdown
-function renderCompletedOrders(containerId = 'completed-orders-list') {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    
-    const completedOrders = getOrders('shipped');
-    
-    if (completedOrders.length === 0) {
-        container.innerHTML = '<div class="no-orders">No completed orders</div>';
-        return;
-    }
-    
-    let html = '';
-    completedOrders.forEach(order => {
-        const orderDate = new Date(order.createdAt).toLocaleDateString();
-        const shippingDate = order.shippingDate 
-            ? new Date(order.shippingDate).toLocaleDateString()
-            : 'Not shipped';
+    // ========================================================
+    // ORDER STATUS MANAGEMENT
+    // ========================================================
+    function updateOrderStatus(orderId, newStatus, shippingDate = '') {
+        console.log(`[OrdersManager] Updating order ${orderId} status to ${newStatus}`);
         
-        // Build items list with images
-        let itemsHtml = '';
-        order.items.forEach(item => {
-            const itemPrice = item.finalPrice || item.price;
-            const itemTotal = itemPrice * item.quantity;
-            itemsHtml += `
-            <div class="detailed-item" style="
-                display: flex;
-                align-items: center;
-                padding: 0.75rem 0;
-                border-bottom: 1px solid #f0f0f0;
-            ">
-                <img src="${item.imageUrl || 'gallery/placeholder.jpg'}" 
-                     alt="${item.productName}"
-                     style="
-                        width: 50px;
-                        height: 50px;
-                        object-fit: cover;
-                        border-radius: 6px;
-                        margin-right: 1rem;
-                     ">
-                <div class="item-details" style="flex: 1;">
-                    <div class="item-name" style="
-                        font-weight: 600;
-                        margin-bottom: 0.25rem;
-                    ">${item.productName}
-                    ${item.isDiscounted ? '<span style="color:#e91e63; font-size:0.8em; margin-left:0.5rem;">(Discounted)</span>' : ''}
-                    </div>
-                    <div class="item-meta" style="
-                        font-size: 0.9rem;
-                        color: #666;
-                        display: flex;
-                        gap: 1rem;
-                    ">
-                        <span class="item-quantity">×${item.quantity}</span>
-                        <span class="item-price">R${itemPrice.toFixed(2)} each</span>
-                    </div>
-                </div>
-                <div class="item-total" style="
-                    font-weight: 600;
-                    min-width: 80px;
-                    text-align: right;
-                ">R${itemTotal.toFixed(2)}</div>
-            </div>`;
-        });
-        
-        // Financial breakdown - NEW
-        const financialBreakdown = `
-        <div class="order-financial-breakdown" style="
-            background: #e8f5e9;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
-            border-left: 4px solid #4CAF50;
-        ">
-            <h4 style="margin-top: 0; margin-bottom: 0.75rem; color: #2e7d32;">
-                <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>
-                Order Summary
-            </h4>
+        try {
+            const orderIndex = orders.findIndex(order => order.id === orderId);
             
-            <div style="
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 0.5rem;
-                font-size: 0.95rem;
-            ">
-                <span>Subtotal:</span>
-                <span>R${order.subtotal.toFixed(2)}</span>
-            </div>
-            
-            <div style="
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 0.5rem;
-                font-size: 0.95rem;
-            ">
-                <span>Shipping:</span>
-                <span style="color: ${order.shippingCost === 0 ? '#4CAF50' : '#333'}; font-weight: ${order.shippingCost === 0 ? '600' : 'normal'}">
-                    ${order.shippingCost === 0 ? 'FREE' : `R${order.shippingCost.toFixed(2)}`}
-                </span>
-            </div>
-            
-            ${order.discount > 0 ? `
-            <div style="
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 0.5rem;
-                font-size: 0.95rem;
-                color: #e91e63;
-            ">
-                <span>Discount:</span>
-                <span>-R${order.discount.toFixed(2)}</span>
-            </div>
-            ` : ''}
-            
-            ${order.tax > 0 ? `
-            <div style="
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 0.5rem;
-                font-size: 0.95rem;
-            ">
-                <span>Tax:</span>
-                <span>R${order.tax.toFixed(2)}</span>
-            </div>
-            ` : ''}
-            
-            <div style="
-                display: flex;
-                justify-content: space-between;
-                margin-top: 0.75rem;
-                padding-top: 0.75rem;
-                border-top: 2px solid #c8e6c9;
-                font-weight: bold;
-                font-size: 1.1rem;
-                color: #1b5e20;
-            ">
-                <span>Total Amount:</span>
-                <span>R${order.totalAmount.toFixed(2)}</span>
-            </div>
-            
-            ${order.isFreeShipping ? `
-            <div style="
-                margin-top: 0.5rem;
-                padding: 0.5rem;
-                background: #c8e6c9;
-                border-radius: 4px;
-                font-size: 0.85rem;
-                color: #1b5e20;
-                text-align: center;
-            ">
-                <i class="fas fa-shipping-fast" style="margin-right: 0.5rem;"></i>
-                Free shipping applied (over R${order.shippingThreshold})
-            </div>
-            ` : ''}
-        </div>
-        `;
-        
-        html += `
-        <div class="order-card-detailed" data-order-id="${order.id}" style="
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border: 1px solid #c8e6c9;
-        ">
-            <div class="order-header-detailed" style="
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                margin-bottom: 1rem;
-                padding-bottom: 1rem;
-                border-bottom: 2px solid #e8f5e9;
-            ">
-                <div class="order-id-date">
-                    <h3 style="margin: 0 0 0.5rem 0; color: #2e7d32;">
-                        <i class="fas fa-box" style="margin-right: 0.5rem;"></i>
-                        ${order.id}
-                    </h3>
-                    <div class="order-timestamp" style="
-                        font-size: 0.9rem;
-                        color: #666;
-                        display: flex;
-                        flex-direction: column;
-                        gap: 0.25rem;
-                    ">
-                        <span>
-                            <i class="fas fa-calendar-plus" style="margin-right: 0.5rem;"></i>
-                            Ordered: ${orderDate}
-                        </span>
-                        <span class="shipped-date" style="
-                            color: #4CAF50;
-                            font-weight: 600;
-                        ">
-                            <i class="fas fa-shipping-fast" style="margin-right: 0.5rem;"></i>
-                            Shipped: ${shippingDate}
-                        </span>
-                    </div>
-                    ${order.customerId ? `
-                    <div style="font-size: 0.85rem; color: #888; margin-top: 0.25rem;">
-                        <i class="fas fa-id-card" style="margin-right: 0.25rem;"></i>
-                        Customer ID: ${order.customerId}
-                    </div>
-                    ` : ''}
-                </div>
-                <div class="order-status-detailed">
-                    <span class="status-badge status-shipped" style="
-                        background: #4CAF50;
-                        color: white;
-                        padding: 0.35rem 1rem;
-                        border-radius: 20px;
-                        font-size: 0.85rem;
-                        font-weight: 600;
-                        display: inline-block;
-                    ">
-                        <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>
-                        SHIPPED
-                    </span>
-                </div>
-            </div>
-            
-            <div class="order-customer-detailed" style="
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 1.5rem;
-                margin-bottom: 1.5rem;
-                padding-bottom: 1.5rem;
-                border-bottom: 1px solid #e8f5e9;
-            ">
-                <div class="customer-info">
-                    <div style="
-                        font-weight: 600;
-                        margin-bottom: 0.5rem;
-                        font-size: 1.1rem;
-                        color: #333;
-                    ">
-                        <i class="fas fa-user" style="margin-right: 0.5rem;"></i>
-                        ${order.firstName} ${order.surname}
-                    </div>
-                    <div style="margin-bottom: 0.25rem; color: #555;">
-                        <i class="fas fa-phone" style="margin-right: 0.5rem; color: #666;"></i>
-                        ${order.customerPhone}
-                    </div>
-                    ${order.customerEmail ? `
-                    <div style="margin-bottom: 0.25rem; color: #555;">
-                        <i class="fas fa-envelope" style="margin-right: 0.5rem; color: #666;"></i>
-                        ${order.customerEmail}
-                    </div>
-                    ` : ''}
-                    ${order.customerType && order.customerType !== 'personal' ? `
-<div style="margin-bottom: 0.25rem; color: #555;">
-    <i class="fas fa-tag" style="margin-right: 0.5rem; color: #666;"></i>
-    Type: ${order.customerType.charAt(0).toUpperCase() + order.customerType.slice(1)}
-</div>
-` : ''}
-
-${order.preferredPaymentMethod ? `
-<div style="margin-bottom: 0.25rem; color: #555;">
-    <i class="fas fa-credit-card" style="margin-right: 0.5rem; color: #666;"></i>
-    Preferred: ${order.preferredPaymentMethod}
-</div>
-` : ''}
-
-${order.priority && order.priority !== 'normal' ? `
-<div style="margin-top: 0.25rem;">
-    <span style="
-        background: ${order.priority === 'rush' ? '#ff5252' : 
-                     order.priority === 'high' ? '#ff9800' : 
-                     order.priority === 'low' ? '#9e9e9e' : '#4CAF50'};
-        color: white;
-        padding: 0.2rem 0.6rem;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    ">
-        ${order.priority.toUpperCase()}
-    </span>
-</div>
-` : ''}
-                </div>
-                
-                <div class="shipping-info">
-                    <div style="
-                        font-weight: 600;
-                        margin-bottom: 0.5rem;
-                        color: #333;
-                    ">
-                        <i class="fas fa-truck" style="margin-right: 0.5rem;"></i>
-                        Shipping Address:
-                    </div>
-                    <div class="address-text" style="
-                        color: #555;
-                        line-height: 1.5;
-                        font-size: 0.95rem;
-                    ">${order.shippingAddress}</div>
-                </div>
-            </div>
-            
-            
-            <div class="order-items-detailed" style="margin-bottom: 1rem;">
-                <h4 style="
-                    margin-top: 0;
-                    margin-bottom: 1rem;
-                    color: #333;
-                    font-size: 1.1rem;
-                ">
-                    <i class="fas fa-shopping-basket" style="margin-right: 0.5rem;"></i>
-                    Order Items:
-                </h4>
-                ${itemsHtml}
-            </div>
-            
-            ${financialBreakdown}
-            
-            ${order.notes ? `
-            <div class="order-notes" style="
-                margin-top: 1rem;
-                padding: 1rem;
-                background: #fff8e1;
-                border-radius: 8px;
-                border-left: 4px solid #ffc107;
-            ">
-                <div style="
-                    font-weight: 600;
-                    margin-bottom: 0.5rem;
-                    color: #333;
-                ">
-                    <i class="fas fa-sticky-note" style="margin-right: 0.5rem;"></i>
-                    Customer Notes:
-                </div>
-                <div class="notes-text" style="
-                    color: #555;
-                    font-size: 0.95rem;
-                    line-height: 1.5;
-                ">${order.notes}</div>
-            </div>
-            ` : ''}
-            
-            ${order.returnPolicy ? `
-            <div style="
-                margin-top: 1rem;
-                padding: 0.75rem;
-                background: #f3e5f5;
-                border-radius: 6px;
-                font-size: 0.85rem;
-                color: #7b1fa2;
-                border-left: 3px solid #9c27b0;
-            ">
-                <i class="fas fa-undo" style="margin-right: 0.5rem;"></i>
-                <strong>Return Policy:</strong> ${order.returnPolicy}
-            </div>
-            ` : ''}
-            
-            <div class="order-actions-detailed" style="
-                display: flex;
-                gap: 0.75rem;
-                margin-top: 1.5rem;
-                padding-top: 1.5rem;
-                border-top: 2px solid #e8f5e9;
-            ">
-                <button class="action-btn view-details" data-order-id="${order.id}" style="
-                    flex: 1;
-                    padding: 0.75rem 1.5rem;
-                    background: #2196f3;
-                    color: white;
-                    border: none;
-                    border-radius: 6px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: background 0.2s;
-                ">
-                    <i class="fas fa-eye" style="margin-right: 0.5rem;"></i>
-                    View Details
-                </button>
-                
-                <button class="action-btn delete-order" data-order-id="${order.id}" style="
-                    padding: 0.75rem 1.5rem;
-                    background: #ff5252;
-                    color: white;
-                    border: none;
-                    border-radius: 6px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: background 0.2s;
-                ">
-                    <i class="fas fa-trash" style="margin-right: 0.5rem;"></i>
-                    Delete
-                </button>
-
-            </div>
-        </div>`;
-    });
-    
-    container.innerHTML = html;
-}
-    
-//===================================================================    
-// Show order details modal - UPDATED with financial breakdown
-//==========================================================
-function showOrderDetails(orderId) {
-    const order = getOrderById(orderId);
-    if (!order) return;
-    
-    // Create or update modal
-    let modal = document.getElementById('order-details-modal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'order-details-modal';
-        modal.className = 'order-details-modal';
-        modal.style.cssText = `
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 9999;
-            align-items: center;
-            justify-content: center;
-        `;
-        document.body.appendChild(modal);
-    }
-    
-    const orderDate = new Date(order.createdAt).toLocaleString();
-    const shippingDate = order.shippingDate 
-        ? new Date(order.shippingDate).toLocaleDateString()
-        : 'Not shipped yet';
-    
-    // Build items list
-    let itemsHtml = '';
-    order.items.forEach(item => {
-        const itemTotal = (item.finalPrice || item.price) * item.quantity;
-        itemsHtml += `
-        <div class="order-item" style="
-            display: flex;
-            justify-content: space-between;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #eee;
-        ">
-            <div class="item-name">
-                ${item.productName} × ${item.quantity}
-                ${item.isDiscounted ? '<span style="color:#e91e63; font-size:0.9em; margin-left:0.5rem;">(Discounted)</span>' : ''}
-            </div>
-            <div class="item-price">R${itemTotal.toFixed(2)}</div>
-        </div>`;
-    });
-    
-    // Financial breakdown - NEW
-    const financialBreakdown = `
-    <div style="
-        background: #f8f9fa;
-        padding: 1rem;
-        border-radius: 4px;
-        margin-top: 1rem;
-    ">
-        <h4 style="margin-top: 0; margin-bottom: 1rem;">Order Breakdown</h4>
-        
-        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-            <span>Subtotal:</span>
-            <span>R${order.subtotal.toFixed(2)}</span>
-        </div>
-        
-        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-            <span>Shipping:</span>
-            <span style="color: ${order.shippingCost === 0 ? '#4CAF50' : '#333'}; font-weight: ${order.shippingCost === 0 ? 'bold' : 'normal'}">
-                ${order.shippingCost === 0 ? 'FREE' : `R${order.shippingCost.toFixed(2)}`}
-                ${order.shippingCost === 0 ? ' (over R' + order.shippingThreshold + ')' : ''}
-            </span>
-        </div>
-        
-        ${order.discount > 0 ? `
-        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #e91e63;">
-            <span>Discount:</span>
-            <span>-R${order.discount.toFixed(2)}</span>
-        </div>
-        ` : ''}
-        
-        ${order.tax > 0 ? `
-        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-            <span>Tax:</span>
-            <span>R${order.tax.toFixed(2)}</span>
-        </div>
-        ` : ''}
-        
-        <div style="
-            display: flex;
-            justify-content: space-between;
-            margin-top: 0.5rem;
-            padding-top: 0.5rem;
-            border-top: 2px solid #ddd;
-            font-weight: bold;
-            font-size: 1.1rem;
-        ">
-            <span>Total Amount:</span>
-            <span>R${order.totalAmount.toFixed(2)}</span>
-        </div>
-        
-        ${order.returnPolicy ? `
-        <div style="
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px dashed #ddd;
-            font-size: 0.85rem;
-            color: #666;
-        ">
-            <strong>Return Policy:</strong> ${order.returnPolicy}
-        </div>
-        ` : ''}
-    </div>
-    `;
-    
-    modal.innerHTML = `
-        <div class="order-modal-content" style="
-            background: white;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 2rem;
-            position: relative;
-        ">
-            <button id="close-details-modal" style="
-                position: absolute;
-                top: 1rem;
-                right: 1rem;
-                background: none;
-                border: none;
-                font-size: 1.5rem;
-                cursor: pointer;
-                color: #666;
-            ">&times;</button>
-            
-            <h2 style="margin-top: 0; color: #333;">
-                Order Details: ${order.id}
-                <span class="status-badge" style="
-                    background: ${order.status === 'pending' ? '#ff9800' : 
-                                order.status === 'paid' ? '#2196f3' : 
-                                order.status === 'shipped' ? '#4caf50' : '#9e9e9e'};
-                    color: white;
-                    padding: 0.25rem 0.75rem;
-                    border-radius: 20px;
-                    font-size: 0.8rem;
-                    margin-left: 1rem;
-                ">${order.status.toUpperCase()}</span>
-            </h2>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
-                <div>
-                    <h3 style="margin-top: 0;">Customer Information</h3>
-                    <div style="margin-bottom: 0.5rem;">
-                      <strong>Name:</strong> ${order.firstName} ${order.surname}
-                      ${order.customerId ? `<br><span style="font-size: 0.85rem; color: #666;">ID: ${order.customerId}</span>` : ''}
-                    </div>
-                    <div style="margin-bottom: 0.5rem;">
-                        <strong>Phone:</strong> ${order.customerPhone}
-                    </div>
-                    ${order.customerWhatsApp ? `<div style="margin-bottom: 0.5rem;">
-                        <strong>WhatsApp:</strong> ${order.customerWhatsApp}
-                    </div>` : ''}
-                    ${order.customerEmail ? `<div style="margin-bottom: 0.5rem;">
-                        <strong>Email:</strong> ${order.customerEmail}
-                    </div>` : ''}
-                    ${order.customerType ? `
-<div style="margin-bottom: 0.5rem;">
-    <strong>Customer Type:</strong> ${order.customerType.charAt(0).toUpperCase() + order.customerType.slice(1)}
-</div>
-` : ''}
-
-${order.preferredPaymentMethod ? `
-<div style="margin-bottom: 0.5rem;">
-    <strong>Preferred Payment:</strong> ${order.preferredPaymentMethod}
-</div>
-` : ''}
-
-${order.priority ? `
-<div style="margin-bottom: 0.5rem;">
-    <strong>Priority:</strong> ${order.priority.toUpperCase()}
-</div>
-` : ''}
-                    <div style="margin-bottom: 0.5rem;">
-                        <strong>Order Date:</strong> ${orderDate}
-                    </div>
-                    <div>
-                        <strong>Shipping Date:</strong> ${shippingDate}
-                    </div>
-                </div>
-                
-                <div>
-                    <h3 style="margin-top: 0;">Shipping Address</h3>
-                    <div style="
-                        background: #f8f9fa;
-                        padding: 1rem;
-                        border-radius: 4px;
-                        white-space: pre-wrap;
-                        font-size: 0.95rem;
-                    ">${order.shippingAddress}</div>
-                </div>
-            </div>
-            
-            <div style="margin-bottom: 2rem;">
-                <h3>Order Items</h3>
-                <div style="
-                    background: #f8f9fa;
-                    padding: 1rem;
-                    border-radius: 4px;
-                ">
-                    ${itemsHtml}
-                </div>
-                
-                ${financialBreakdown}
-            </div>
-            
-            ${order.notes ? `<div style="margin-bottom: 2rem;">
-                <h3>Customer Notes</h3>
-                <div style="
-                    background: #f8f9fa;
-                    padding: 1rem;
-                    border-radius: 4px;
-                    white-space: pre-wrap;
-                    font-size: 0.95rem;
-                ">${order.notes}</div>
-            </div>` : ''}
-            
-            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                <button id="print-order-details" class="print-btn" style="
-                    padding: 0.75rem 1.5rem;
-                    background: #2196f3;
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-weight: 600;
-                ">
-                    <i class="fas fa-print" style="margin-right: 0.5rem;"></i>
-                    Print Order
-                </button>
-                
-                <button id="delete-order-details" class="delete-btn" style="
-                    padding: 0.75rem 1.5rem;
-                    background: #ff5252;
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-weight: 600;
-                ">
-                    <i class="fas fa-trash" style="margin-right: 0.5rem;"></i>
-                    Delete Order
-                </button>
-            </div>
-        </div>
-    `;
-    
-    // Show modal
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    
-    // Add event listeners
-    const closeBtn = document.getElementById('close-details-modal');
-    const printBtn = document.getElementById('print-order-details');
-    const deleteBtn = document.getElementById('delete-order-details');
-    
-    if (closeBtn) {
-        closeBtn.onclick = () => {
-            modal.style.display = 'none';
-            document.body.style.overflow = '';
-        };
-    }
-    
-    if (printBtn) {
-        printBtn.onclick = () => printOrderDetails(order);
-    }
-    
-    if (deleteBtn) {
-        deleteBtn.onclick = () => {
-            if (confirm('Are you sure you want to delete this order?')) {
-                deleteOrder(orderId);
-                modal.style.display = 'none';
-                document.body.style.overflow = '';
-                
-                if (document.getElementById('admin-dashboard')?.style.display !== 'none') {
-                    renderOrders();
-                    renderCompletedOrders();
-                }
+            if (orderIndex === -1) {
+                console.error(`[OrdersManager] Order ${orderId} not found`);
+                return false;
             }
-        };
-    }
-}
-
-    
-    
-// Print order details - UPDATED WITH FINANCIAL BREAKDOWN
-function printOrderDetails(order) {
-    const printWindow = window.open('', '_blank');
-    const orderDate = new Date(order.createdAt).toLocaleString();
-    const shippingDate = order.shippingDate 
-        ? new Date(order.shippingDate).toLocaleDateString()
-        : 'Not shipped yet';
-    
-    let itemsHtml = '';
-    order.items.forEach(item => {
-        const itemTotal = (item.finalPrice || item.price) * item.quantity;
-        itemsHtml += `
-        <tr>
-            <td>${item.productName}${item.isDiscounted ? ' (Discounted)' : ''}</td>
-            <td>${item.quantity}</td>
-            <td>R${(item.finalPrice || item.price).toFixed(2)}</td>
-            <td>R${itemTotal.toFixed(2)}</td>
-        </tr>`;
-    });
-    
-    // Financial breakdown for print
-    const financialBreakdown = `
-    <div style="margin-top: 20px;">
-        <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-                <td style="padding: 8px 0;">Subtotal:</td>
-                <td style="text-align: right; padding: 8px 0;">R${order.subtotal.toFixed(2)}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px 0;">Shipping:</td>
-                <td style="text-align: right; padding: 8px 0; color: ${order.shippingCost === 0 ? '#4CAF50' : '#333'}">
-                    ${order.shippingCost === 0 ? 'FREE' : `R${order.shippingCost.toFixed(2)}`}
-                    ${order.shippingCost === 0 ? ' (over R' + order.shippingThreshold + ')' : ''}
-                </td>
-            </tr>
-            ${order.discount > 0 ? `
-            <tr style="color: #e91e63;">
-                <td style="padding: 8px 0;">Discount:</td>
-                <td style="text-align: right; padding: 8px 0;">-R${order.discount.toFixed(2)}</td>
-            </tr>
-            ` : ''}
-            ${order.tax > 0 ? `
-            <tr>
-                <td style="padding: 8px 0;">Tax:</td>
-                <td style="text-align: right; padding: 8px 0;">R${order.tax.toFixed(2)}</td>
-            </tr>
-            ` : ''}
-            <tr style="font-weight: bold; border-top: 2px solid #333;">
-                <td style="padding: 12px 0;">Total Amount:</td>
-                <td style="text-align: right; padding: 12px 0;">R${order.totalAmount.toFixed(2)}</td>
-            </tr>
-        </table>
-    </div>
-    `;
-    
-    printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Order ${order.id} - BeautyHub2025</title>
-            <style>
-    * {
-        box-sizing: border-box;
-    }
-    
-    body { 
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-        margin: 0;
-        padding: 20px;
-        color: #333;
-        background: white;
-    }
-    
-    .container {
-        max-width: 800px;
-        margin: 0 auto;
-    }
-    
-    .header { 
-        text-align: center; 
-        margin-bottom: 30px; 
-        padding-bottom: 20px;
-        border-bottom: 2px solid #e91e63;
-    }
-    
-    .header h1 {
-        color: #e91e63;
-        margin-bottom: 5px;
-    }
-    
-    .header h2 {
-        color: #555;
-        font-weight: normal;
-    }
-    
-    .order-info { 
-        margin-bottom: 30px; 
-        padding: 15px;
-        background: #f9f9f9;
-        border-radius: 8px;
-    }
-    
-    .order-info p {
-        margin: 8px 0;
-    }
-    
-    table { 
-        width: 100%; 
-        border-collapse: collapse; 
-        margin: 20px 0; 
-    }
-    
-    th, td { 
-        border: 1px solid #ddd; 
-        padding: 12px 8px; 
-        text-align: left; 
-    }
-    
-    th { 
-        background-color: #f2f2f2; 
-        font-weight: bold;
-    }
-    
-    .total-row { 
-        font-weight: bold; 
-        background-color: #f9f9f9;
-    }
-    
-    .footer { 
-        margin-top: 40px; 
-        font-size: 14px; 
-        color: #666; 
-        text-align: center;
-        padding-top: 20px;
-        border-top: 1px solid #eee;
-    }
-    
-    .print-buttons {
-        margin-top: 30px;
-        text-align: center;
-    }
-    
-    button {
-        padding: 12px 24px;
-        margin: 0 10px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: bold;
-    }
-    
-    .print-btn {
-        background: #4CAF50;
-        color: white;
-    }
-    
-    .close-btn {
-        background: #ff9800;
-        color: white;
-    }
-    
-    /* Responsive styles for tablets and phones */
-    @media (max-width: 768px) {
-        body {
-            padding: 15px;
-        }
-        
-        .header h1 {
-            font-size: 24px;
-        }
-        
-        .header h2 {
-            font-size: 18px;
-        }
-        
-        th, td {
-            padding: 10px 6px;
-            font-size: 14px;
-        }
-        
-        button {
-            padding: 10px 20px;
-            margin: 5px;
-            display: block;
-            width: 100%;
-        }
-        
-        .print-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        body {
-            padding: 10px;
-        }
-        
-        .container {
-            width: 100%;
-        }
-        
-        table {
-            display: block;
-            overflow-x: auto;
-            white-space: nowrap;
-        }
-        
-        .order-info {
-            padding: 10px;
-            font-size: 14px;
-        }
-        
-        th, td {
-            padding: 8px 4px;
-            font-size: 13px;
-        }
-    }
-    
-    /* Print-specific styles */
-    @media print {
-        button { 
-            display: none !important; 
-        }
-        
-        .print-buttons {
-            display: none !important;
-        }
-        
-        body {
-            padding: 0;
-            margin: 0;
-        }
-        
-        .container {
-            max-width: 100%;
-            margin: 0;
-        }
-    }
-   </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>BeautyHub2025</h1>
-                <h2>Order Invoice: ${order.id}</h2>
-            </div>
             
-            <div class="order-info">
-                <p><strong>Order Date:</strong> ${orderDate}</p>
-                <p><strong>Customer Name:</strong> ${order.firstName} ${order.surname}</p>
-                <p><strong>Customer ID:</strong> ${order.customerId || 'N/A'}</p>
-                <p><strong>Phone:</strong> ${order.customerPhone}</p>
-                ${order.customerType ? `<p><strong>Customer Type:</strong> ${order.customerType.charAt(0).toUpperCase() + order.customerType.slice(1)}</p>` : ''}
-                ${order.preferredPaymentMethod ? `<p><strong>Preferred Payment:</strong> ${order.preferredPaymentMethod}</p>` : ''}
-                ${order.priority ? `<p><strong>Priority:</strong> ${order.priority.toUpperCase()}</p>` : ''}
-                <p><strong>Shipping Address:</strong> ${order.shippingAddress}</p>
-                <p><strong>Shipping Date:</strong> ${shippingDate}</p>
-                <p><strong>Status:</strong> ${order.status.toUpperCase()}</p>
-            </div>
+            if (!CONFIG.ORDER_STATUSES.includes(newStatus)) {
+                console.error(`[OrdersManager] Invalid status: ${newStatus}`);
+                return false;
+            }
             
-            <table>
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Quantity</th>
-                        <th>Unit Price</th>
-                        <th>Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${itemsHtml}
-                </tbody>
-            </table>
+            orders[orderIndex].status = newStatus;
+            orders[orderIndex].updatedAt = new Date().toISOString();
             
-            <!-- FINANCIAL BREAKDOWN - NEW -->
-            ${financialBreakdown}
+            if (newStatus === 'shipped' && shippingDate) {
+                orders[orderIndex].shippingDate = shippingDate;
+            }
             
-            ${order.notes ? `<div style="margin-top: 20px;">
-                <strong>Customer Notes:</strong>
-                <p>${order.notes}</p>
-            </div>` : ''}
+            saveOrders();
+            updateAdminBadge();
             
-            ${order.returnPolicy ? `<div style="margin-top: 20px; font-size: 0.9em; color: #666;">
-                <strong>Return Policy:</strong> ${order.returnPolicy}
-            </div>` : ''}
+            console.log(`[OrdersManager] Order ${orderId} status updated successfully`);
+            return true;
             
-            <div class="footer">
-                <p>Thank you for your business!</p>
-                <p>BeautyHub2025 | Luxury Beauty Products</p>
-            </div>
-            
-            <div class="print-buttons">
-                <button onclick="window.print()" class="print-btn">
-                    Print Invoice
-                </button>
-                <button onclick="window.close()" class="close-btn">
-                    Close Window
-                </button>
-            </div>
-        </body>
-        </html>
-    `);
-    
-    printWindow.document.close();
-}
-    
-    // Show shipping date input
-    function showShippingDateInput(orderId) {
-        const dateInput = prompt('Enter shipping date (YYYY-MM-DD) or leave empty for today:', 
-                                new Date().toISOString().split('T')[0]);
-        
-        if (dateInput === null) return false; // User cancelled
-        
-        let shippingDate = dateInput.trim();
-        
-        // Validate date format
-        if (shippingDate && !/^\d{4}-\d{2}-\d{2}$/.test(shippingDate)) {
-            alert('Please enter date in YYYY-MM-DD format');
+        } catch (error) {
+            console.error(`[OrdersManager] Failed to update order status:`, error);
             return false;
         }
-        
-        return markAsShipped(orderId, shippingDate);
     }
 
-//  Create cancellation modal function:
-// Show cancellation modal
-function showCancellationModal(orderId) {
-    const order = getOrderById(orderId);
-    if (!order) return;
-    
-    // Create modal
-    const modal = document.createElement('div');
-    modal.id = 'cancellation-modal';
-    modal.className = 'cancellation-modal';
-    modal.style.cssText = `
-        display: flex;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.7);
-        z-index: 10010;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-    `;
-    
-    modal.innerHTML = `
-        <div style="
-            background: white;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 500px;
-            padding: 2rem;
-            position: relative;
-        ">
-            <button id="close-cancel-modal" style="
-                position: absolute;
-                top: 1rem;
-                right: 1rem;
-                background: none;
-                border: none;
-                font-size: 1.5rem;
-                cursor: pointer;
-                color: #666;
-            ">&times;</button>
+    function markAsPaid(orderId) {
+        return updateOrderStatus(orderId, 'paid');
+    }
+
+    function markAsShipped(orderId, shippingDate = '') {
+        console.log(`[OrdersManager] Marking order ${orderId} as shipped`);
+        
+        try {
+            // Validate order exists
+            const order = getOrderById(orderId);
+            if (!order) {
+                console.error(`[OrdersManager] Order ${orderId} not found for shipping`);
+                return false;
+            }
             
-            <h2 style="margin-top: 0; color: #333;">Cancel Order: ${order.id}</h2>
+            // Default shipping date to today
+            if (!shippingDate) {
+                shippingDate = new Date().toISOString().split('T')[0];
+            }
             
-            <div style="
-                background: #fff8e1;
-                border-left: 4px solid #ff9800;
-                padding: 1rem;
-                border-radius: 4px;
-                margin-bottom: 1.5rem;
-            ">
-                <div style="font-weight: 600; margin-bottom: 0.5rem;">Customer:</div>
-                <div>${order.firstName} ${order.surname}</div>
-                <div>${order.customerPhone}</div>
-                <div style="margin-top: 0.5rem; font-weight: 600;">Total: R${order.totalAmount.toFixed(2)}</div>
-            </div>
-            
-            <form id="cancellation-form">
-                <div style="margin-bottom: 1.5rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
-                        Cancellation Reason *
-                    </label>
-                    <select id="cancellation-reason" required style="
-                        width: 100%;
-                        padding: 0.75rem;
-                        border: 2px solid #e0e0e0;
-                        border-radius: 8px;
-                        font-size: 1rem;
-                        background: white;
-                    ">
-                        <option value="">Select a reason</option>
-                        <option value="customer_requested">Customer Requested</option>
-                        <option value="out_of_stock">Out of Stock</option>
-                        <option value="payment_failed">Payment Failed</option>
-                        <option value="fraudulent">Fraudulent Order</option>
-                        <option value="delivery_issue">Delivery Issue</option>
-                        <option value="price_dispute">Price Dispute</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
+            // Update inventory stock if ProductsManager is available
+            if (typeof ProductsManager !== 'undefined') {
+                console.log(`[OrdersManager] Updating inventory for shipped order ${orderId}`);
                 
-                <div style="margin-bottom: 1.5rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
-                        Refund Amount (R)
-                    </label>
-                    <input type="number" 
-                           id="refund-amount" 
-                           min="0" 
-                           max="${order.totalAmount}"
-                           step="0.01"
-                           value="${order.totalAmount}"
-                           style="
-                                width: 100%;
-                                padding: 0.75rem;
-                                border: 2px solid #e0e0e0;
-                                border-radius: 8px;
-                                font-size: 1rem;
-                           ">
-                    <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
-                        Enter 0 for no refund. Max: R${order.totalAmount.toFixed(2)}
+                let allStockDeducted = true;
+                const failedItems = [];
+                
+                order.items.forEach(item => {
+                    const success = ProductsManager.updateStock(item.productId, -item.quantity);
+                    if (!success) {
+                        allStockDeducted = false;
+                        failedItems.push(item.productName);
+                    }
+                });
+                
+                if (!allStockDeducted) {
+                    const errorMsg = `Cannot ship order ${orderId}. Insufficient stock for: ${failedItems.join(', ')}`;
+                    console.error(`[OrdersManager] ${errorMsg}`);
+                    alert(errorMsg);
+                    return false;
+                }
+            }
+            
+            // Update order status
+            const success = updateOrderStatus(orderId, 'shipped', shippingDate);
+            
+            if (success) {
+                console.log(`[OrdersManager] Order ${orderId} marked as shipped on ${shippingDate}`);
+            }
+            
+            return success;
+            
+        } catch (error) {
+            console.error(`[OrdersManager] Shipping failed for order ${orderId}:`, error);
+            return false;
+        }
+    }
+
+    // ========================================================
+    // ORDER CANCELLATION
+    // ========================================================
+    function cancelOrder(orderId, cancellationData) {
+        console.log(`[OrdersManager] Cancelling order ${orderId}`, cancellationData);
+        
+        try {
+            const orderIndex = orders.findIndex(order => order.id === orderId);
+            
+            if (orderIndex === -1) {
+                console.error(`[OrdersManager] Order ${orderId} not found`);
+                return false;
+            }
+            
+            // Update order with cancellation data
+            orders[orderIndex].status = 'cancelled';
+            orders[orderIndex].cancellationReason = cancellationData.reason || '';
+            orders[orderIndex].refundAmount = parseFloat(cancellationData.refundAmount) || 0;
+            orders[orderIndex].cancelledAt = new Date().toISOString();
+            orders[orderIndex].cancelledBy = cancellationData.cancelledBy || 'admin';
+            orders[orderIndex].updatedAt = new Date().toISOString();
+            
+            // Add admin note about refund
+            if (orders[orderIndex].refundAmount > 0) {
+                const refundNote = `\n[Refund issued: R${orders[orderIndex].refundAmount.toFixed(2)} on ${new Date().toLocaleDateString()}]`;
+                orders[orderIndex].adminNotes = (orders[orderIndex].adminNotes || '') + refundNote;
+            }
+            
+            // Restore inventory stock if applicable
+            if (typeof ProductsManager !== 'undefined') {
+                console.log(`[OrdersManager] Restoring inventory for cancelled order ${orderId}`);
+                orders[orderIndex].items.forEach(item => {
+                    ProductsManager.updateStock(item.productId, item.quantity);
+                });
+            }
+            
+            saveOrders();
+            updateAdminBadge();
+            
+            console.log(`[OrdersManager] Order ${orderId} cancelled successfully`);
+            return true;
+            
+        } catch (error) {
+            console.error(`[OrdersManager] Cancellation failed for order ${orderId}:`, error);
+            return false;
+        }
+    }
+
+    // ========================================================
+    // ORDER DELETION
+    // ========================================================
+    function deleteOrder(orderId) {
+        console.log(`[OrdersManager] Deleting order ${orderId}`);
+        
+        try {
+            const initialLength = orders.length;
+            orders = orders.filter(order => order.id !== orderId);
+            
+            if (orders.length < initialLength) {
+                saveOrders();
+                updateAdminBadge();
+                console.log(`[OrdersManager] Order ${orderId} deleted successfully`);
+                return true;
+            }
+            
+            console.warn(`[OrdersManager] Order ${orderId} not found for deletion`);
+            return false;
+            
+        } catch (error) {
+            console.error(`[OrdersManager] Deletion failed for order ${orderId}:`, error);
+            return false;
+        }
+    }
+
+    // ========================================================
+    // ADMIN UI FUNCTIONS
+    // ========================================================
+    function updateAdminBadge() {
+        try {
+            const badge = document.getElementById('admin-badge');
+            if (badge) {
+                const count = getPendingCount();
+                badge.textContent = count > 0 ? count.toString() : '';
+                badge.style.display = count > 0 ? 'flex' : 'none';
+                console.log(`[OrdersManager] Admin badge updated: ${count} pending orders`);
+            }
+        } catch (error) {
+            console.error('[OrdersManager] Failed to update admin badge:', error);
+        }
+    }
+
+    // ========================================================
+    // ORDER RENDERING FUNCTIONS
+    // ========================================================
+    function renderOrders(statusFilter = 'pending', containerId = 'pending-orders') {
+        console.log(`[OrdersManager] Rendering ${statusFilter} orders in ${containerId}`);
+        
+        try {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error(`[OrdersManager] Container ${containerId} not found`);
+                return;
+            }
+            
+            const filteredOrders = getOrders(statusFilter);
+            
+            if (filteredOrders.length === 0) {
+                container.innerHTML = '<div class="no-orders">No orders found</div>';
+                console.log(`[OrdersManager] No ${statusFilter} orders to display`);
+                return;
+            }
+            
+            container.innerHTML = filteredOrders.map(order => generateOrderCardHTML(order)).join('');
+            console.log(`[OrdersManager] Rendered ${filteredOrders.length} ${statusFilter} orders`);
+            
+        } catch (error) {
+            console.error('[OrdersManager] Failed to render orders:', error);
+        }
+    }
+
+    function renderCompletedOrders(containerId = 'completed-orders-list') {
+        console.log(`[OrdersManager] Rendering completed orders in ${containerId}`);
+        
+        try {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error(`[OrdersManager] Container ${containerId} not found`);
+                return;
+            }
+            
+            const completedOrders = getOrders('shipped');
+            
+            if (completedOrders.length === 0) {
+                container.innerHTML = '<div class="no-orders">No completed orders</div>';
+                console.log('[OrdersManager] No completed orders to display');
+                return;
+            }
+            
+            container.innerHTML = completedOrders.map(order => generateCompletedOrderCardHTML(order)).join('');
+            console.log(`[OrdersManager] Rendered ${completedOrders.length} completed orders`);
+            
+        } catch (error) {
+            console.error('[OrdersManager] Failed to render completed orders:', error);
+        }
+    }
+
+    // ========================================================
+    // HTML GENERATION FUNCTIONS
+    // ========================================================
+    function generateOrderCardHTML(order) {
+        try {
+            const orderDate = new Date(order.createdAt).toLocaleDateString();
+            const orderTime = new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            const statusColors = {
+                pending: '#ff9800',
+                paid: '#2196f3',
+                shipped: '#4caf50',
+                cancelled: '#9e9e9e'
+            };
+            
+            const priorityColors = {
+                low: '#9e9e9e',
+                normal: '#4CAF50',
+                high: '#ff9800',
+                rush: '#ff5252'
+            };
+            
+            return `
+                <div class="order-card-detailed" data-order-id="${order.id}">
+                    <!-- Order Header -->
+                    <div class="order-header-detailed">
+                        <div class="order-id-date">
+                            <h3>${order.id}</h3>
+                            <div class="order-timestamp">${orderDate} ${orderTime}</div>
+                            ${order.customerId ? `
+                            <div class="customer-id">
+                                <i class="fas fa-id-card"></i>
+                                Customer ID: ${order.customerId}
+                            </div>
+                            ` : ''}
+                        </div>
+                        <div class="order-status-detailed">
+                            <span class="status-badge" style="background: ${statusColors[order.status] || '#666'}">
+                                ${order.status.toUpperCase()}
+                            </span>
+                            ${order.priority && order.priority !== 'normal' ? `
+                            <span class="priority-badge" style="background: ${priorityColors[order.priority] || '#4CAF50'}">
+                                ${order.priority.toUpperCase()}
+                            </span>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Customer Information -->
+                    <div class="order-customer-detailed">
+                        <div class="customer-info">
+                            <div class="customer-name">${order.firstName} ${order.surname}</div>
+                            <div class="customer-contact">
+                                <i class="fas fa-phone"></i>
+                                ${order.customerPhone}
+                            </div>
+                            ${order.customerEmail ? `
+                            <div class="customer-email">
+                                <i class="fas fa-envelope"></i>
+                                ${order.customerEmail}
+                            </div>
+                            ` : ''}
+                            ${order.customerType && order.customerType !== 'personal' ? `
+                            <div class="customer-type">
+                                <i class="fas fa-tag"></i>
+                                ${order.customerType.charAt(0).toUpperCase() + order.customerType.slice(1)}
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="shipping-info">
+                            <div class="shipping-label">
+                                <i class="fas fa-truck"></i>
+                                Shipping Address:
+                            </div>
+                            <div class="address-text">${order.shippingAddress}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Order Items -->
+                    <div class="order-items-detailed">
+                        <h4><i class="fas fa-shopping-basket"></i> Order Items:</h4>
+                        ${generateOrderItemsHTML(order.items)}
+                    </div>
+                    
+                    <!-- Financial Breakdown -->
+                    ${generateFinancialBreakdownHTML(order)}
+                    
+                    <!-- Customer Notes -->
+                    ${order.notes ? `
+                    <div class="order-notes">
+                        <div class="notes-label">
+                            <i class="fas fa-sticky-note"></i>
+                            Customer Notes:
+                        </div>
+                        <div class="notes-text">${order.notes}</div>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Return Policy -->
+                    ${order.returnPolicy ? `
+                    <div class="return-policy">
+                        <i class="fas fa-undo"></i>
+                        <strong>Return Policy:</strong> ${order.returnPolicy}
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Order Actions -->
+                    <div class="order-actions-detailed">
+                        ${order.status === 'pending' ? `
+                        <button class="action-btn mark-paid" data-order-id="${order.id}">
+                            <i class="fas fa-check-circle"></i>
+                            Mark as Paid
+                        </button>
+                        ` : ''}
+                        
+                        ${order.status === 'pending' || order.status === 'paid' ? `
+                        <button class="action-btn cancel-order" data-order-id="${order.id}">
+                            <i class="fas fa-ban"></i>
+                            Cancel Order
+                        </button>
+                        ` : ''}
+                        
+                        ${order.status !== 'shipped' ? `
+                        <button class="action-btn mark-shipped" data-order-id="${order.id}">
+                            <i class="fas fa-shipping-fast"></i>
+                            Mark as Shipped
+                        </button>
+                        ` : ''}
+                        
+                        <button class="action-btn delete-order" data-order-id="${order.id}">
+                            <i class="fas fa-trash"></i>
+                            Delete
+                        </button>
                     </div>
                 </div>
-                
-                <div style="margin-bottom: 1.5rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
-                        Additional Notes
-                    </label>
-                    <textarea id="cancel-notes" rows="3" style="
-                        width: 100%;
-                        padding: 0.75rem;
-                        border: 2px solid #e0e0e0;
-                        border-radius: 8px;
-                        font-size: 1rem;
-                        resize: vertical;
-                    "></textarea>
+            `;
+        } catch (error) {
+            console.error('[OrdersManager] Failed to generate order card HTML:', error);
+            return '<div class="order-error">Failed to load order details</div>';
+        }
+    }
+
+    function generateOrderItemsHTML(items) {
+        try {
+            return items.map(item => `
+                <div class="detailed-item">
+                    <img src="${item.imageUrl}" alt="${item.productName}">
+                    <div class="item-details">
+                        <div class="item-name">
+                            ${item.productName}
+                            ${item.isDiscounted ? '<span class="discount-badge">(Discounted)</span>' : ''}
+                        </div>
+                        <div class="item-meta">
+                            <span class="item-quantity">×${item.quantity}</span>
+                            <span class="item-price">R${(item.finalPrice || item.price).toFixed(2)} each</span>
+                        </div>
+                    </div>
+                    <div class="item-total">R${((item.finalPrice || item.price) * item.quantity).toFixed(2)}</div>
                 </div>
-                
-                <div id="cancel-error" style="
-                    background: #ffebee;
-                    color: #d32f2f;
-                    padding: 1rem;
-                    border-radius: 8px;
-                    margin-bottom: 1.5rem;
-                    display: none;
-                "></div>
-                
-                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                    <button type="button" id="cancel-cancel" style="
-                        background: white;
-                        color: #666;
-                        border: 2px solid #e0e0e0;
-                        padding: 0.75rem 1.5rem;
-                        border-radius: 8px;
-                        font-size: 1rem;
-                        font-weight: 600;
-                        cursor: pointer;
-                    ">
-                        Back
-                    </button>
+            `).join('');
+        } catch (error) {
+            console.error('[OrdersManager] Failed to generate items HTML:', error);
+            return '<div class="item-error">Failed to load items</div>';
+        }
+    }
+
+    function generateFinancialBreakdownHTML(order) {
+        try {
+            return `
+                <div class="order-financial-breakdown">
+                    <h4><i class="fas fa-chart-bar"></i> Order Summary</h4>
                     
-                    <button type="submit" style="
-                        background: #ff5252;
-                        color: white;
-                        border: none;
-                        padding: 0.75rem 1.5rem;
-                        border-radius: 8px;
-                        font-size: 1rem;
-                        font-weight: 600;
-                        cursor: pointer;
-                    ">
-                        <i class="fas fa-ban" style="margin-right: 0.5rem;"></i>
-                        Confirm Cancellation
-                    </button>
+                    <div class="breakdown-row">
+                        <span>Subtotal:</span>
+                        <span>R${order.subtotal.toFixed(2)}</span>
+                    </div>
+                    
+                    <div class="breakdown-row">
+                        <span>Shipping:</span>
+                        <span class="${order.shippingCost === 0 ? 'free-shipping' : ''}">
+                            ${order.shippingCost === 0 ? 'FREE' : `R${order.shippingCost.toFixed(2)}`}
+                        </span>
+                    </div>
+                    
+                    ${order.discount > 0 ? `
+                    <div class="breakdown-row discount-row">
+                        <span>Discount:</span>
+                        <span>-R${order.discount.toFixed(2)}</span>
+                    </div>
+                    ` : ''}
+                    
+                    ${order.tax > 0 ? `
+                    <div class="breakdown-row">
+                        <span>Tax (${CONFIG.VAT_PERCENTAGE}%):</span>
+                        <span>R${order.tax.toFixed(2)}</span>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="breakdown-row total-row">
+                        <span>Total Amount:</span>
+                        <span>R${order.totalAmount.toFixed(2)}</span>
+                    </div>
+                    
+                    ${order.isFreeShipping ? `
+                    <div class="free-shipping-note">
+                        <i class="fas fa-shipping-fast"></i>
+                        Free shipping applied (over R${order.shippingThreshold})
+                    </div>
+                    ` : ''}
                 </div>
-            </form>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Form submission
-    document.getElementById('cancellation-form').onsubmit = function(e) {
-        e.preventDefault();
-        
-        const cancellationData = {
-            reason: document.getElementById('cancellation-reason').value,
-            refundAmount: document.getElementById('refund-amount').value,
-            notes: document.getElementById('cancel-notes').value,
-            cancelledBy: 'admin'
-        };
-        
-        if (!cancellationData.reason) {
-            document.getElementById('cancel-error').textContent = 'Please select a cancellation reason';
-            document.getElementById('cancel-error').style.display = 'block';
-            return;
+            `;
+        } catch (error) {
+            console.error('[OrdersManager] Failed to generate financial breakdown HTML:', error);
+            return '';
         }
+    }
+
+    // ========================================================
+    // ORDER DETAILS MODAL
+    // ========================================================
+    function showOrderDetails(orderId) {
+        console.log(`[OrdersManager] Showing details for order ${orderId}`);
         
-        if (cancelOrder(orderId, cancellationData)) {
-            modal.remove();
-            renderOrders();
-            renderCompletedOrders();
-            alert(`Order ${orderId} cancelled successfully.${cancellationData.refundAmount > 0 ? ` Refund: R${parseFloat(cancellationData.refundAmount).toFixed(2)}` : ''}`);
+        try {
+            const order = getOrderById(orderId);
+            if (!order) {
+                console.error(`[OrdersManager] Order ${orderId} not found`);
+                return;
+            }
+            
+            createOrderDetailsModal(order);
+            
+        } catch (error) {
+            console.error('[OrdersManager] Failed to show order details:', error);
         }
-    };
-    
-    // Close buttons
-    document.getElementById('close-cancel-modal').onclick = () => modal.remove();
-    document.getElementById('cancel-cancel').onclick = () => modal.remove();
-}  // end of cancellation modal
-    
-    
-    // Setup event listeners
+    }
+
+    function createOrderDetailsModal(order) {
+        try {
+            // Remove existing modal
+            let modal = document.getElementById('order-details-modal');
+            if (modal) modal.remove();
+            
+            // Create new modal
+            modal = document.createElement('div');
+            modal.id = 'order-details-modal';
+            modal.className = 'order-details-modal';
+            
+            modal.innerHTML = generateOrderDetailsModalHTML(order);
+            
+            document.body.appendChild(modal);
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            // Add event listeners
+            attachOrderDetailsModalEvents(modal, order.id);
+            
+        } catch (error) {
+            console.error('[OrdersManager] Failed to create order details modal:', error);
+        }
+    }
+
+    // ========================================================
+    // CANCELLATION MODAL
+    // ========================================================
+    function showCancellationModal(orderId) {
+        console.log(`[OrdersManager] Showing cancellation modal for order ${orderId}`);
+        
+        try {
+            const order = getOrderById(orderId);
+            if (!order) {
+                console.error(`[OrdersManager] Order ${orderId} not found`);
+                return;
+            }
+            
+            createCancellationModal(order);
+            
+        } catch (error) {
+            console.error('[OrdersManager] Failed to show cancellation modal:', error);
+        }
+    }
+
+    function createCancellationModal(order) {
+        try {
+            // Remove existing modal
+            let modal = document.getElementById('cancellation-modal');
+            if (modal) modal.remove();
+            
+            // Create new modal
+            modal = document.createElement('div');
+            modal.id = 'cancellation-modal';
+            modal.className = 'cancellation-modal';
+            
+            modal.innerHTML = generateCancellationModalHTML(order);
+            
+            document.body.appendChild(modal);
+            modal.style.display = 'flex';
+            
+            // Add event listeners
+            attachCancellationModalEvents(modal, order.id);
+            
+        } catch (error) {
+            console.error('[OrdersManager] Failed to create cancellation modal:', error);
+        }
+    }
+
+    // ========================================================
+    // SHIPPING DATE INPUT
+    // ========================================================
+    function showShippingDateInput(orderId) {
+        console.log(`[OrdersManager] Requesting shipping date for order ${orderId}`);
+        
+        try {
+            const defaultDate = new Date().toISOString().split('T')[0];
+            const dateInput = prompt('Enter shipping date (YYYY-MM-DD) or leave empty for today:', defaultDate);
+            
+            if (dateInput === null) {
+                console.log('[OrdersManager] User cancelled shipping date input');
+                return false;
+            }
+            
+            let shippingDate = dateInput.trim();
+            
+            // Validate date format
+            if (shippingDate && !/^\d{4}-\d{2}-\d{2}$/.test(shippingDate)) {
+                alert('Please enter date in YYYY-MM-DD format');
+                console.warn('[OrdersManager] Invalid date format entered');
+                return false;
+            }
+            
+            const success = markAsShipped(orderId, shippingDate || defaultDate);
+            
+            if (success) {
+                console.log(`[OrdersManager] Order ${orderId} shipped successfully`);
+                renderOrders();
+                renderCompletedOrders();
+            }
+            
+            return success;
+            
+        } catch (error) {
+            console.error('[OrdersManager] Shipping date input failed:', error);
+            return false;
+        }
+    }
+
+    // ========================================================
+    // PRINT ORDER DETAILS
+    // ========================================================
+    function printOrderDetails(order) {
+        console.log(`[OrdersManager] Printing order ${order.id}`);
+        
+        try {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(generatePrintHTML(order));
+            printWindow.document.close();
+            
+        } catch (error) {
+            console.error('[OrdersManager] Failed to print order details:', error);
+            alert('Failed to print order. Please try again.');
+        }
+    }
+
+    // ========================================================
+    // EVENT HANDLERS
+    // ========================================================
     function setupEventListeners() {
-        // Event delegation for order actions
-        document.addEventListener('click', function(e) {
+        console.log('[OrdersManager] Setting up event listeners...');
+        
+        try {
+            document.addEventListener('click', handleOrderActions);
+            console.log('[OrdersManager] Event listeners setup complete');
+            
+        } catch (error) {
+            console.error('[OrdersManager] Failed to setup event listeners:', error);
+        }
+    }
+
+    function handleOrderActions(e) {
+        try {
             const orderId = e.target.dataset.orderId;
             if (!orderId) return;
             
             // Mark as paid
             if (e.target.classList.contains('mark-paid') && !e.target.disabled) {
+                console.log(`[OrdersManager] Marking order ${orderId} as paid`);
                 if (markAsPaid(orderId)) {
                     e.target.textContent = '✓ Paid';
                     e.target.disabled = true;
                     e.target.classList.add('disabled');
-                    
-                    // Refresh view
                     renderOrders();
                 }
             }
             
-            // Mark as shipped (with date input)
+            // Mark as shipped
             if (e.target.classList.contains('mark-shipped') && !e.target.disabled) {
+                console.log(`[OrdersManager] Marking order ${orderId} as shipped`);
                 if (showShippingDateInput(orderId)) {
                     e.target.textContent = '✓ Shipped';
                     e.target.disabled = true;
                     e.target.classList.add('disabled');
-                    
-                    // Refresh both views
-                    renderOrders();
-                    renderCompletedOrders();
                 }
+            }
+            
+            // Cancel order
+            if (e.target.classList.contains('cancel-order')) {
+                console.log(`[OrdersManager] Cancelling order ${orderId}`);
+                showCancellationModal(orderId);
             }
             
             // Delete order
             if (e.target.classList.contains('delete-order')) {
+                console.log(`[OrdersManager] Deleting order ${orderId}`);
                 if (confirm('Are you sure you want to delete this order?')) {
                     if (deleteOrder(orderId)) {
-                        // Remove from UI
-                        const orderCard = e.target.closest('.order-card, .completed-order-card');
-                        if (orderCard) {
-                            orderCard.remove();
-                        }
+                        e.target.closest('.order-card-detailed')?.remove();
                     }
                 }
             }
-            // Cancel order button
-if (e.target.classList.contains('cancel-order')) {
-    showCancellationModal(orderId);
-}
             
             // View details
             if (e.target.classList.contains('view-details')) {
+                console.log(`[OrdersManager] Viewing details for order ${orderId}`);
                 showOrderDetails(orderId);
             }
             
-            // Print order
-            if (e.target.classList.contains('print-order')) {
-                const order = getOrderById(orderId);
-                if (order) printOrderDetails(order);
-            }
-        });
+        } catch (error) {
+            console.error('[OrdersManager] Order action handler failed:', error);
+        }
     }
-    
-    // Public API
+
+    // ========================================================
+    // PUBLIC API
+    // ========================================================
     return {
         init,
         createOrder,
@@ -1961,17 +962,17 @@ if (e.target.classList.contains('cancel-order')) {
         getLastOrderId,
         markAsPaid,
         markAsShipped,
+        cancelOrder,
         deleteOrder,
         renderOrders,
         renderCompletedOrders,
         showOrderDetails,
-        updateAdminBadge
+        updateAdminBadge,
+        showCancellationModal
     };
 })();
 
-// Auto-initialize
-//if (document.readyState === 'loading') {
-//    document.addEventListener('DOMContentLoaded', () => OrdersManager.init());
-//} else {
-//    OrdersManager.init();
-//}
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    OrdersManager.init();
+});
