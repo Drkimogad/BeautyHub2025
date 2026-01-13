@@ -1,373 +1,652 @@
 // inventoryManager.js - Stock Management & Order Integration
+// UPDATED: Aligned with wholesalePrice, retailPrice, currentPrice naming
 const InventoryManager = (function() {
     // Dependencies
     let ProductsManager = null;
     let OrdersManager = null;
     
+    // Storage constants
+    const STORAGE_KEYS = {
+        INVENTORY_TRANSACTIONS: 'beautyhub_inventory_transactions',
+        ORDERS: 'beautyhub_orders'
+    };
+    
     // Initialize with dependencies
     function init(productsMgr, ordersMgr) {
-        ProductsManager = productsMgr;
-        OrdersManager = ordersMgr;
-        
-        // Listen for new orders to auto-deduct stock
-        setupOrderListener();
-        
-        return {
-            deductStockFromOrder,
-            getInventoryReport,
-            getLowStockAlert,
-            getStockHistory,
-            updateStockManually,
-            checkStockBeforeAddToCart
-        };
+        try {
+            console.log('[InventoryManager] Initializing...');
+            
+            if (!productsMgr || !ordersMgr) {
+                console.error('[InventoryManager] Missing dependencies');
+                return null;
+            }
+            
+            ProductsManager = productsMgr;
+            OrdersManager = ordersMgr;
+            
+            setupOrderListener();
+            
+            console.log('[InventoryManager] Initialization complete');
+            
+            return {
+                deductStockFromOrder,
+                getInventoryReport,
+                getLowStockAlert,
+                getStockHistory,
+                updateStockManually,
+                checkStockBeforeAddToCart,
+                getInventoryTransactionsReport
+            };
+            
+        } catch (error) {
+            console.error('[InventoryManager] Initialization failed:', error);
+            return null;
+        }
     }
     
     // Listen for new orders
     function setupOrderListener() {
-        if (!OrdersManager) return;
-        
-        // Listen for order creation
-        window.addEventListener('orderCreated', function(e) {
-            if (e.detail && e.detail.orderId) {
-                const order = OrdersManager.getOrderById(e.detail.orderId);
-                if (order) {
-                    deductStockFromOrder(order);
-                }
+        try {
+            if (!OrdersManager) {
+                console.warn('[InventoryManager] OrdersManager not available');
+                return;
             }
-        });
-        
-        // Also check localStorage changes as backup
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'beautyhub_orders' && ProductsManager) {
-                // Get latest order and deduct stock
-                const ordersJSON = localStorage.getItem('beautyhub_orders');
-                if (ordersJSON) {
-                    try {
-                        const orders = JSON.parse(ordersJSON);
-                        if (orders.length > 0) {
-                            const latestOrder = orders[orders.length - 1];
-                            if (latestOrder.status === 'pending') {
-                                deductStockFromOrder(latestOrder);
+            
+            // Listen for order creation
+            window.addEventListener('orderCreated', function(e) {
+                try {
+                    if (e.detail && e.detail.orderId) {
+                        const order = OrdersManager.getOrderById(e.detail.orderId);
+                        if (order) {
+                            console.log(`[InventoryManager] Processing orderCreated event for order ${order.id}`);
+                            deductStockFromOrder(order);
+                        }
+                    }
+                } catch (error) {
+                    console.error('[InventoryManager] Error handling orderCreated event:', error);
+                }
+            });
+            
+            // Also check localStorage changes as backup
+            window.addEventListener('storage', function(e) {
+                try {
+                    if (e.key === STORAGE_KEYS.ORDERS && ProductsManager) {
+                        const ordersJSON = localStorage.getItem(STORAGE_KEYS.ORDERS);
+                        if (ordersJSON) {
+                            const orders = JSON.parse(ordersJSON);
+                            if (orders.length > 0) {
+                                const latestOrder = orders[orders.length - 1];
+                                if (latestOrder.status === 'pending') {
+                                    console.log(`[InventoryManager] Processing storage event for order ${latestOrder.id}`);
+                                    deductStockFromOrder(latestOrder);
+                                }
                             }
                         }
-                    } catch (error) {
-                        console.error('Error processing orders for inventory:', error);
                     }
+                } catch (error) {
+                    console.error('[InventoryManager] Error processing storage event:', error);
                 }
-            }
-        });
+            });
+            
+            console.log('[InventoryManager] Order listeners setup complete');
+            
+        } catch (error) {
+            console.error('[InventoryManager] Failed to setup order listeners:', error);
+        }
     }
     
     // Deduct stock when order is placed
     function deductStockFromOrder(order) {
-        if (!ProductsManager || !order || !order.items) return false;
-        
-        console.log('Deducting stock for order:', order.id);
-        
-        let allSuccessful = true;
-        const updates = [];
-        
-        order.items.forEach(item => {
-            const product = ProductsManager.getProductById(item.productId);
-            if (product) {
-                const newStock = product.stock - item.quantity;
-                
-                if (newStock < 0) {
-                    console.error(`Insufficient stock for ${product.name}. Need ${item.quantity}, have ${product.stock}`);
-                    allSuccessful = false;
-                    return;
-                }
-                
-                updates.push({
-                    productId: product.id,
-                    productName: product.name,
-                    oldStock: product.stock,
-                    newStock: newStock,
-                    quantity: item.quantity
-                });
-                
-                // Update product stock
-                ProductsManager.updateProduct(product.id, { 
-                    stock: newStock,
-                    updatedAt: new Date().toISOString()
-                });
-                
-                console.log(`Stock updated: ${product.name} ${product.stock} → ${newStock}`);
-            } else {
-                console.error(`Product not found: ${item.productId}`);
-                allSuccessful = false;
+        try {
+            if (!ProductsManager) {
+                console.error('[InventoryManager] ProductsManager not available');
+                return false;
             }
-        });
-        
-        if (allSuccessful && updates.length > 0) {
-            // Save inventory transaction log
-            // Update the transaction save call in deductStockFromOrder:
-saveInventoryTransaction({
-    type: 'order_deduction',
-    orderId: order.id,
-    timestamp: new Date().toISOString(),
-    performedBy: order.customerEmail ? `customer:${order.customerEmail}` : 'customer:anonymous',
-    referenceId: order.id,
-    updates: updates,
-    notes: `Stock deducted for order ${order.id} - ${order.firstName} ${order.surname}`
-});
             
-            console.log('Stock successfully deducted for order:', order.id);
+            if (!order || !order.items) {
+                console.error('[InventoryManager] Invalid order data');
+                return false;
+            }
+            
+            console.log(`[InventoryManager] Deducting stock for order: ${order.id}`);
+            
+            let allSuccessful = true;
+            const updates = [];
+            
+            order.items.forEach(item => {
+                try {
+                    const product = ProductsManager.getProductById(item.productId);
+                    if (!product) {
+                        console.error(`[InventoryManager] Product not found: ${item.productId}`);
+                        allSuccessful = false;
+                        return;
+                    }
+                    
+                    const quantity = parseInt(item.quantity) || 1;
+                    const currentStock = parseInt(product.stock) || 0;
+                    const newStock = currentStock - quantity;
+                    
+                    if (newStock < 0) {
+                        console.error(`[InventoryManager] Insufficient stock for ${product.name}. Need ${quantity}, have ${currentStock}`);
+                        allSuccessful = false;
+                        return;
+                    }
+                    
+                    updates.push({
+                        productId: product.id,
+                        productName: product.name,
+                        oldStock: currentStock,
+                        newStock: newStock,
+                        quantity: quantity,
+                        category: product.category || ''
+                    });
+                    
+                    // Update product stock using consistent property names
+                    const success = ProductsManager.updateProduct(product.id, { 
+                        stock: newStock,
+                        updatedAt: new Date().toISOString()
+                    });
+                    
+                    if (!success) {
+                        console.error(`[InventoryManager] Failed to update stock for ${product.name}`);
+                        allSuccessful = false;
+                        return;
+                    }
+                    
+                    console.log(`[InventoryManager] Stock updated: ${product.name} ${currentStock} → ${newStock}`);
+                    
+                } catch (itemError) {
+                    console.error(`[InventoryManager] Error processing item ${item.productId}:`, itemError);
+                    allSuccessful = false;
+                }
+            });
+            
+            if (allSuccessful && updates.length > 0) {
+                // Save inventory transaction log
+                saveInventoryTransaction({
+                    type: 'order_deduction',
+                    orderId: order.id,
+                    timestamp: new Date().toISOString(),
+                    performedBy: order.customerEmail ? `customer:${order.customerEmail}` : 'customer:anonymous',
+                    referenceId: order.id,
+                    updates: updates,
+                    notes: `Stock deducted for order ${order.id} - ${order.firstName || ''} ${order.surname || ''}`
+                });
+                
+                console.log(`[InventoryManager] Stock successfully deducted for order: ${order.id}`);
+                return true;
+            }
+            
+            console.warn(`[InventoryManager] Stock deduction incomplete for order: ${order.id}`);
+            return false;
+            
+        } catch (error) {
+            console.error(`[InventoryManager] Failed to deduct stock for order:`, error);
+            return false;
         }
-        
-        return allSuccessful;
     }
     
     // Get inventory report
     function getInventoryReport() {
-        if (!ProductsManager) return null;
-        
-        const products = ProductsManager.getProducts({ activeOnly: true });
-        const totalProducts = products.length;
-        const totalStock = products.reduce((sum, p) => sum + p.stock, 0);
-        const totalValue = products.reduce((sum, p) => sum + (p.price * p.stock), 0);
-        
-        const lowStock = products.filter(p => p.stock <= 5 && p.stock > 0);
-        const outOfStock = products.filter(p => p.stock === 0);
-        const healthyStock = products.filter(p => p.stock > 5);
-        
-        return {
-            summary: {
-                totalProducts,
-                totalStock,
-                totalValue: parseFloat(totalValue.toFixed(2)),
-                lowStockCount: lowStock.length,
-                outOfStockCount: outOfStock.length,
-                healthyStockCount: healthyStock.length
-            },
-            categories: ProductsManager.CATEGORIES.map(category => {
+        try {
+            if (!ProductsManager) {
+                console.error('[InventoryManager] ProductsManager not available');
+                return null;
+            }
+            
+            const products = ProductsManager.getProducts({ activeOnly: true });
+            const totalProducts = products.length;
+            
+            // Use consistent property names for calculations
+            const totalStock = products.reduce((sum, p) => {
+                const stock = parseInt(p.stock) || 0;
+                return sum + stock;
+            }, 0);
+            
+            const totalValue = products.reduce((sum, p) => {
+                const stock = parseInt(p.stock) || 0;
+                const currentPrice = p.currentPrice || p.currentprice || 0;
+                return sum + (parseFloat(currentPrice) * stock);
+            }, 0);
+            
+            const lowStock = products.filter(p => {
+                const stock = parseInt(p.stock) || 0;
+                return stock <= 5 && stock > 0;
+            });
+            
+            const outOfStock = products.filter(p => {
+                const stock = parseInt(p.stock) || 0;
+                return stock === 0;
+            });
+            
+            const healthyStock = products.filter(p => {
+                const stock = parseInt(p.stock) || 0;
+                return stock > 5;
+            });
+            
+            // Get categories from ProductsManager or use defaults
+            const categories = ProductsManager.CATEGORIES || ['perfumes', 'lashes', 'skincare', 'wigs'];
+            
+            const categoryReport = categories.map(category => {
                 const catProducts = products.filter(p => p.category === category);
                 return {
                     category,
                     count: catProducts.length,
-                    totalStock: catProducts.reduce((sum, p) => sum + p.stock, 0),
-                    lowStock: catProducts.filter(p => p.stock <= 5 && p.stock > 0).length,
-                    outOfStock: catProducts.filter(p => p.stock === 0).length
+                    totalStock: catProducts.reduce((sum, p) => sum + (parseInt(p.stock) || 0), 0),
+                    lowStock: catProducts.filter(p => {
+                        const stock = parseInt(p.stock) || 0;
+                        return stock <= 5 && stock > 0;
+                    }).length,
+                    outOfStock: catProducts.filter(p => {
+                        const stock = parseInt(p.stock) || 0;
+                        return stock === 0;
+                    }).length
                 };
-            }),
-            lowStockProducts: lowStock.map(p => ({
-                id: p.id,
-                name: p.name,
-                currentStock: p.stock,
-                category: p.category,
-                price: p.price
-            })),
-            outOfStockProducts: outOfStock.map(p => ({
-                id: p.id,
-                name: p.name,
-                category: p.category,
-                price: p.price
-            }))
-        };
+            });
+            
+            return {
+                summary: {
+                    totalProducts,
+                    totalStock,
+                    totalValue: parseFloat(totalValue.toFixed(2)),
+                    lowStockCount: lowStock.length,
+                    outOfStockCount: outOfStock.length,
+                    healthyStockCount: healthyStock.length,
+                    avgStockPerProduct: totalProducts > 0 ? Math.round(totalStock / totalProducts) : 0
+                },
+                categories: categoryReport,
+                lowStockProducts: lowStock.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    currentStock: parseInt(p.stock) || 0,
+                    category: p.category || 'Uncategorized',
+                    currentPrice: p.currentPrice || p.currentprice || 0,
+                    retailPrice: p.retailPrice || p.retailprice || 0,
+                    wholesalePrice: p.wholesalePrice || p.wholesaleprice || 0
+                })),
+                outOfStockProducts: outOfStock.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    category: p.category || 'Uncategorized',
+                    currentPrice: p.currentPrice || p.currentprice || 0,
+                    retailPrice: p.retailPrice || p.retailprice || 0
+                }))
+            };
+            
+        } catch (error) {
+            console.error('[InventoryManager] Failed to generate inventory report:', error);
+            return null;
+        }
     }
     
     // Get low stock alert
     function getLowStockAlert() {
-        if (!ProductsManager) return null;
-        
-        const lowStock = ProductsManager.getLowStockProducts();
-        if (lowStock.length === 0) return null;
-        
-        return {
-            count: lowStock.length,
-            products: lowStock.map(p => ({
-                name: p.name,
-                stock: p.stock,
-                category: p.category,
-                needsRestock: p.stock <= 2
-            }))
-        };
+        try {
+            if (!ProductsManager) {
+                console.error('[InventoryManager] ProductsManager not available');
+                return null;
+            }
+            
+            const lowStockProducts = ProductsManager.getLowStockProducts();
+            if (!lowStockProducts || lowStockProducts.length === 0) {
+                return null;
+            }
+            
+            return {
+                count: lowStockProducts.length,
+                timestamp: new Date().toISOString(),
+                products: lowStockProducts.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    stock: parseInt(p.stock) || 0,
+                    category: p.category || 'Uncategorized',
+                    needsRestock: (parseInt(p.stock) || 0) <= 2,
+                    currentPrice: p.currentPrice || p.currentprice || 0,
+                    reorderSuggestion: Math.max(10, Math.ceil((parseInt(p.stock) || 0) * 2))
+                }))
+            };
+            
+        } catch (error) {
+            console.error('[InventoryManager] Failed to get low stock alert:', error);
+            return null;
+        }
     }
     
-    // Get stock history (placeholder - would need database)
+    // Get stock history
     function getStockHistory(productId, limit = 10) {
-        const transactions = getInventoryTransactions();
-        return transactions
-            .filter(t => t.updates.some(u => u.productId === productId))
-            .slice(0, limit)
-            .map(t => ({
-                type: t.type,
-                timestamp: t.timestamp,
-                orderId: t.orderId,
-                quantity: t.updates.find(u => u.productId === productId)?.quantity || 0,
-                notes: t.notes
-            }));
+        try {
+            const transactions = getInventoryTransactions();
+            const productTransactions = transactions
+                .filter(t => {
+                    if (!t.updates) return false;
+                    return t.updates.some(u => u.productId === productId);
+                })
+                .slice(0, limit)
+                .map(t => {
+                    const update = t.updates.find(u => u.productId === productId);
+                    return {
+                        transactionId: t.id || '',
+                        type: t.type || '',
+                        timestamp: t.timestamp || '',
+                        orderId: t.orderId || '',
+                        quantity: update?.quantity || 0,
+                        previousStock: update?.previousStock || update?.oldStock || 0,
+                        newStock: update?.newStock || 0,
+                        performedBy: t.performedBy || '',
+                        notes: t.notes || ''
+                    };
+                });
+            
+            return productTransactions;
+            
+        } catch (error) {
+            console.error(`[InventoryManager] Failed to get stock history for ${productId}:`, error);
+            return [];
+        }
     }
     
     // Update stock manually
-    function updateStockManually(productId, quantity, reason = 'manual_adjustment') {
-        if (!ProductsManager) return false;
-        
-        const product = ProductsManager.getProductById(productId);
-        if (!product) return false;
-        
-        const newStock = product.stock + quantity;
-        if (newStock < 0) return false;
-        
-        const success = ProductsManager.updateProduct(productId, { 
-            stock: newStock,
-            updatedAt: new Date().toISOString()
-        });
-        
-        if (success) {
-            // Update the transaction save call in updateStockManually:
-saveInventoryTransaction({
-    type: reason,
-    timestamp: new Date().toISOString(),
-    performedBy: 'admin', // Will need to pass actual admin username
-    referenceId: '', // Can add admin ID if available
-    updates: [{
-        productId: product.id,
-        productName: product.name,
-        oldStock: product.stock,
-        newStock: newStock,
-        quantity: quantity
-    }],
-    notes: `Manual adjustment: ${reason}`
-});
+    function updateStockManually(productId, quantity, reason = 'manual_adjustment', performedBy = 'admin') {
+        try {
+            if (!ProductsManager) {
+                console.error('[InventoryManager] ProductsManager not available');
+                return false;
+            }
             
-            console.log(`Manual stock update: ${product.name} ${quantity > 0 ? '+' : ''}${quantity} = ${newStock}`);
+            const product = ProductsManager.getProductById(productId);
+            if (!product) {
+                console.error(`[InventoryManager] Product not found: ${productId}`);
+                return false;
+            }
+            
+            const currentStock = parseInt(product.stock) || 0;
+            const adjustment = parseInt(quantity) || 0;
+            const newStock = currentStock + adjustment;
+            
+            if (newStock < 0) {
+                console.error(`[InventoryManager] Invalid stock adjustment: ${currentStock} + ${adjustment} = ${newStock}`);
+                return false;
+            }
+            
+            const success = ProductsManager.updateProduct(productId, { 
+                stock: newStock,
+                updatedAt: new Date().toISOString()
+            });
+            
+            if (!success) {
+                console.error(`[InventoryManager] Failed to update product ${productId}`);
+                return false;
+            }
+            
+            // Save transaction
+            saveInventoryTransaction({
+                type: reason,
+                timestamp: new Date().toISOString(),
+                performedBy: performedBy,
+                referenceId: '',
+                updates: [{
+                    productId: product.id,
+                    productName: product.name,
+                    oldStock: currentStock,
+                    newStock: newStock,
+                    quantity: adjustment,
+                    category: product.category || ''
+                }],
+                notes: `Manual adjustment: ${reason} (${adjustment > 0 ? '+' : ''}${adjustment})`
+            });
+            
+            console.log(`[InventoryManager] Manual stock update: ${product.name} ${adjustment > 0 ? '+' : ''}${adjustment} = ${newStock}`);
+            
+            return true;
+            
+        } catch (error) {
+            console.error(`[InventoryManager] Failed to update stock for ${productId}:`, error);
+            return false;
         }
-        
-        return success;
     }
     
     // Check stock before adding to cart
     function checkStockBeforeAddToCart(productId, requestedQuantity) {
-        if (!ProductsManager) return { available: false, reason: 'System error' };
-        
-        const product = ProductsManager.getProductById(productId);
-        if (!product) return { available: false, reason: 'Product not found' };
-        
-        if (!product.isActive) return { available: false, reason: 'Product is not available' };
-        
-        if (product.stock < requestedQuantity) {
-            return {
-                available: false,
-                reason: `Only ${product.stock} units available`,
-                availableStock: product.stock
+        try {
+            if (!ProductsManager) {
+                return { 
+                    available: false, 
+                    reason: 'System error: ProductsManager not available',
+                    availableStock: 0 
+                };
+            }
+            
+            const product = ProductsManager.getProductById(productId);
+            if (!product) {
+                return { 
+                    available: false, 
+                    reason: 'Product not found',
+                    availableStock: 0 
+                };
+            }
+            
+            if (product.isActive === false) {
+                return { 
+                    available: false, 
+                    reason: 'Product is not available',
+                    availableStock: 0 
+                };
+            }
+            
+            const currentStock = parseInt(product.stock) || 0;
+            const requested = parseInt(requestedQuantity) || 1;
+            
+            if (currentStock < requested) {
+                return {
+                    available: false,
+                    reason: currentStock === 0 ? 'Out of stock' : `Only ${currentStock} unit${currentStock === 1 ? '' : 's'} available`,
+                    availableStock: currentStock,
+                    productName: product.name,
+                    productPrice: product.currentPrice || product.currentprice || 0
+                };
+            }
+            
+            return { 
+                available: true, 
+                availableStock: currentStock,
+                productName: product.name,
+                productPrice: product.currentPrice || product.currentprice || 0,
+                canOrderMore: currentStock > requested
+            };
+            
+        } catch (error) {
+            console.error(`[InventoryManager] Stock check failed for ${productId}:`, error);
+            return { 
+                available: false, 
+                reason: 'System error checking stock',
+                availableStock: 0 
             };
         }
-        
-        return { available: true, availableStock: product.stock };
     }
     
-    // Save inventory transaction (localStorage)
-    // Save inventory transaction (enhanced with new schema)
-function saveInventoryTransaction(transactionData) {
-    const STORAGE_KEY = 'beautyhub_inventory_transactions';
-    const existing = localStorage.getItem(STORAGE_KEY);
-    const transactions = existing ? JSON.parse(existing) : [];
-    
-    // Create enhanced transaction with new schema
-    const enhancedTransaction = {
-        id: `TX-${new Date().toISOString().slice(0,10).replace(/-/g, '')}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
-        type: transactionData.type,
-        timestamp: transactionData.timestamp,
-        performedBy: transactionData.performedBy || 'system',
-        referenceId: transactionData.referenceId || '',
-        notes: transactionData.notes || '',
-        updates: transactionData.updates.map(update => ({
-            productId: update.productId,
-            productName: update.productName,
-            previousStock: update.oldStock,
-            newStock: update.newStock,
-            quantity: update.quantity,
-            category: ProductsManager.getProductById(update.productId)?.category || ''
-        }))
-    };
-    
-    transactions.push(enhancedTransaction);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions.slice(-100))); // Keep last 100
-}
+    // Save inventory transaction
+    function saveInventoryTransaction(transactionData) {
+        try {
+            if (!transactionData || !transactionData.updates) {
+                console.error('[InventoryManager] Invalid transaction data');
+                return false;
+            }
+            
+            const existing = localStorage.getItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS);
+            const transactions = existing ? JSON.parse(existing) : [];
+            
+            // Get product details for updates
+            const enhancedUpdates = transactionData.updates.map(update => {
+                let product = null;
+                if (ProductsManager) {
+                    product = ProductsManager.getProductById(update.productId);
+                }
+                
+                return {
+                    productId: update.productId,
+                    productName: update.productName || product?.name || 'Unknown',
+                    previousStock: update.oldStock || update.previousStock || 0,
+                    newStock: update.newStock || 0,
+                    quantity: update.quantity || 0,
+                    category: update.category || product?.category || 'Unknown',
+                    price: product ? (product.currentPrice || product.currentprice || 0) : 0
+                };
+            });
+            
+            // Create enhanced transaction
+            const enhancedTransaction = {
+                id: `TX-${new Date().toISOString().slice(0,10).replace(/-/g, '')}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+                type: transactionData.type || 'unknown',
+                timestamp: transactionData.timestamp || new Date().toISOString(),
+                performedBy: transactionData.performedBy || 'system',
+                referenceId: transactionData.referenceId || '',
+                notes: transactionData.notes || '',
+                updates: enhancedUpdates
+            };
+            
+            transactions.push(enhancedTransaction);
+            
+            // Keep only last 200 transactions to prevent localStorage overflow
+            const trimmedTransactions = transactions.slice(-200);
+            localStorage.setItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS, JSON.stringify(trimmedTransactions));
+            
+            console.log(`[InventoryManager] Transaction saved: ${enhancedTransaction.id}`);
+            return true;
+            
+        } catch (error) {
+            console.error('[InventoryManager] Failed to save transaction:', error);
+            return false;
+        }
+    }
     
     // Get inventory transactions
     function getInventoryTransactions() {
-        const STORAGE_KEY = 'beautyhub_inventory_transactions';
-        const existing = localStorage.getItem(STORAGE_KEY);
-        return existing ? JSON.parse(existing) : [];
-    }
-
- //=============================================
-    // getInventoryTransactionsReport()
-//=============================================
-// Get comprehensive inventory report for analytics
-function getInventoryTransactionsReport(filters = {}) {
-    const transactions = getInventoryTransactions();
-    let filtered = transactions;
-    
-    // Apply filters
-    if (filters.productId) {
-        filtered = filtered.filter(t => 
-            t.updates.some(u => u.productId === filters.productId)
-        );
-    }
-    if (filters.type) {
-        filtered = filtered.filter(t => t.type === filters.type);
-    }
-    if (filters.category && ProductsManager) {
-        filtered = filtered.filter(t => 
-            t.updates.some(u => 
-                ProductsManager.getProductById(u.productId)?.category === filters.category
-            )
-        );
+        try {
+            const existing = localStorage.getItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS);
+            return existing ? JSON.parse(existing) : [];
+        } catch (error) {
+            console.error('[InventoryManager] Failed to get transactions:', error);
+            return [];
+        }
     }
     
-    // Get unique products from transactions
-    const productMap = new Map();
-    filtered.forEach(transaction => {
-        transaction.updates.forEach(update => {
-            if (!productMap.has(update.productId)) {
-                const product = ProductsManager.getProductById(update.productId);
-                productMap.set(update.productId, {
-                    id: update.productId,
-                    name: update.productName,
-                    category: update.category || product?.category || 'Unknown',
-                    currentStock: product?.stock || 0,
-                    salesCount: product?.salesCount || 0,
-                    lastUpdated: product?.updatedAt || transaction.timestamp,
-                    transactions: []
-                });
+    // Get comprehensive inventory report for analytics
+    function getInventoryTransactionsReport(filters = {}) {
+        try {
+            const transactions = getInventoryTransactions();
+            let filtered = transactions;
+            
+            // Apply filters
+            if (filters.productId) {
+                filtered = filtered.filter(t => 
+                    t.updates && t.updates.some(u => u.productId === filters.productId)
+                );
             }
-            productMap.get(update.productId).transactions.push({
-                type: transaction.type,
-                timestamp: transaction.timestamp,
-                quantity: update.quantity,
-                previousStock: update.previousStock || update.oldStock,
-                newStock: update.newStock,
-                performedBy: transaction.performedBy,
-                referenceId: transaction.referenceId,
-                notes: transaction.notes
+            
+            if (filters.type) {
+                filtered = filtered.filter(t => t.type === filters.type);
+            }
+            
+            if (filters.startDate) {
+                filtered = filtered.filter(t => new Date(t.timestamp) >= new Date(filters.startDate));
+            }
+            
+            if (filters.endDate) {
+                filtered = filtered.filter(t => new Date(t.timestamp) <= new Date(filters.endDate));
+            }
+            
+            // Get unique products from transactions
+            const productMap = new Map();
+            
+            filtered.forEach(transaction => {
+                if (!transaction.updates) return;
+                
+                transaction.updates.forEach(update => {
+                    if (!productMap.has(update.productId)) {
+                        const product = ProductsManager ? ProductsManager.getProductById(update.productId) : null;
+                        productMap.set(update.productId, {
+                            id: update.productId,
+                            name: update.productName || product?.name || 'Unknown',
+                            category: update.category || product?.category || 'Unknown',
+                            currentStock: product ? (parseInt(product.stock) || 0) : 0,
+                            currentPrice: product ? (product.currentPrice || product.currentprice || 0) : 0,
+                            retailPrice: product ? (product.retailPrice || product.retailprice || 0) : 0,
+                            wholesalePrice: product ? (product.wholesalePrice || product.wholesaleprice || 0) : 0,
+                            salesCount: product?.salesCount || 0,
+                            lastUpdated: product?.updatedAt || transaction.timestamp,
+                            transactions: []
+                        });
+                    }
+                    
+                    productMap.get(update.productId).transactions.push({
+                        transactionId: transaction.id,
+                        type: transaction.type,
+                        timestamp: transaction.timestamp,
+                        quantity: update.quantity || 0,
+                        previousStock: update.previousStock || 0,
+                        newStock: update.newStock || 0,
+                        performedBy: transaction.performedBy,
+                        referenceId: transaction.referenceId,
+                        notes: transaction.notes
+                    });
+                });
             });
-        });
-    });
-    
-    return {
-        summary: {
-            totalTransactions: filtered.length,
-            totalProducts: productMap.size,
-            totalStockChanges: filtered.reduce((sum, t) => 
-                sum + t.updates.reduce((s, u) => s + Math.abs(u.quantity), 0), 0
-            )
-        },
-        products: Array.from(productMap.values()).map(product => ({
-            ...product,
-            transactionCount: product.transactions.length
-        })),
-        recentTransactions: filtered.slice(-10).map(t => ({
-            id: t.id,
-            type: t.type,
-            timestamp: t.timestamp,
-            performedBy: t.performedBy,
-            productCount: t.updates.length
-        }))
-    };
-}
+            
+            // Calculate statistics
+            const totalStockChanges = filtered.reduce((sum, t) => {
+                if (!t.updates) return sum;
+                return sum + t.updates.reduce((s, u) => s + Math.abs(u.quantity || 0), 0);
+            }, 0);
+            
+            const totalValueChanges = filtered.reduce((sum, t) => {
+                if (!t.updates) return sum;
+                return sum + t.updates.reduce((s, u) => {
+                    const product = ProductsManager ? ProductsManager.getProductById(u.productId) : null;
+                    const price = product ? (product.currentPrice || product.currentprice || 0) : 0;
+                    return s + (Math.abs(u.quantity || 0) * price);
+                }, 0);
+            }, 0);
+            
+            return {
+                summary: {
+                    totalTransactions: filtered.length,
+                    totalProducts: productMap.size,
+                    totalStockChanges: totalStockChanges,
+                    totalValueChanges: parseFloat(totalValueChanges.toFixed(2)),
+                    timeRange: {
+                        start: filtered.length > 0 ? filtered[0].timestamp : null,
+                        end: filtered.length > 0 ? filtered[filtered.length - 1].timestamp : null
+                    }
+                },
+                products: Array.from(productMap.values()).map(product => ({
+                    ...product,
+                    transactionCount: product.transactions.length,
+                    totalQuantityChanged: product.transactions.reduce((sum, t) => sum + Math.abs(t.quantity), 0)
+                })),
+                recentTransactions: filtered.slice(-10).map(t => ({
+                    id: t.id,
+                    type: t.type,
+                    timestamp: t.timestamp,
+                    performedBy: t.performedBy,
+                    productCount: t.updates ? t.updates.length : 0,
+                    totalQuantity: t.updates ? t.updates.reduce((sum, u) => sum + Math.abs(u.quantity || 0), 0) : 0
+                })),
+                transactionTypes: filtered.reduce((acc, t) => {
+                    acc[t.type] = (acc[t.type] || 0) + 1;
+                    return acc;
+                }, {})
+            };
+            
+        } catch (error) {
+            console.error('[InventoryManager] Failed to generate transactions report:', error);
+            return {
+                summary: { totalTransactions: 0, totalProducts: 0, totalStockChanges: 0 },
+                products: [],
+                recentTransactions: [],
+                transactionTypes: {}
+            };
+        }
+    }
     
     // Public API
     return {
@@ -378,6 +657,6 @@ function getInventoryTransactionsReport(filters = {}) {
         getStockHistory,
         updateStockManually,
         checkStockBeforeAddToCart,
-        getInventoryTransactionsReport // <-- ADD THIS LINE
+        getInventoryTransactionsReport
     };
 })();
