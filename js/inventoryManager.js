@@ -11,7 +11,7 @@ const InventoryManager = (function() {
         ORDERS: 'beautyhub_orders'
     };
     
-    // Initialize with dependencies
+// Initialize with dependencies
     function init(productsMgr, ordersMgr) {
         try {
             console.log('[InventoryManager] Initializing...');
@@ -44,7 +44,7 @@ const InventoryManager = (function() {
         }
     }
     
-    // Listen for new orders
+// Listen for new orders
     function setupOrderListener() {
         try {
             if (!OrdersManager) {
