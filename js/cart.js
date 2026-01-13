@@ -8,7 +8,6 @@
 // 5. Checkout integration with CustomerOrderManager
 // 6. Responsive notifications for cart actions
 // ========================================================
-
 const BeautyHubCart = (function() {
     // ========================================================
     // CONFIGURATION & CONSTANTS
