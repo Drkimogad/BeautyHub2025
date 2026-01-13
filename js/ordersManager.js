@@ -8,6 +8,7 @@
 // 4. Inventory integration with proper price tracking
 // 5. Enhanced order analytics with price type tracking
 // ========================================================
+
 const OrdersManager = (function() {
 // ========================================================
     // CONFIGURATION & CONSTANTS
