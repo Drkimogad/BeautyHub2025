@@ -1,5 +1,4 @@
 // productsManager.js - Product CRUD & Management System WITH FIRESTORE
-
 const ProductsManager = (function() {
     console.log('[ProductsManager] Initializing Products Manager module');
     
@@ -50,12 +49,10 @@ const ProductsManager = (function() {
         updatedAt: '',      // ISO string
         salesCount: 0       // Total units sold - NEW
     };
-    
     console.log('[ProductsManager] Product schema defined');
     
     // Initialize
     let products = [];
-    
     function init() {
         console.log('[ProductsManager] Initializing with Firestore:', CONFIG.USE_FIRESTORE);
         loadProducts();
@@ -77,11 +74,10 @@ const ProductsManager = (function() {
         };
     }
     
-    // ============================================
+// ============================================
     // FIRESTORE FUNCTIONS
-    // ============================================
-    
-    // Load products from Firestore
+// ============================================
+// Load products from Firestore
     async function loadProductsFromFirestore() {
         console.log('[ProductsManager] Starting Firestore load process');
         
@@ -125,8 +121,8 @@ const ProductsManager = (function() {
         }
     }
     
-    // Save product to Firestore
-    async function saveProductToFirestore(product) {
+// Save product to Firestore
+async function saveProductToFirestore(product) {
         console.log('[ProductsManager] Attempting to save product to Firestore:', product.id);
         
         if (!CONFIG.FIREBASE_READY() || !CONFIG.USE_FIRESTORE) {
@@ -149,8 +145,8 @@ const ProductsManager = (function() {
         }
     }
     
-    // Update product in Firestore
-    async function updateProductInFirestore(productId, updateData) {
+// Update product in Firestore
+async function updateProductInFirestore(productId, updateData) {
         console.log('[ProductsManager] Attempting to update product in Firestore:', productId);
         
         if (!CONFIG.FIREBASE_READY() || !CONFIG.USE_FIRESTORE) {
