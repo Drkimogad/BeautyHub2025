@@ -1,5 +1,6 @@
 // ========================================================
 // admin.js - Admin Authentication & Dashboard
+// UPDATED: Fixed property name alignment and module integration issues
 // Core Functionalities:
 // 1. Firebase Authentication for admin login
 // 2. Session management with localStorage
@@ -36,12 +37,14 @@ const AdminManager = (function() {
     let isAuthenticated = false;
     let adminModal = null;
     let dashboardModal = null;
+    let currentStatusFilter = 'pending';
 
     // ========================================================
     // INITIALIZATION
     // ========================================================
     function init() {
         console.log('[AdminManager] Initializing...');
+        
         try {
             checkExistingSession();
             createAdminModal();
@@ -52,9 +55,20 @@ const AdminManager = (function() {
             setupCrossTabOrderListener();
             
             console.log('[AdminManager] Initialization complete');
+            
+            return {
+                openAdminLogin,
+                closeAdminLogin,
+                openDashboard,
+                closeDashboard,
+                updateAdminButtonVisibility,
+                isAuthenticated: () => isAuthenticated,
+                handleLogin
+            };
+            
         } catch (error) {
             console.error('[AdminManager] Initialization failed:', error);
-            throw new Error('Admin system initialization failed: ' + error.message);
+            return null;
         }
     }
 
@@ -67,6 +81,7 @@ const AdminManager = (function() {
             const session = localStorage.getItem(CONFIG.SESSION_KEY);
             if (!session) {
                 console.log('[Auth] No session found in localStorage');
+                isAuthenticated = false;
                 return false;
             }
             
@@ -80,11 +95,13 @@ const AdminManager = (function() {
             } else {
                 console.log('[Auth] Session expired, removing');
                 localStorage.removeItem(CONFIG.SESSION_KEY);
+                isAuthenticated = false;
                 return false;
             }
         } catch (error) {
             console.error('[Auth] Session check error:', error);
             localStorage.removeItem(CONFIG.SESSION_KEY);
+            isAuthenticated = false;
             return false;
         }
     }
@@ -93,7 +110,8 @@ const AdminManager = (function() {
         try {
             const sessionData = {
                 email: email,
-                expiresAt: Date.now() + CONFIG.SESSION_DURATION
+                expiresAt: Date.now() + CONFIG.SESSION_DURATION,
+                created: new Date().toISOString()
             };
             localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(sessionData));
             isAuthenticated = true;
@@ -170,7 +188,6 @@ const AdminManager = (function() {
             console.log('[UI] Admin login modal created successfully');
         } catch (error) {
             console.error('[UI] Failed to create admin modal:', error);
-            throw new Error('Admin modal creation failed: ' + error.message);
         }
     }
 
@@ -194,7 +211,7 @@ const AdminManager = (function() {
                         </div>
                         
                         <div class="dashboard-header-right">
-                            <div id="admin-badge" class="admin-badge"></div>
+                            <div id="dashboard-badge" class="admin-badge"></div>
                             
                             <button id="logout-btn" class="dashboard-logout-btn">
                                 <i class="fas fa-sign-out-alt"></i>
@@ -247,27 +264,27 @@ const AdminManager = (function() {
                                         <!-- Status Filters -->
                                         <button class="status-filter active" data-status="pending">
                                             <i class="fas fa-clock"></i>
-                                            Pending <span class="filter-count">(0)</span>
+                                            Pending <span class="pending-count">(0)</span>
                                         </button>
                                         
                                         <button class="status-filter" data-status="paid">
                                             <i class="fas fa-money-bill-wave"></i>
-                                            Paid <span class="filter-count">(0)</span>
+                                            Paid <span class="paid-count">(0)</span>
                                         </button>
                                         
                                         <button class="status-filter" data-status="shipped">
                                             <i class="fas fa-truck"></i>
-                                            Shipped <span class="filter-count">(0)</span>
+                                            Shipped <span class="shipped-count">(0)</span>
                                         </button>
                                     </div>
                                 </div>
                                 
                                 <!-- Orders Container -->
                                 <div id="dashboard-orders-container" class="orders-container">
-                                    <div class="no-orders">
-                                        <i class="fas fa-inbox"></i>
-                                        <h3>No orders yet</h3>
-                                        <p>Orders will appear here when customers place them.</p>
+                                    <div class="loading-content">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <h3>Loading Orders...</h3>
+                                        <p>Please wait while we load your orders.</p>
                                     </div>
                                 </div>
                             </div>
@@ -343,7 +360,6 @@ const AdminManager = (function() {
             console.log('[UI] Dashboard modal created successfully');
         } catch (error) {
             console.error('[UI] Failed to create dashboard modal:', error);
-            throw new Error('Dashboard modal creation failed: ' + error.message);
         }
     }
 
@@ -353,14 +369,31 @@ const AdminManager = (function() {
     function updateAdminButtonVisibility() {
         try {
             const adminBtn = document.getElementById('admin-btn');
-            if (!adminBtn) {
-                console.warn('[UI] Admin button not found in DOM');
-                return;
+            const badge = document.getElementById('admin-badge');
+            
+            if (adminBtn) {
+                adminBtn.style.display = isAuthenticated ? 'flex' : 'flex';
             }
             
-            const badge = document.getElementById('admin-badge');
-            if (badge && typeof OrdersManager !== 'undefined') {
-                const pendingCount = OrdersManager.getPendingCount();
+            if (badge) {
+                let pendingCount = 0;
+                
+                // Try to get pending count from OrdersManager
+                if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.getPendingCount === 'function') {
+                    pendingCount = OrdersManager.getPendingCount();
+                } else {
+                    // Fallback: Check localStorage directly
+                    try {
+                        const ordersJSON = localStorage.getItem('beautyhub_orders');
+                        if (ordersJSON) {
+                            const orders = JSON.parse(ordersJSON) || [];
+                            pendingCount = orders.filter(order => order.status === 'pending').length;
+                        }
+                    } catch (error) {
+                        console.error('[UI] Failed to get pending count:', error);
+                    }
+                }
+                
                 badge.textContent = pendingCount > 0 ? pendingCount.toString() : '';
                 badge.style.display = pendingCount > 0 ? 'flex' : 'none';
                 console.log('[UI] Admin badge updated:', pendingCount);
@@ -373,12 +406,12 @@ const AdminManager = (function() {
     function openAdminLogin() {
         try {
             if (!adminModal) {
-                console.error('[UI] Admin modal not initialized');
-                return;
+                createAdminModal();
             }
             
             adminModal.style.display = 'flex';
-            document.getElementById('admin-email').focus();
+            const emailField = document.getElementById('admin-email');
+            if (emailField) emailField.focus();
             document.body.style.overflow = 'hidden';
             clearLoginError();
             console.log('[UI] Admin login modal opened');
@@ -410,8 +443,7 @@ const AdminManager = (function() {
             }
             
             if (!dashboardModal) {
-                console.error('[UI] Dashboard modal not initialized');
-                return;
+                createDashboardModal();
             }
             
             dashboardModal.style.display = 'flex';
@@ -443,25 +475,16 @@ const AdminManager = (function() {
         console.log('[Dashboard] Loading dashboard data...');
         
         try {
-            if (typeof OrdersManager === 'undefined') {
-                console.error('[Dashboard] OrdersManager not loaded');
-                return;
-            }
+            // Update order counts
+            updateOrderCounts();
             
-            const pendingCount = OrdersManager.getOrders('pending').length;
-            const paidCount = OrdersManager.getOrders('paid').length;
-            const shippedCount = OrdersManager.getOrders('shipped').length;
-            const totalOrders = OrdersManager.getOrders().length;
+            // Render orders for current filter
+            renderDashboardOrders(currentStatusFilter);
             
-            console.log('[Dashboard] Order counts:', {
-                total: totalOrders,
-                pending: pendingCount,
-                paid: paidCount,
-                shipped: shippedCount
-            });
+            // Update dashboard badge
+            updateDashboardBadge();
             
-            updateOrderCounts(totalOrders, pendingCount, paidCount, shippedCount);
-            renderDashboardOrders('pending');
+            console.log('[Dashboard] Dashboard data loaded');
             
         } catch (error) {
             console.error('[Dashboard] Failed to load data:', error);
@@ -469,19 +492,88 @@ const AdminManager = (function() {
         }
     }
 
-    function updateOrderCounts(total, pending, paid, shipped) {
+    function updateOrderCounts() {
         try {
-            const ordersCount = document.getElementById('orders-count');
-            if (ordersCount) ordersCount.textContent = `(${total})`;
+            let totalOrders = 0;
+            let pendingCount = 0;
+            let paidCount = 0;
+            let shippedCount = 0;
             
-            const counts = [pending, paid, shipped];
-            document.querySelectorAll('.filter-count').forEach((el, index) => {
-                if (counts[index] !== undefined) {
-                    el.textContent = `(${counts[index]})`;
+            // Try to get counts from OrdersManager
+            if (typeof OrdersManager !== 'undefined') {
+                if (typeof OrdersManager.getOrders === 'function') {
+                    const allOrders = OrdersManager.getOrders();
+                    totalOrders = allOrders.length;
+                    pendingCount = OrdersManager.getOrders('pending').length;
+                    paidCount = OrdersManager.getOrders('paid').length;
+                    shippedCount = OrdersManager.getOrders('shipped').length;
                 }
+            } else {
+                // Fallback: Read from localStorage
+                try {
+                    const ordersJSON = localStorage.getItem('beautyhub_orders');
+                    if (ordersJSON) {
+                        const orders = JSON.parse(ordersJSON) || [];
+                        totalOrders = orders.length;
+                        pendingCount = orders.filter(o => o.status === 'pending').length;
+                        paidCount = orders.filter(o => o.status === 'paid').length;
+                        shippedCount = orders.filter(o => o.status === 'shipped').length;
+                    }
+                } catch (error) {
+                    console.error('[Dashboard] Failed to read orders from localStorage:', error);
+                }
+            }
+            
+            // Update UI
+            const ordersCount = document.getElementById('orders-count');
+            if (ordersCount) ordersCount.textContent = `(${totalOrders})`;
+            
+            const pendingEl = document.querySelector('.pending-count');
+            const paidEl = document.querySelector('.paid-count');
+            const shippedEl = document.querySelector('.shipped-count');
+            
+            if (pendingEl) pendingEl.textContent = `(${pendingCount})`;
+            if (paidEl) paidEl.textContent = `(${paidCount})`;
+            if (shippedEl) shippedEl.textContent = `(${shippedCount})`;
+            
+            console.log('[Dashboard] Order counts updated:', {
+                total: totalOrders,
+                pending: pendingCount,
+                paid: paidCount,
+                shipped: shippedCount
             });
+            
         } catch (error) {
             console.error('[Dashboard] Failed to update order counts:', error);
+        }
+    }
+
+    function updateDashboardBadge() {
+        try {
+            const badge = document.getElementById('dashboard-badge');
+            if (!badge) return;
+            
+            let pendingCount = 0;
+            
+            if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.getPendingCount === 'function') {
+                pendingCount = OrdersManager.getPendingCount();
+            } else {
+                try {
+                    const ordersJSON = localStorage.getItem('beautyhub_orders');
+                    if (ordersJSON) {
+                        const orders = JSON.parse(ordersJSON) || [];
+                        pendingCount = orders.filter(order => order.status === 'pending').length;
+                    }
+                } catch (error) {
+                    console.error('[Dashboard] Failed to get pending count for badge:', error);
+                }
+            }
+            
+            badge.textContent = pendingCount > 0 ? pendingCount.toString() : '';
+            badge.style.display = pendingCount > 0 ? 'flex' : 'none';
+            
+        } catch (error) {
+            console.error('[Dashboard] Failed to update dashboard badge:', error);
         }
     }
 
@@ -493,98 +585,138 @@ const AdminManager = (function() {
                 return;
             }
             
-            if (typeof OrdersManager === 'undefined') {
-                container.innerHTML = getNoOrdersHTML('Orders system not available');
-                return;
-            }
+            // Show loading state
+            container.innerHTML = `
+                <div class="loading-content">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <h3>Loading ${status} orders...</h3>
+                </div>
+            `;
             
-            const orders = OrdersManager.getOrders(status);
-            console.log(`[Dashboard] Rendering ${orders.length} ${status} orders`);
-            
-            if (orders.length === 0) {
-                container.innerHTML = getNoOrdersHTML(`No ${status} orders`, 
-                    status === 'pending' ? 'All orders are processed!' : 'No orders in this category.');
-                return;
-            }
-            
-            container.innerHTML = getOrdersGridHTML(orders);
+            setTimeout(() => {
+                try {
+                    let orders = [];
+                    
+                    if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.getOrders === 'function') {
+                        orders = OrdersManager.getOrders(status);
+                    } else {
+                        // Fallback: Read from localStorage
+                        const ordersJSON = localStorage.getItem('beautyhub_orders');
+                        if (ordersJSON) {
+                            const allOrders = JSON.parse(ordersJSON) || [];
+                            orders = allOrders.filter(order => order.status === status);
+                        }
+                    }
+                    
+                    console.log(`[Dashboard] Rendering ${orders.length} ${status} orders`);
+                    
+                    if (orders.length === 0) {
+                        container.innerHTML = getNoOrdersHTML(`No ${status} orders`, 
+                            status === 'pending' ? 'All orders are processed!' : 'No orders in this category.');
+                        return;
+                    }
+                    
+                    container.innerHTML = getOrdersGridHTML(orders);
+                    
+                } catch (error) {
+                    console.error('[Dashboard] Failed to render orders:', error);
+                    container.innerHTML = getNoOrdersHTML('Error loading orders', 'Please try refreshing.');
+                }
+            }, 300);
             
         } catch (error) {
             console.error('[Dashboard] Failed to render orders:', error);
-            const container = document.getElementById('dashboard-orders-container');
-            if (container) {
-                container.innerHTML = getNoOrdersHTML('Error loading orders');
-            }
         }
     }
 
     function getOrdersGridHTML(orders) {
-        return `
-            <div class="dashboard-orders-grid">
-                ${orders.map(order => getOrderCardHTML(order)).join('')}
-            </div>
-        `;
+        try {
+            const orderCards = orders.map(order => getOrderCardHTML(order)).join('');
+            return `
+                <div class="dashboard-orders-grid">
+                    ${orderCards}
+                </div>
+            `;
+        } catch (error) {
+            console.error('[Dashboard] Failed to generate orders grid:', error);
+            return getNoOrdersHTML('Error displaying orders');
+        }
     }
 
     function getOrderCardHTML(order) {
-        const statusColors = {
-            pending: '#ff9800',
-            paid: '#2196f3',
-            shipped: '#4caf50'
-        };
-        
-        const orderDate = new Date(order.createdAt).toLocaleDateString();
-        const orderTime = new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        
-        return `
-            <div class="dashboard-order-card" data-order-id="${order.id}">
-                <div class="order-card-header">
-                    <div class="order-info">
-                        <div class="order-status-badge" style="background: ${statusColors[order.status] || '#666'}">
-                            ${order.status.toUpperCase()}
+        try {
+            const statusColors = {
+                pending: '#ff9800',
+                paid: '#2196f3',
+                shipped: '#4caf50',
+                cancelled: '#9e9e9e'
+            };
+            
+            // Use property fallbacks
+            const orderId = order.id || 'N/A';
+            const status = order.status || 'pending';
+            const createdAt = order.createdAt ? new Date(order.createdAt) : new Date();
+            const orderDate = createdAt.toLocaleDateString();
+            const orderTime = createdAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const totalAmount = parseFloat(order.totalAmount || order.total || 0);
+            const itemCount = Array.isArray(order.items) ? order.items.length : 0;
+            const firstName = order.firstName || order.firstName || '';
+            const surname = order.surname || order.lastName || '';
+            const customerPhone = order.customerPhone || order.phone || '';
+            
+            return `
+                <div class="dashboard-order-card" data-order-id="${orderId}">
+                    <div class="order-card-header">
+                        <div class="order-info">
+                            <div class="order-status-badge" style="background: ${statusColors[status] || '#666'}">
+                                ${status.toUpperCase()}
+                            </div>
+                            <span class="order-id">${orderId}</span>
+                            <span class="order-time">${orderDate} ${orderTime}</span>
                         </div>
-                        <span class="order-id">${order.id}</span>
-                        <span class="order-time">${orderDate} ${orderTime}</span>
-                    </div>
-                    
-                    <div class="order-summary">
-                        <div class="order-total">R${order.totalAmount.toFixed(2)}</div>
-                        <div class="order-items">${order.items.length} item${order.items.length !== 1 ? 's' : ''}</div>
-                    </div>
-                </div>
-                
-                <div class="order-details">
-                    <div class="customer-info">
-                        <div class="customer-name">${order.firstName} ${order.surname}</div>
-                        <div class="customer-phone">
-                            <i class="fas fa-phone"></i>
-                            ${order.customerPhone}
+                        
+                        <div class="order-summary">
+                            <div class="order-total">R${totalAmount.toFixed(2)}</div>
+                            <div class="order-items">${itemCount} item${itemCount !== 1 ? 's' : ''}</div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="order-actions">
-                    <button class="dashboard-action-btn view-order" data-order-id="${order.id}">
-                        <i class="fas fa-eye"></i>
-                        Details
-                    </button>
                     
-                    ${order.status === 'pending' ? `
-                    <button class="dashboard-action-btn mark-paid" data-order-id="${order.id}">
-                        <i class="fas fa-money-bill-wave"></i>
-                        Paid
-                    </button>
-                    ` : ''}
+                    <div class="order-details">
+                        <div class="customer-info">
+                            <div class="customer-name">${firstName} ${surname}</div>
+                            <div class="customer-phone">
+                                <i class="fas fa-phone"></i>
+                                ${customerPhone}
+                            </div>
+                        </div>
+                    </div>
                     
-                    ${order.status === 'paid' || order.status === 'pending' ? `
-                    <button class="dashboard-action-btn mark-shipped" data-order-id="${order.id}">
-                        <i class="fas fa-truck"></i>
-                        Ship
-                    </button>
-                    ` : ''}
+                    <div class="order-actions">
+                        <button class="dashboard-action-btn view-order" data-order-id="${orderId}">
+                            <i class="fas fa-eye"></i>
+                            Details
+                        </button>
+                        
+                        ${status === 'pending' ? `
+                        <button class="dashboard-action-btn mark-paid" data-order-id="${orderId}">
+                            <i class="fas fa-money-bill-wave"></i>
+                            Paid
+                        </button>
+                        ` : ''}
+                        
+                        ${(status === 'paid' || status === 'pending') ? `
+                        <button class="dashboard-action-btn mark-shipped" data-order-id="${orderId}">
+                            <i class="fas fa-truck"></i>
+                            Ship
+                        </button>
+                        ` : ''}
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+        } catch (error) {
+            console.error('[Dashboard] Failed to generate order card:', error);
+            return '<div class="error-order-card">Error loading order</div>';
+        }
     }
 
     function getNoOrdersHTML(title, message = '') {
@@ -617,8 +749,8 @@ const AdminManager = (function() {
         console.log('[Auth] Login attempt initiated');
         
         try {
-            const email = document.getElementById('admin-email').value.trim();
-            const password = document.getElementById('admin-password').value;
+            const email = document.getElementById('admin-email')?.value.trim();
+            const password = document.getElementById('admin-password')?.value;
             
             if (!email || !password) {
                 showLoginError('Please enter both email and password');
@@ -685,7 +817,8 @@ const AdminManager = (function() {
         }
         
         showLoginError(errorMessage);
-        document.getElementById('admin-password').value = '';
+        const passwordField = document.getElementById('admin-password');
+        if (passwordField) passwordField.value = '';
     }
 
     function handleLogout() {
@@ -801,6 +934,7 @@ const AdminManager = (function() {
 
     function handleAdminButtonClick(e) {
         if (e.target.id === 'admin-btn' || e.target.closest('#admin-btn')) {
+            e.preventDefault();
             if (isAuthenticated) {
                 openDashboard();
             } else {
@@ -847,34 +981,43 @@ const AdminManager = (function() {
     }
 
     function handleTabSwitch(e) {
-        const tab = e.target.closest('.dashboard-tab');
-        const tabName = tab.dataset.tab;
-        
-        // Update active tab styles
-        document.querySelectorAll('.dashboard-tab').forEach(t => {
-            t.classList.toggle('active', t === tab);
-        });
-        
-        // Show corresponding content
-        document.querySelectorAll('.tab-pane').forEach(pane => {
-            pane.style.display = pane.id === `${tabName}-tab-content` ? 'flex' : 'none';
-        });
-        
-        // Handle specific tab content loading
-        if (tabName === 'products' && typeof ProductsManager !== 'undefined') {
-            loadProductsTab();
+        try {
+            const tab = e.target.closest('.dashboard-tab');
+            const tabName = tab.dataset.tab;
+            
+            // Update active tab styles
+            document.querySelectorAll('.dashboard-tab').forEach(t => {
+                t.classList.toggle('active', t === tab);
+            });
+            
+            // Show corresponding content
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.style.display = pane.id === `${tabName}-tab-content` ? 'flex' : 'none';
+            });
+            
+            // Handle specific tab content loading
+            if (tabName === 'products') {
+                loadProductsTab();
+            }
+        } catch (error) {
+            console.error('[Dashboard] Tab switch error:', error);
         }
     }
 
     function handleStatusFilter(e) {
-        const filter = e.target.closest('.status-filter');
-        const status = filter.dataset.status;
-        
-        document.querySelectorAll('.status-filter').forEach(f => {
-            f.classList.toggle('active', f === filter);
-        });
-        
-        renderDashboardOrders(status);
+        try {
+            const filter = e.target.closest('.status-filter');
+            const status = filter.dataset.status;
+            
+            document.querySelectorAll('.status-filter').forEach(f => {
+                f.classList.toggle('active', f === filter);
+            });
+            
+            currentStatusFilter = status;
+            renderDashboardOrders(status);
+        } catch (error) {
+            console.error('[Dashboard] Status filter error:', error);
+        }
     }
 
     function handleAnalyticsButtons(e) {
@@ -906,28 +1049,34 @@ const AdminManager = (function() {
         const orderId = e.target.dataset.orderId;
         if (!orderId) return;
         
-        if (e.target.classList.contains('view-order') || e.target.closest('.view-order')) {
-            if (typeof OrdersManager !== 'undefined') {
-                OrdersManager.showOrderDetails(orderId);
-            }
-        }
-        
-        if (e.target.classList.contains('mark-paid') || e.target.closest('.mark-paid')) {
-            if (typeof OrdersManager !== 'undefined') {
-                if (OrdersManager.markAsPaid(orderId)) {
-                    loadDashboardData();
-                    updateAdminButtonVisibility();
+        try {
+            if (e.target.classList.contains('view-order') || e.target.closest('.view-order')) {
+                if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.showOrderDetails === 'function') {
+                    OrdersManager.showOrderDetails(orderId);
+                } else {
+                    alert(`Order details for ${orderId} - Feature not available`);
                 }
             }
-        }
-        
-        if (e.target.classList.contains('mark-shipped') || e.target.closest('.mark-shipped')) {
-            if (typeof OrdersManager !== 'undefined') {
-                if (OrdersManager.markAsShipped(orderId)) {
-                    loadDashboardData();
-                    updateAdminButtonVisibility();
+            
+            if (e.target.classList.contains('mark-paid') || e.target.closest('.mark-paid')) {
+                if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.markAsPaid === 'function') {
+                    if (OrdersManager.markAsPaid(orderId)) {
+                        loadDashboardData();
+                        updateAdminButtonVisibility();
+                    }
                 }
             }
+            
+            if (e.target.classList.contains('mark-shipped') || e.target.closest('.mark-shipped')) {
+                if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.markAsShipped === 'function') {
+                    if (OrdersManager.markAsShipped(orderId)) {
+                        loadDashboardData();
+                        updateAdminButtonVisibility();
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('[Dashboard] Order action error:', error);
         }
     }
 
@@ -980,6 +1129,7 @@ const AdminManager = (function() {
                 if (dashboardModal && dashboardModal.style.display === 'flex') {
                     console.log('[CrossTab] Dashboard is open, refreshing data');
                     loadDashboardData();
+                    updateAdminButtonVisibility();
                 }
             }
         });
@@ -999,7 +1149,13 @@ const AdminManager = (function() {
             }
             
             const modal = createOrGetModal('inventory-tracking-modal');
-            const report = InventoryManager.getInventoryTransactionsReport();
+            
+            let report = { summary: {}, recentTransactions: [] };
+            
+            // Safely get report
+            if (typeof InventoryManager.getInventoryTransactionsReport === 'function') {
+                report = InventoryManager.getInventoryTransactionsReport() || report;
+            }
             
             modal.innerHTML = getInventoryTrackingModalHTML(report);
             modal.style.display = 'flex';
@@ -1008,7 +1164,7 @@ const AdminManager = (function() {
             
         } catch (error) {
             console.error('[Analytics] Failed to show inventory tracking modal:', error);
-            alert('Failed to open inventory tracking: ' + error.message);
+            alert('Failed to open inventory tracking');
         }
     }
 
@@ -1016,15 +1172,24 @@ const AdminManager = (function() {
         console.log('[Analytics] Opening Inventory Report Modal');
         
         try {
-            if (typeof ProductsManager === 'undefined') {
-                console.error('[Analytics] ProductsManager not loaded');
-                alert('Products data not available');
-                return;
+            let products = [];
+            
+            // Try to get products from ProductsManager
+            if (typeof ProductsManager !== 'undefined' && typeof ProductsManager.getProducts === 'function') {
+                products = ProductsManager.getProducts({ activeOnly: true }) || [];
+            } else {
+                // Fallback: Try localStorage
+                try {
+                    const productsJSON = localStorage.getItem('beautyhub_products');
+                    if (productsJSON) {
+                        products = JSON.parse(productsJSON) || [];
+                    }
+                } catch (error) {
+                    console.error('[Analytics] Failed to get products from localStorage:', error);
+                }
             }
             
             const modal = createOrGetModal('inventory-report-modal');
-            const products = ProductsManager.getProducts({ activeOnly: true });
-            
             modal.innerHTML = getInventoryReportModalHTML(products);
             modal.style.display = 'flex';
             
@@ -1032,7 +1197,7 @@ const AdminManager = (function() {
             
         } catch (error) {
             console.error('[Analytics] Failed to show inventory report modal:', error);
-            alert('Failed to open inventory report: ' + error.message);
+            alert('Failed to open inventory report');
         }
     }
 
@@ -1062,6 +1227,9 @@ const AdminManager = (function() {
     }
 
     function getInventoryTrackingModalHTML(report) {
+        const summary = report.summary || {};
+        const transactions = report.recentTransactions || [];
+        
         return `
             <div class="inventory-modal-content">
                 <div class="inventory-modal-header">
@@ -1073,23 +1241,23 @@ const AdminManager = (function() {
                 <div class="inventory-modal-body">
                     <div class="inventory-summary">
                         <div class="summary-item">
-                            <div class="summary-value">${report?.summary?.totalTransactions || 0}</div>
+                            <div class="summary-value">${summary.totalTransactions || 0}</div>
                             <div class="summary-label">Total Transactions</div>
                         </div>
                         <div class="summary-item">
-                            <div class="summary-value">${report?.summary?.totalProducts || 0}</div>
+                            <div class="summary-value">${summary.totalProducts || 0}</div>
                             <div class="summary-label">Products Tracked</div>
                         </div>
                         <div class="summary-item">
-                            <div class="summary-value">${report?.summary?.totalStockChanges || 0}</div>
+                            <div class="summary-value">${summary.totalStockChanges || 0}</div>
                             <div class="summary-label">Stock Changes</div>
                         </div>
                     </div>
                     
                     <h3>Recent Transactions</h3>
                     <div class="transactions-list">
-                        ${report?.recentTransactions?.length ? 
-                            report.recentTransactions.map(t => getTransactionHTML(t)).join('') : 
+                        ${transactions.length ? 
+                            transactions.map(t => getTransactionHTML(t)).join('') : 
                             '<div class="no-data">No transactions yet</div>'
                         }
                     </div>
@@ -1111,24 +1279,33 @@ const AdminManager = (function() {
 
     function getTransactionHTML(transaction) {
         const typeColor = transaction.type === 'order_deduction' ? '#4CAF50' : '#2196f3';
+        const transactionId = transaction.id || 'N/A';
+        const timestamp = transaction.timestamp ? new Date(transaction.timestamp).toLocaleString() : 'Unknown';
+        const transactionType = transaction.type || 'Unknown';
         
         return `
             <div class="transaction-item">
                 <div class="transaction-info">
-                    <div class="transaction-id">${transaction.id}</div>
-                    <div class="transaction-time">${new Date(transaction.timestamp).toLocaleString()}</div>
+                    <div class="transaction-id">${transactionId}</div>
+                    <div class="transaction-time">${timestamp}</div>
                 </div>
                 <div class="transaction-type" style="background: ${typeColor}">
-                    ${transaction.type}
+                    ${transactionType}
                 </div>
             </div>
         `;
     }
 
     function getInventoryReportModalHTML(products) {
-        const totalStock = products.reduce((sum, p) => sum + p.stock, 0);
-        const lowStockCount = products.filter(p => p.stock <= 5 && p.stock > 0).length;
-        const outOfStockCount = products.filter(p => p.stock === 0).length;
+        const totalStock = products.reduce((sum, p) => sum + (parseInt(p.stock) || 0), 0);
+        const lowStockCount = products.filter(p => {
+            const stock = parseInt(p.stock) || 0;
+            return stock <= 5 && stock > 0;
+        }).length;
+        const outOfStockCount = products.filter(p => {
+            const stock = parseInt(p.stock) || 0;
+            return stock === 0;
+        }).length;
         
         return `
             <div class="inventory-report-content">
@@ -1199,64 +1376,96 @@ const AdminManager = (function() {
     }
 
     function getProductRowHTML(product) {
-        const stockColor = product.stock === 0 ? '#f44336' : product.stock <= 5 ? '#FF9800' : '#4CAF50';
+        const stock = parseInt(product.stock) || 0;
+        const stockColor = stock === 0 ? '#f44336' : stock <= 5 ? '#FF9800' : '#4CAF50';
+        const productId = product.id || 'N/A';
+        const productName = product.name || 'Unknown';
+        const category = product.category || 'Uncategorized';
+        const salesCount = product.salesCount || 0;
+        const updatedAt = product.updatedAt ? new Date(product.updatedAt).toLocaleDateString() : 'N/A';
         
         return `
             <tr>
-                <td>${product.id}</td>
-                <td>${product.name}</td>
-                <td class="category-cell">${product.category}</td>
-                <td class="stock-cell" style="color: ${stockColor}">${product.stock}</td>
-                <td>${product.salesCount || 0}</td>
+                <td>${productId}</td>
+                <td>${productName}</td>
+                <td class="category-cell">${category}</td>
+                <td class="stock-cell" style="color: ${stockColor}">${stock}</td>
+                <td>${salesCount}</td>
                 <td class="date-cell">
-                    ${product.updatedAt ? new Date(product.updatedAt).toLocaleDateString() : 'N/A'}
+                    ${updatedAt}
                 </td>
             </tr>
         `;
     }
 
     function setupInventoryTrackingModalEvents(modal) {
-        document.getElementById('close-inventory-tracking').onclick = () => {
-            modal.style.display = 'none';
-        };
-        
-        document.getElementById('refresh-inventory-btn').onclick = () => {
-            console.log('[Analytics] Refreshing inventory data');
-            showInventoryTrackingModal();
-        };
-        
-        document.getElementById('export-inventory-btn').onclick = () => {
-            console.log('[Analytics] Export inventory data clicked');
-            alert('Export feature coming soon');
-        };
-        
-        modal.onclick = (e) => {
-            if (e.target === modal) {
-                modal.style.display = 'none';
+        try {
+            const closeBtn = document.getElementById('close-inventory-tracking');
+            if (closeBtn) {
+                closeBtn.onclick = () => {
+                    modal.style.display = 'none';
+                };
             }
-        };
+            
+            const refreshBtn = document.getElementById('refresh-inventory-btn');
+            if (refreshBtn) {
+                refreshBtn.onclick = () => {
+                    console.log('[Analytics] Refreshing inventory data');
+                    showInventoryTrackingModal();
+                };
+            }
+            
+            const exportBtn = document.getElementById('export-inventory-btn');
+            if (exportBtn) {
+                exportBtn.onclick = () => {
+                    console.log('[Analytics] Export inventory data clicked');
+                    alert('Export feature coming soon');
+                };
+            }
+            
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            };
+        } catch (error) {
+            console.error('[Analytics] Failed to setup modal events:', error);
+        }
     }
 
     function setupInventoryReportModalEvents(modal) {
-        document.getElementById('close-inventory-report').onclick = () => {
-            modal.style.display = 'none';
-        };
-        
-        document.getElementById('print-report-btn').onclick = () => {
-            console.log('[Analytics] Print report clicked');
-            window.print();
-        };
-        
-        document.getElementById('export-report-btn').onclick = () => {
-            console.log('[Analytics] Export CSV clicked');
-            alert('CSV export coming soon');
-        };
-        
-        modal.onclick = (e) => {
-            if (e.target === modal) {
-                modal.style.display = 'none';
+        try {
+            const closeBtn = document.getElementById('close-inventory-report');
+            if (closeBtn) {
+                closeBtn.onclick = () => {
+                    modal.style.display = 'none';
+                };
             }
-        };
+            
+            const printBtn = document.getElementById('print-report-btn');
+            if (printBtn) {
+                printBtn.onclick = () => {
+                    console.log('[Analytics] Print report clicked');
+                    window.print();
+                };
+            }
+            
+            const exportBtn = document.getElementById('export-report-btn');
+            if (exportBtn) {
+                exportBtn.onclick = () => {
+                    console.log('[Analytics] Export CSV clicked');
+                    alert('CSV export coming soon');
+                };
+            }
+            
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            };
+        } catch (error) {
+            console.error('[Analytics] Failed to setup report modal events:', error);
+        }
     }
 
     // ========================================================
@@ -1279,14 +1488,25 @@ const AdminManager = (function() {
             `;
             
             setTimeout(() => {
-                if (typeof ProductsManager !== 'undefined') {
-                    ProductsManager.renderProductsAdmin('products-tab-content');
-                } else {
+                try {
+                    if (typeof ProductsManager !== 'undefined' && typeof ProductsManager.renderProductsAdmin === 'function') {
+                        ProductsManager.renderProductsAdmin('products-tab-content');
+                    } else {
+                        productsTab.innerHTML = `
+                            <div class="error-content">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <h3>Products Manager Not Loaded</h3>
+                                <p>Please refresh the page or check console for errors.</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('[Products] Failed to load products:', error);
                     productsTab.innerHTML = `
                         <div class="error-content">
                             <i class="fas fa-exclamation-triangle"></i>
-                            <h3>Products Manager Not Loaded</h3>
-                            <p>Please refresh the page or check console for errors.</p>
+                            <h3>Error Loading Products</h3>
+                            <p>${error.message || 'Unknown error occurred'}</p>
                         </div>
                     `;
                 }
@@ -1294,31 +1514,6 @@ const AdminManager = (function() {
             
         } catch (error) {
             console.error('[Products] Failed to load products tab:', error);
-        }
-    }
-
-    // ========================================================
-    // DEBUGGING FUNCTIONS
-    // ========================================================
-    function testAnalyticsButtons() {
-        console.log('=== TESTING ANALYTICS BUTTONS ===');
-        console.log('1. Track Inventory button exists:', !!document.getElementById('track-inventory-btn'));
-        console.log('2. Inventory Report button exists:', !!document.getElementById('inventory-report-btn'));
-        console.log('3. ProductsManager loaded:', typeof ProductsManager !== 'undefined');
-        console.log('4. InventoryManager loaded:', typeof InventoryManager !== 'undefined');
-        
-        // Try clicking programmatically
-        const trackBtn = document.getElementById('track-inventory-btn');
-        const reportBtn = document.getElementById('inventory-report-btn');
-        
-        if (trackBtn) {
-            console.log('5. Clicking Track Inventory...');
-            trackBtn.click();
-        }
-        
-        if (reportBtn) {
-            console.log('6. Clicking Inventory Report...');
-            reportBtn.click();
         }
     }
 
