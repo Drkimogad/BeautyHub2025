@@ -977,6 +977,19 @@ document.querySelectorAll('.delete-product-btn').forEach(btn => {
                                    value="${product?.retailPrice || product?.currentprice || ''}"
                                    class="form-input">
                         </div>
+                        // Add this after the retail price field in showProductForm():
+<div class="form-group">
+    <label class="form-label">
+        Wholesale/Cost Price (R)
+    </label>
+    <input type="number" 
+           id="product-wholesale-price" 
+           min="0" 
+           step="0.01"
+           value="${product?.wholesalePrice || ''}"
+           class="form-input"
+           placeholder="What you pay for this product">
+</div>
                         
                         <div class="form-group">
                             <label class="form-label">
@@ -1118,6 +1131,7 @@ const calculatedPrice = discountPercent > 0
             name: document.getElementById('product-name').value,
             description: document.getElementById('product-description').value,
             category: document.getElementById('product-category').value,
+            wholesalePrice: parseFloat(document.getElementById('product-wholesale-price').value) || 0,
             retailPrice: retailPrice,
             discountPercent: discountPercent,
             currentprice: calculatedPrice,
