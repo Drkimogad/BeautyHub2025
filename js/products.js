@@ -3,9 +3,9 @@ const ProductsDisplay = (function() {
     // MODULE-LEVEL VARIABLE
     let fallbackCheck = null;  
     
-    // ==================================================
+// ==================================================
     // INIT FUNCTION
-    // ==================================================
+// ==================================================
     function init() {
         try {
             console.log('[ProductsDisplay] Initializing...');
@@ -65,9 +65,9 @@ const ProductsDisplay = (function() {
         }
     }
     
-    // ==================================================
+// ==================================================
     // RENDER PRODUCTS FUNCTION
-    // ==================================================
+// ==================================================
     function renderProducts() {   
         try {
             const container = document.getElementById('products-container');
