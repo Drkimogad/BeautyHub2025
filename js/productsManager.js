@@ -369,13 +369,13 @@ async function updateFromFirestoreInBackground() {
         console.log('[ProductsManager] Adding new product with data:', productData);
         
         // Calculate price if discount is provided
-        const retailPrice = parseFloat(productData.retailPrice) || parseFloat(productData.price) || 0;
+        const retailPrice = parseFloat(productData.retailPrice) || parseFloat(productData.currentprice) || 0;
         const discountPercent = parseFloat(productData.discountPercent) || 0;
         const calculatedPrice = discountPercent > 0 
             ? calculateDiscountedPrice(retailPrice, discountPercent)
-            : parseFloat(productData.price) || retailPrice;
+            : parseFloat(productData.currentprice) || retailPrice;
         
-        console.log('[ProductsManager] Price calculation:', {
+        console.log('[ProductsManager] currentPrice calculation:', {
             retailPrice,
             discountPercent,
             calculatedPrice
@@ -389,7 +389,7 @@ async function updateFromFirestoreInBackground() {
             category: productData.category || CONFIG.CATEGORIES[0],
             retailPrice: retailPrice,
             discountPercent: discountPercent,
-            price: calculatedPrice,
+            currentprice: calculatedPrice,
             isOnSale: Boolean(productData.isOnSale) || (discountPercent > 0),
             saleEndDate: productData.saleEndDate || "",
             stock: parseInt(productData.stock) || 0,
@@ -418,7 +418,7 @@ async function updateFromFirestoreInBackground() {
         console.log('[ProductsManager] Product added:', {
             id: newProduct.id,
             name: newProduct.name,
-            price: newProduct.price,
+            currentprice: newProduct.currentprice,
             discount: `${newProduct.discountPercent}%`,
             firestore: firestoreSuccess ? 'success' : 'failed',
             local: 'success'
@@ -437,29 +437,29 @@ async function updateFromFirestoreInBackground() {
             return false;
         }
         
-        // Calculate price if discount or original price is being updated
-        let updatedPrice = updateData.price;
-        const retailPrice = updateData.retailPrice !== undefined 
-            ? parseFloat(updateData.retailPrice) 
-            : products[index].retailPrice;
-        const discountPercent = updateData.discountPercent !== undefined 
-            ? parseFloat(updateData.discountPercent) 
-            : products[index].discountPercent;
+        // Calculate price if discount or retail price is being updated
+let updatedcurrentPrice = updateData.currentPrice;
+const retailPrice = updateData.retailPrice !== undefined 
+    ? parseFloat(updateData.retailPrice) 
+    : products[index].retailPrice;
+const discountPercent = updateData.discountPercent !== undefined 
+    ? parseFloat(updateData.discountPercent) 
+    : products[index].discountPercent;
         
         // Recalculate price if discount or original price changed
         if (updateData.discountPercent !== undefined || updateData.retailPrice !== undefined) {
-            updatedPrice = calculateDiscountedPrice(retailPrice, discountPercent);
+            updatedcurrentPrice = calculateDiscountedPrice(retailPrice, discountPercent);
             console.log('[ProductsManager] Price recalculated:', {
                 retaillPrice,
                 discountPercent,
-                updatedPrice
+                updatedcurrentPrice
             });
         }
         
         const updatedProduct = {
             ...products[index],
             ...updateData,
-            price: updatedPrice !== undefined ? updatedPrice : products[index].price,
+            currentprice: updatedcurrentPrice !== undefined ? updatedcurrentPrice : products[index].currentprice,
             isOnSale: updateData.isOnSale !== undefined 
                 ? updateData.isOnSale 
                 : (discountPercent > 0) || products[index].isOnSale,
@@ -481,7 +481,7 @@ async function updateFromFirestoreInBackground() {
         console.log('[ProductsManager] Product updated:', {
             id: productId,
             name: updatedProduct.name,
-            price: updatedProduct.price,
+            currentprice: updatedProduct.currentprice,
             discount: `${updatedProduct.discountPercent}%`,
             firestore: firestoreSuccess ? 'success' : 'failed',
             local: 'success'
@@ -620,12 +620,13 @@ async function updateFromFirestoreInBackground() {
 
     // Calculate price with discount
     function calculateDiscountedPrice(retailPrice, discountPercent) {
-        console.log('[ProductsManager] Calculating discounted price:', { retailPrice, discountPercent });
-        
-        if (!retailPrice || retailPrice <= 0) {
-            console.log('[ProductsManager] Invalid original price, returning 0');
-            return 0;
-        }
+    console.log('[ProductsManager] Calculating discounted price:', { retailPrice, discountPercent });
+    
+    if (!retailPrice || retailPrice <= 0) {
+        console.log('[ProductsManager] Invalid retail price, returning 0');
+        return 0;
+    }
+
         
         const discount = retailPrice * (discountPercent / 100);
         const finalPrice = Math.max(0, retailPrice - discount);
@@ -741,8 +742,8 @@ async function updateFromFirestoreInBackground() {
                                     <span>${product.category}</span>
                                 </div>
                                 
-                                <div class="product-price">
-                                    R${product.price.toFixed(2)}
+                                <div class="product-currentprice">
+                                    R${product.currentprice.toFixed(2)}
                                 </div>
                             </div>
                         </div>
@@ -954,26 +955,26 @@ document.querySelectorAll('.delete-product-btn').forEach(btn => {
                     <div class="form-grid-3">
                         <div class="form-group">
                             <label class="form-label">
-                                Price (R) *
+                                currentPrice (R) *
                             </label>
                             <input type="number" 
-                                   id="product-price" 
+                                   id="product-currentprice" 
                                    required 
                                    min="0" 
                                    step="0.01"
-                                   value="${product?.price || ''}"
+                                   value="${product?.currentprice || ''}"
                                    class="form-input">
                         </div>
                         
                         <div class="form-group">
                             <label class="form-label">
-                                Original Price (R)
+                                Retail Price (R)
                             </label>
                             <input type="number" 
-                                   id="product-original-price" 
+                                   id="product-retail-price" 
                                    min="0" 
                                    step="0.01"
-                                   value="${product?.retailPrice || product?.price || ''}"
+                                   value="${product?.retailPrice || product?.currentprice || ''}"
                                    class="form-input">
                         </div>
                         
@@ -1101,10 +1102,11 @@ document.querySelectorAll('.delete-product-btn').forEach(btn => {
         console.log('[ProductsManager] Handling product form submit:', productId);
         
         // Get form data
-        const retailPrice = parseFloat(document.getElementById('product-original-price').value) || 
-                             parseFloat(document.getElementById('product-price').value);
-        const discountPercent = parseFloat(document.getElementById('product-discount').value) || 0;
-        const calculatedPrice = calculateDiscountedPrice(retailPrice, discountPercent);
+    const retailPrice = parseFloat(productData.retailPrice) || parseFloat(productData.currentPrice) || 0;
+const discountPercent = parseFloat(productData.discountPercent) || 0;
+const calculatedPrice = discountPercent > 0 
+    ? calculateDiscountedPrice(retailPrice, discountPercent)
+    : parseFloat(productData.currentPrice) || retailPrice;
         
         console.log('[ProductsManager] Form data processing:', {
             retailPrice,
@@ -1118,7 +1120,7 @@ document.querySelectorAll('.delete-product-btn').forEach(btn => {
             category: document.getElementById('product-category').value,
             retailPrice: retailPrice,
             discountPercent: discountPercent,
-            price: calculatedPrice,
+            currentprice: calculatedPrice,
             isOnSale: document.getElementById('product-is-on-sale').checked || (discountPercent > 0),
             saleEndDate: document.getElementById('product-sale-end').value || "",
             stock: parseInt(document.getElementById('product-stock').value),
@@ -1138,7 +1140,7 @@ document.querySelectorAll('.delete-product-btn').forEach(btn => {
         // Validate
         const errors = [];
         if (!formData.name.trim()) errors.push('Product name is required');
-        if (isNaN(formData.price) || formData.price < 0) errors.push('Valid price is required');
+        if (isNaN(formData.currentprice) || formData.currentprice < 0) errors.push('Valid currentprice is required');
         if (isNaN(formData.stock) || formData.stock < 0) errors.push('Valid stock quantity is required');
         if (formData.discountPercent < 0 || formData.discountPercent > 100) errors.push('Discount must be between 0-100%');
         if (formData.saleEndDate && !isValidDate(formData.saleEndDate)) errors.push('Invalid sale end date');
