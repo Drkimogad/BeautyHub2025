@@ -593,20 +593,121 @@ const AdminManager = (function() {
     </div>
 </div>
                         
-                        <!-- Analytics Tab (Placeholder) -->
-                        <div id="analytics-tab-content" class="tab-pane" style="
-                            flex: 1;
-                            display: none;
-                            align-items: center;
-                            justify-content: center;
-                            color: #666;
-                        ">
-                            <div style="text-align: center;">
-                                <i class="fas fa-chart-bar" style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.2;"></i>
-                                <h3>Sales Analytics</h3>
-                                <p>Coming soon in future update</p>
-                            </div>
-                        </div>
+                       <!-- Analytics Tab -->
+<div id="analytics-tab-content" class="tab-pane" style="
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    padding: 1rem;
+    background: #f8f9fa;
+">
+    <div class="analytics-header" style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    ">
+        <h2 style="margin: 0; color: #333;">Analytics Dashboard</h2>
+        
+        <div class="analytics-toolbar" style="
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        ">
+            <!-- Add these 2 buttons -->
+            <button id="track-inventory-btn" class="analytics-action-btn" style="
+                background: #2196f3;
+                color: white;
+                border: none;
+                padding: 0.75rem 1.5rem;
+                border-radius: 8px;
+                font-size: 0.95rem;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            ">
+                <i class="fas fa-boxes"></i>
+                Track Inventory
+            </button>
+            
+            <button id="inventory-report-btn" class="analytics-action-btn" style="
+                background: #4CAF50;
+                color: white;
+                border: none;
+                padding: 0.75rem 1.5rem;
+                border-radius: 8px;
+                font-size: 0.95rem;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            ">
+                <i class="fas fa-chart-line"></i>
+                Inventory Report
+            </button>
+            
+            <!-- Add more buttons for future features -->
+            <button id="sales-analytics-btn" class="analytics-action-btn" style="
+                background: #9C27B0;
+                color: white;
+                border: none;
+                padding: 0.75rem 1.5rem;
+                border-radius: 8px;
+                font-size: 0.95rem;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            ">
+                <i class="fas fa-chart-bar"></i>
+                Sales Analytics
+            </button>
+            
+            <button id="customer-insights-btn" class="analytics-action-btn" style="
+                background: #FF9800;
+                color: white;
+                border: none;
+                padding: 0.75rem 1.5rem;
+                border-radius: 8px;
+                font-size: 0.95rem;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            ">
+                <i class="fas fa-users"></i>
+                Customer Insights
+            </button>
+        </div>
+    </div>
+    
+    <!-- Analytics Content Area -->
+    <div id="analytics-content" class="analytics-content" style="
+        flex: 1;
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        border: 2px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #666;
+    ">
+        <div style="text-align: center;">
+            <i class="fas fa-chart-pie" style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.2;"></i>
+            <h3 style="margin: 0 0 0.5rem 0;">Select an Analytics View</h3>
+            <p>Choose one of the options above to view analytics data</p>
+        </div>
+    </div>
+</div>
                     </div>
                 </div>
                 
@@ -1129,6 +1230,37 @@ if (tabName === 'products' && typeof ProductsManager !== 'undefined') {
                 renderDashboardOrders(status);
             }
         });
+        // In setupEventListeners() function, add:
+
+// Analytics tab buttons
+document.addEventListener('click', function(e) {
+    // Track Inventory button
+    if (e.target.id === 'track-inventory-btn' || 
+        e.target.closest('#track-inventory-btn')) {
+        console.log('[Admin] Track Inventory button clicked');
+        showInventoryTrackingModal();
+    }
+    
+    // Inventory Report button
+    if (e.target.id === 'inventory-report-btn' || 
+        e.target.closest('#inventory-report-btn')) {
+        console.log('[Admin] Inventory Report button clicked');
+        showInventoryReportModal();
+    }
+    
+    // Future buttons (optional - for debugging)
+    if (e.target.id === 'sales-analytics-btn' || 
+        e.target.closest('#sales-analytics-btn')) {
+        console.log('[Admin] Sales Analytics button clicked');
+        alert('Sales Analytics - Coming Soon');
+    }
+    
+    if (e.target.id === 'customer-insights-btn' || 
+        e.target.closest('#customer-insights-btn')) {
+        console.log('[Admin] Customer Insights button clicked');
+        alert('Customer Insights - Coming Soon');
+    }
+});
         
         // Dashboard order actions
         document.addEventListener('click', function(e) {
@@ -1166,6 +1298,7 @@ if (tabName === 'products' && typeof ProductsManager !== 'undefined') {
             }
         });
     }
+        
 // Initialize Firebase auth state listener
     function initFirebaseAuthListener() {
         if (!CONFIG.FIREBASE_CONFIG_LOADED()) {
@@ -1200,6 +1333,400 @@ if (tabName === 'products' && typeof ProductsManager !== 'undefined') {
             }
         });
     }
+// Show Inventory Tracking Modal
+function showInventoryTrackingModal() {
+    console.log('[Admin] Opening Inventory Tracking Modal');
+    
+    // Check if InventoryManager is available
+    if (typeof InventoryManager === 'undefined') {
+        console.error('[Admin] InventoryManager not loaded');
+        alert('Inventory system not available');
+        return;
+    }
+    
+    // Create or get modal
+    let modal = document.getElementById('inventory-tracking-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'inventory-tracking-modal';
+        modal.className = 'inventory-modal';
+        modal.style.cssText = `
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1006;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    // Get inventory report
+    const report = InventoryManager.getInventoryTransactionsReport();
+    console.log('[Admin] Inventory report:', report);
+    
+    modal.innerHTML = `
+        <div style="
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        ">
+            <!-- Header -->
+            <div style="
+                background: #2196f3;
+                color: white;
+                padding: 1.5rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-shrink: 0;
+            ">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <i class="fas fa-boxes" style="font-size: 1.5rem;"></i>
+                    <h2 style="margin: 0;">Inventory Tracking</h2>
+                </div>
+                <button id="close-inventory-tracking" style="
+                    background: rgba(255,255,255,0.2);
+                    color: white;
+                    border: none;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                ">&times;</button>
+            </div>
+            
+            <!-- Content -->
+            <div style="flex: 1; overflow-y: auto; padding: 1.5rem;">
+                <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f5f5f5; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span><strong>Total Transactions:</strong> ${report?.summary?.totalTransactions || 0}</span>
+                        <span><strong>Total Products Tracked:</strong> ${report?.summary?.totalProducts || 0}</span>
+                        <span><strong>Stock Changes:</strong> ${report?.summary?.totalStockChanges || 0}</span>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 0 0 1rem 0;">Recent Transactions</h3>
+                <div style="background: white; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
+                    ${report?.recentTransactions?.length ? 
+                        report.recentTransactions.map(t => `
+                            <div style="padding: 1rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: 600;">${t.id}</div>
+                                    <div style="font-size: 0.85rem; color: #666;">${new Date(t.timestamp).toLocaleString()}</div>
+                                </div>
+                                <div>
+                                    <span style="background: ${t.type === 'order_deduction' ? '#4CAF50' : '#2196f3'}; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">
+                                        ${t.type}
+                                    </span>
+                                </div>
+                            </div>
+                        `).join('') : 
+                        '<div style="padding: 2rem; text-align: center; color: #666;">No transactions yet</div>'
+                    }
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div style="
+                padding: 1rem 1.5rem;
+                border-top: 1px solid #eee;
+                display: flex;
+                justify-content: flex-end;
+                gap: 1rem;
+                flex-shrink: 0;
+            ">
+                <button id="export-inventory-btn" style="
+                    background: #4CAF50;
+                    color: white;
+                    border: none;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    cursor: pointer;
+                ">
+                    <i class="fas fa-download" style="margin-right: 0.5rem;"></i>
+                    Export Data
+                </button>
+                <button id="refresh-inventory-btn" style="
+                    background: #2196f3;
+                    color: white;
+                    border: none;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    cursor: pointer;
+                ">
+                    <i class="fas fa-sync-alt" style="margin-right: 0.5rem;"></i>
+                    Refresh
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Show modal
+    modal.style.display = 'flex';
+    
+    // Add event listeners for this modal
+    document.getElementById('close-inventory-tracking').onclick = () => {
+        modal.style.display = 'none';
+    };
+    
+    document.getElementById('refresh-inventory-btn').onclick = () => {
+        console.log('[Admin] Refreshing inventory data');
+        showInventoryTrackingModal(); // Refresh
+    };
+    
+    document.getElementById('export-inventory-btn').onclick = () => {
+        console.log('[Admin] Export inventory data clicked');
+        alert('Export feature coming soon');
+    };
+    
+    // Close on background click
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    };
+}
+
+// Show Inventory Report Modal
+function showInventoryReportModal() {
+    console.log('[Admin] Opening Inventory Report Modal');
+    
+    // Check if ProductsManager is available
+    if (typeof ProductsManager === 'undefined') {
+        console.error('[Admin] ProductsManager not loaded');
+        alert('Products data not available');
+        return;
+    }
+    
+    // Create or get modal
+    let modal = document.getElementById('inventory-report-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'inventory-report-modal';
+        modal.className = 'inventory-report-modal';
+        modal.style.cssText = `
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1006;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    // Get products data
+    const products = ProductsManager.getProducts({ activeOnly: true });
+    
+    modal.innerHTML = `
+        <div style="
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        ">
+            <!-- Header -->
+            <div style="
+                background: #4CAF50;
+                color: white;
+                padding: 1.5rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-shrink: 0;
+            ">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <i class="fas fa-chart-line" style="font-size: 1.5rem;"></i>
+                    <h2 style="margin: 0;">Inventory Report</h2>
+                </div>
+                <button id="close-inventory-report" style="
+                    background: rgba(255,255,255,0.2);
+                    color: white;
+                    border: none;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                ">&times;</button>
+            </div>
+            
+            <!-- Content -->
+            <div style="flex: 1; overflow-y: auto; padding: 1.5rem;">
+                <!-- Summary -->
+                <div style="margin-bottom: 2rem; padding: 1rem; background: #f5f5f5; border-radius: 8px;">
+                    <h3 style="margin: 0 0 1rem 0;">Inventory Summary</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                        <div style="background: white; padding: 1rem; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 2rem; font-weight: 700; color: #2196f3;">${products.length}</div>
+                            <div>Total Products</div>
+                        </div>
+                        <div style="background: white; padding: 1rem; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 2rem; font-weight: 700; color: #4CAF50;">${products.reduce((sum, p) => sum + p.stock, 0)}</div>
+                            <div>Total Stock</div>
+                        </div>
+                        <div style="background: white; padding: 1rem; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 2rem; font-weight: 700; color: #FF9800;">${products.filter(p => p.stock <= 5 && p.stock > 0).length}</div>
+                            <div>Low Stock</div>
+                        </div>
+                        <div style="background: white; padding: 1rem; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 2rem; font-weight: 700; color: #f44336;">${products.filter(p => p.stock === 0).length}</div>
+                            <div>Out of Stock</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Products Table -->
+                <h3 style="margin: 0 0 1rem 0;">Products Inventory</h3>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f5f5f5;">
+                                <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #ddd;">Product ID</th>
+                                <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #ddd;">Name</th>
+                                <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #ddd;">Category</th>
+                                <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #ddd;">Stock</th>
+                                <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #ddd;">Sold</th>
+                                <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #ddd;">Last Updated</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${products.length ? 
+                                products.map(p => `
+                                    <tr style="border-bottom: 1px solid #eee;">
+                                        <td style="padding: 1rem;">${p.id}</td>
+                                        <td style="padding: 1rem;">${p.name}</td>
+                                        <td style="padding: 1rem; text-transform: capitalize;">${p.category}</td>
+                                        <td style="padding: 1rem; font-weight: 600; color: ${p.stock === 0 ? '#f44336' : p.stock <= 5 ? '#FF9800' : '#4CAF50'}">${p.stock}</td>
+                                        <td style="padding: 1rem;">${p.salesCount || 0}</td>
+                                        <td style="padding: 1rem; font-size: 0.85rem; color: #666;">
+                                            ${p.updatedAt ? new Date(p.updatedAt).toLocaleDateString() : 'N/A'}
+                                        </td>
+                                    </tr>
+                                `).join('') :
+                                '<tr><td colspan="6" style="padding: 2rem; text-align: center; color: #666;">No products found</td></tr>'
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div style="
+                padding: 1rem 1.5rem;
+                border-top: 1px solid #eee;
+                display: flex;
+                justify-content: flex-end;
+                gap: 1rem;
+                flex-shrink: 0;
+            ">
+                <button id="print-report-btn" style="
+                    background: #FF9800;
+                    color: white;
+                    border: none;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    cursor: pointer;
+                ">
+                    <i class="fas fa-print" style="margin-right: 0.5rem;"></i>
+                    Print Report
+                </button>
+                <button id="export-report-btn" style="
+                    background: #2196f3;
+                    color: white;
+                    border: none;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    cursor: pointer;
+                ">
+                    <i class="fas fa-file-export" style="margin-right: 0.5rem;"></i>
+                    Export CSV
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Show modal
+    modal.style.display = 'flex';
+    
+    // Add event listeners
+    document.getElementById('close-inventory-report').onclick = () => {
+        modal.style.display = 'none';
+    };
+    
+    document.getElementById('print-report-btn').onclick = () => {
+        console.log('[Admin] Print report clicked');
+        window.print();
+    };
+    
+    document.getElementById('export-report-btn').onclick = () => {
+        console.log('[Admin] Export CSV clicked');
+        alert('CSV export coming soon');
+    };
+    
+    // Close on background click
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    };
+}
+        // Test function - run in console
+function testAnalyticsButtons() { // to be removed later
+    console.log('=== TESTING ANALYTICS BUTTONS ===');
+    console.log('1. Track Inventory button exists:', !!document.getElementById('track-inventory-btn'));
+    console.log('2. Inventory Report button exists:', !!document.getElementById('inventory-report-btn'));
+    console.log('3. ProductsManager loaded:', typeof ProductsManager !== 'undefined');
+    console.log('4. InventoryManager loaded:', typeof InventoryManager !== 'undefined');
+    
+    // Try clicking programmatically
+    const trackBtn = document.getElementById('track-inventory-btn');
+    const reportBtn = document.getElementById('inventory-report-btn');
+    
+    if (trackBtn) {
+        console.log('5. Clicking Track Inventory...');
+        trackBtn.click();
+    }
+    
+    if (reportBtn) {
+        console.log('6. Clicking Inventory Report...');
+        reportBtn.click();
+    }
+}
+        
     // Public API
     return {
         init,
