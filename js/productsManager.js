@@ -1,4 +1,5 @@
 // productsManager.js - Product CRUD & Management System WITH FIRESTORE
+
 const ProductsManager = (function() {
     console.log('[ProductsManager] Initializing Products Manager module');
     
