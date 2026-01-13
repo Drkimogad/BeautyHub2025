@@ -33,9 +33,10 @@ const ProductsManager = (function() {
         name: '',            // Product name
         description: '',     // Product description
         category: '',        // From CONFIG.CATEGORIES
-        originalPrice: 0,    // Original price (for discounts)
-        discountPercent: 0,    // 0-100 percentage discount
-        price: 0,           // Current price
+        wholesalePrice: 0,       // Your cost (what you pay) - NEW
+        retailPrice: 0,          // Standard selling price - RENAME from originalPrice
+        currentPrice: 0,         // Actual selling price - RENAME from price
+        discountedPercent: 0,    // 0-100 percentage discount (price in current setup)
         isOnSale: false,       // Flag for UI badges
         saleEndDate: "",       // When sale ends (ISO string)
         stock: 0,           // Current stock quantity
@@ -368,14 +369,14 @@ async function updateFromFirestoreInBackground() {
         console.log('[ProductsManager] Adding new product with data:', productData);
         
         // Calculate price if discount is provided
-        const originalPrice = parseFloat(productData.originalPrice) || parseFloat(productData.price) || 0;
+        const retailPrice = parseFloat(productData.retailPrice) || parseFloat(productData.price) || 0;
         const discountPercent = parseFloat(productData.discountPercent) || 0;
         const calculatedPrice = discountPercent > 0 
-            ? calculateDiscountedPrice(originalPrice, discountPercent)
-            : parseFloat(productData.price) || originalPrice;
+            ? calculateDiscountedPrice(retailPrice, discountPercent)
+            : parseFloat(productData.price) || retailPrice;
         
         console.log('[ProductsManager] Price calculation:', {
-            originalPrice,
+            retailPrice,
             discountPercent,
             calculatedPrice
         });
@@ -386,7 +387,7 @@ async function updateFromFirestoreInBackground() {
             name: productData.name.trim(),
             description: productData.description?.trim() || '',
             category: productData.category || CONFIG.CATEGORIES[0],
-            originalPrice: originalPrice,
+            retailPrice: retailPrice,
             discountPercent: discountPercent,
             price: calculatedPrice,
             isOnSale: Boolean(productData.isOnSale) || (discountPercent > 0),
@@ -438,18 +439,18 @@ async function updateFromFirestoreInBackground() {
         
         // Calculate price if discount or original price is being updated
         let updatedPrice = updateData.price;
-        const originalPrice = updateData.originalPrice !== undefined 
-            ? parseFloat(updateData.originalPrice) 
-            : products[index].originalPrice;
+        const retailPrice = updateData.retailPrice !== undefined 
+            ? parseFloat(updateData.retailPrice) 
+            : products[index].retailPrice;
         const discountPercent = updateData.discountPercent !== undefined 
             ? parseFloat(updateData.discountPercent) 
             : products[index].discountPercent;
         
         // Recalculate price if discount or original price changed
-        if (updateData.discountPercent !== undefined || updateData.originalPrice !== undefined) {
-            updatedPrice = calculateDiscountedPrice(originalPrice, discountPercent);
+        if (updateData.discountPercent !== undefined || updateData.retailPrice !== undefined) {
+            updatedPrice = calculateDiscountedPrice(retailPrice, discountPercent);
             console.log('[ProductsManager] Price recalculated:', {
-                originalPrice,
+                retaillPrice,
                 discountPercent,
                 updatedPrice
             });
@@ -618,19 +619,19 @@ async function updateFromFirestoreInBackground() {
     }
 
     // Calculate price with discount
-    function calculateDiscountedPrice(originalPrice, discountPercent) {
-        console.log('[ProductsManager] Calculating discounted price:', { originalPrice, discountPercent });
+    function calculateDiscountedPrice(retailPrice, discountPercent) {
+        console.log('[ProductsManager] Calculating discounted price:', { retailPrice, discountPercent });
         
-        if (!originalPrice || originalPrice <= 0) {
+        if (!retailPrice || retailPrice <= 0) {
             console.log('[ProductsManager] Invalid original price, returning 0');
             return 0;
         }
         
-        const discount = originalPrice * (discountPercent / 100);
-        const finalPrice = Math.max(0, originalPrice - discount);
+        const discount = retailPrice * (discountPercent / 100);
+        const finalPrice = Math.max(0, retailPrice - discount);
         
         console.log('[ProductsManager] Discount calculation:', {
-            originalPrice,
+            retailPrice,
             discountPercent,
             discountAmount: discount,
             finalPrice
@@ -972,7 +973,7 @@ document.querySelectorAll('.delete-product-btn').forEach(btn => {
                                    id="product-original-price" 
                                    min="0" 
                                    step="0.01"
-                                   value="${product?.originalPrice || product?.price || ''}"
+                                   value="${product?.retailPrice || product?.price || ''}"
                                    class="form-input">
                         </div>
                         
@@ -1100,13 +1101,13 @@ document.querySelectorAll('.delete-product-btn').forEach(btn => {
         console.log('[ProductsManager] Handling product form submit:', productId);
         
         // Get form data
-        const originalPrice = parseFloat(document.getElementById('product-original-price').value) || 
+        const retailPrice = parseFloat(document.getElementById('product-original-price').value) || 
                              parseFloat(document.getElementById('product-price').value);
         const discountPercent = parseFloat(document.getElementById('product-discount').value) || 0;
-        const calculatedPrice = calculateDiscountedPrice(originalPrice, discountPercent);
+        const calculatedPrice = calculateDiscountedPrice(retailPrice, discountPercent);
         
         console.log('[ProductsManager] Form data processing:', {
-            originalPrice,
+            retailPrice,
             discountPercent,
             calculatedPrice
         });
@@ -1115,7 +1116,7 @@ document.querySelectorAll('.delete-product-btn').forEach(btn => {
             name: document.getElementById('product-name').value,
             description: document.getElementById('product-description').value,
             category: document.getElementById('product-category').value,
-            originalPrice: originalPrice,
+            retailPrice: retailPrice,
             discountPercent: discountPercent,
             price: calculatedPrice,
             isOnSale: document.getElementById('product-is-on-sale').checked || (discountPercent > 0),
