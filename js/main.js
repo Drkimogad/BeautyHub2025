@@ -7,7 +7,7 @@ const AppManager = (function() {
         modules: {}
     };
     
-    // ===== MAIN INITIALIZATION =====
+// ===== MAIN INITIALIZATION =====
     function init() {
         try {
             console.log('[AppManager] BeautyHub2025 PWA Initializing...');
@@ -45,8 +45,7 @@ const AppManager = (function() {
             throw new Error('Application initialization failed: ' + error.message);
         }
     }
-    
-    // ===== MODULE INITIALIZATION =====
+// ===== MODULE INITIALIZATION =====
     function initializeModules() {
         try {
             console.log('[AppManager] Initializing modules in dependency order...');
@@ -194,7 +193,7 @@ const AppManager = (function() {
         }
     }
     
-    // ===== NAVIGATION HANDLERS =====
+// ===== NAVIGATION HANDLERS =====
     function setupNavigationHandlers() {
         try {
             // Shipping link handler
@@ -273,7 +272,7 @@ const AppManager = (function() {
         }
     }
     
-    // ===== SHIPPING SECTION =====
+// ===== SHIPPING SECTION =====
     function initializeShippingSection() {
         try {
             const shippingSection = document.getElementById('shipping');
