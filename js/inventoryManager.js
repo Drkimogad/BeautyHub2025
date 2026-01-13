@@ -101,13 +101,16 @@ const InventoryManager = (function() {
         
         if (allSuccessful && updates.length > 0) {
             // Save inventory transaction log
-            saveInventoryTransaction({
-                type: 'order_deduction',
-                orderId: order.id,
-                timestamp: new Date().toISOString(),
-                updates: updates,
-                notes: `Stock deducted for order ${order.id}`
-            });
+            // Update the transaction save call in deductStockFromOrder:
+saveInventoryTransaction({
+    type: 'order_deduction',
+    orderId: order.id,
+    timestamp: new Date().toISOString(),
+    performedBy: order.customerEmail ? `customer:${order.customerEmail}` : 'customer:anonymous',
+    referenceId: order.id,
+    updates: updates,
+    notes: `Stock deducted for order ${order.id} - ${order.firstName} ${order.surname}`
+});
             
             console.log('Stock successfully deducted for order:', order.id);
         }
@@ -212,18 +215,21 @@ const InventoryManager = (function() {
         });
         
         if (success) {
-            saveInventoryTransaction({
-                type: reason,
-                timestamp: new Date().toISOString(),
-                updates: [{
-                    productId: product.id,
-                    productName: product.name,
-                    oldStock: product.stock,
-                    newStock: newStock,
-                    quantity: quantity
-                }],
-                notes: `Manual adjustment: ${reason}`
-            });
+            // Update the transaction save call in updateStockManually:
+saveInventoryTransaction({
+    type: reason,
+    timestamp: new Date().toISOString(),
+    performedBy: 'admin', // Will need to pass actual admin username
+    referenceId: '', // Can add admin ID if available
+    updates: [{
+        productId: product.id,
+        productName: product.name,
+        oldStock: product.stock,
+        newStock: newStock,
+        quantity: quantity
+    }],
+    notes: `Manual adjustment: ${reason}`
+});
             
             console.log(`Manual stock update: ${product.name} ${quantity > 0 ? '+' : ''}${quantity} = ${newStock}`);
         }
@@ -252,14 +258,33 @@ const InventoryManager = (function() {
     }
     
     // Save inventory transaction (localStorage)
-    function saveInventoryTransaction(transaction) {
-        const STORAGE_KEY = 'beautyhub_inventory_transactions';
-        const existing = localStorage.getItem(STORAGE_KEY);
-        const transactions = existing ? JSON.parse(existing) : [];
-        
-        transactions.push(transaction);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions.slice(-100))); // Keep last 100
-    }
+    // Save inventory transaction (enhanced with new schema)
+function saveInventoryTransaction(transactionData) {
+    const STORAGE_KEY = 'beautyhub_inventory_transactions';
+    const existing = localStorage.getItem(STORAGE_KEY);
+    const transactions = existing ? JSON.parse(existing) : [];
+    
+    // Create enhanced transaction with new schema
+    const enhancedTransaction = {
+        id: `TX-${new Date().toISOString().slice(0,10).replace(/-/g, '')}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+        type: transactionData.type,
+        timestamp: transactionData.timestamp,
+        performedBy: transactionData.performedBy || 'system',
+        referenceId: transactionData.referenceId || '',
+        notes: transactionData.notes || '',
+        updates: transactionData.updates.map(update => ({
+            productId: update.productId,
+            productName: update.productName,
+            previousStock: update.oldStock,
+            newStock: update.newStock,
+            quantity: update.quantity,
+            category: ProductsManager.getProductById(update.productId)?.category || ''
+        }))
+    };
+    
+    transactions.push(enhancedTransaction);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions.slice(-100))); // Keep last 100
+}
     
     // Get inventory transactions
     function getInventoryTransactions() {
@@ -267,6 +292,82 @@ const InventoryManager = (function() {
         const existing = localStorage.getItem(STORAGE_KEY);
         return existing ? JSON.parse(existing) : [];
     }
+
+ //=============================================
+    // getInventoryTransactionsReport()
+//=============================================
+// Get comprehensive inventory report for analytics
+function getInventoryTransactionsReport(filters = {}) {
+    const transactions = getInventoryTransactions();
+    let filtered = transactions;
+    
+    // Apply filters
+    if (filters.productId) {
+        filtered = filtered.filter(t => 
+            t.updates.some(u => u.productId === filters.productId)
+        );
+    }
+    if (filters.type) {
+        filtered = filtered.filter(t => t.type === filters.type);
+    }
+    if (filters.category && ProductsManager) {
+        filtered = filtered.filter(t => 
+            t.updates.some(u => 
+                ProductsManager.getProductById(u.productId)?.category === filters.category
+            )
+        );
+    }
+    
+    // Get unique products from transactions
+    const productMap = new Map();
+    filtered.forEach(transaction => {
+        transaction.updates.forEach(update => {
+            if (!productMap.has(update.productId)) {
+                const product = ProductsManager.getProductById(update.productId);
+                productMap.set(update.productId, {
+                    id: update.productId,
+                    name: update.productName,
+                    category: update.category || product?.category || 'Unknown',
+                    currentStock: product?.stock || 0,
+                    salesCount: product?.salesCount || 0,
+                    lastUpdated: product?.updatedAt || transaction.timestamp,
+                    transactions: []
+                });
+            }
+            productMap.get(update.productId).transactions.push({
+                type: transaction.type,
+                timestamp: transaction.timestamp,
+                quantity: update.quantity,
+                previousStock: update.previousStock || update.oldStock,
+                newStock: update.newStock,
+                performedBy: transaction.performedBy,
+                referenceId: transaction.referenceId,
+                notes: transaction.notes
+            });
+        });
+    });
+    
+    return {
+        summary: {
+            totalTransactions: filtered.length,
+            totalProducts: productMap.size,
+            totalStockChanges: filtered.reduce((sum, t) => 
+                sum + t.updates.reduce((s, u) => s + Math.abs(u.quantity), 0), 0
+            )
+        },
+        products: Array.from(productMap.values()).map(product => ({
+            ...product,
+            transactionCount: product.transactions.length
+        })),
+        recentTransactions: filtered.slice(-10).map(t => ({
+            id: t.id,
+            type: t.type,
+            timestamp: t.timestamp,
+            performedBy: t.performedBy,
+            productCount: t.updates.length
+        }))
+    };
+}
     
     // Public API
     return {
@@ -276,6 +377,7 @@ const InventoryManager = (function() {
         getLowStockAlert,
         getStockHistory,
         updateStockManually,
-        checkStockBeforeAddToCart
+        checkStockBeforeAddToCart,
+        getInventoryTransactionsReport // <-- ADD THIS LINE
     };
 })();
