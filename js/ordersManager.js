@@ -8,11 +8,10 @@
 // 4. Inventory integration with proper price tracking
 // 5. Enhanced order analytics with price type tracking
 // ========================================================
-
 const OrdersManager = (function() {
-    // ========================================================
+// ========================================================
     // CONFIGURATION & CONSTANTS
-    // ========================================================
+// ========================================================
     const CONFIG = {
         STORAGE_KEYS: {
             ORDERS: 'beautyhub_orders',
@@ -28,16 +27,15 @@ const OrdersManager = (function() {
         PAYMENT_METHODS: ['manual', 'payfast', 'credit_card', 'eft'],
         ORDER_PRIORITIES: ['low', 'normal', 'high', 'rush']
     };
-
-    // ========================================================
+// ========================================================
     // STATE MANAGEMENT
-    // ========================================================
+// ========================================================
     let orders = [];
     let orderIdCounter = 1000;
 
-    // ========================================================
+// ========================================================
     // INITIALIZATION
-    // ========================================================
+// ========================================================
     function init() {
         console.log('[OrdersManager] Initializing order management system...');
         
@@ -59,9 +57,9 @@ const OrdersManager = (function() {
         };
     }
 
-    // ========================================================
+// ========================================================
     // STORAGE FUNCTIONS
-    // ========================================================
+// ========================================================
     function loadOrders() {
         console.log('[OrdersManager] Loading orders from storage...');
         
