@@ -1,4 +1,9 @@
 // productsManager.js - Product CRUD & Management System WITH FIRESTORE
+//these fields have changed in the schema and would break the rest of the files
+      //  wholesalePrice: 0,       // Your cost (what you pay) - NEW
+      //  retailPrice: 0,          // Standard selling price - RENAME from originalPrice
+    //    currentPrice: 0,         // Actual selling price - RENAME from price
+
 const ProductsManager = (function() {
     console.log('[ProductsManager] Initializing Products Manager module');
     // Configuration
