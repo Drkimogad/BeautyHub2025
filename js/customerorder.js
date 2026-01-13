@@ -1,5 +1,6 @@
 // ========================================================
 // customerorder.js - Customer Order Form & Submission
+// UPDATED: Fixed property name alignment and integration issues
 // Core Functionalities:
 // 1. Checkout modal with customer information form
 // 2. Order validation and submission to OrdersManager
@@ -49,15 +50,19 @@ const CustomerOrderManager = (function() {
             
             // Initialize customer search if available
             if (typeof CustomerSearchManager !== 'undefined') {
-                console.log('[CustomerOrder] Initializing CustomerSearchManager');
-                CustomerSearchManager.init();
+                console.log('[CustomerOrder] CustomerSearchManager available');
             }
             
             console.log('[CustomerOrder] Initialization complete');
             
+            return {
+                openCheckout,
+                closeCheckout
+            };
+            
         } catch (error) {
             console.error('[CustomerOrder] Initialization failed:', error);
-            throw new Error('Customer order system initialization failed: ' + error.message);
+            return null;
         }
     }
 
@@ -211,7 +216,6 @@ const CustomerOrderManager = (function() {
             
         } catch (error) {
             console.error('[CustomerOrder] Failed to create checkout modal:', error);
-            throw new Error('Checkout modal creation failed: ' + error.message);
         }
     }
 
@@ -224,7 +228,7 @@ const CustomerOrderManager = (function() {
         try {
             if (!checkoutModal) {
                 console.error('[CustomerOrder] Checkout modal not initialized');
-                return;
+                createCheckoutModal();
             }
             
             if (typeof BeautyHubCart === 'undefined') {
@@ -266,7 +270,10 @@ const CustomerOrderManager = (function() {
     function calculateSubtotal(cartItems) {
         try {
             return cartItems.reduce((total, item) => {
-                return total + (item.price * item.quantity);
+                // Use item.price (from cart) which should already be the correct price
+                const price = parseFloat(item.price) || 0;
+                const quantity = parseInt(item.quantity) || 1;
+                return total + (price * quantity);
             }, 0);
         } catch (error) {
             console.error('[CustomerOrder] Failed to calculate subtotal:', error);
@@ -325,7 +332,13 @@ const CustomerOrderManager = (function() {
     }
 
     function calculateShipping(subtotal) {
-        return subtotal >= CONFIG.SHIPPING_THRESHOLD ? 0 : CONFIG.SHIPPING_COST;
+        try {
+            const numericSubtotal = parseFloat(subtotal) || 0;
+            return numericSubtotal >= CONFIG.SHIPPING_THRESHOLD ? 0 : CONFIG.SHIPPING_COST;
+        } catch (error) {
+            console.error('[CustomerOrder] Failed to calculate shipping:', error);
+            return CONFIG.SHIPPING_COST;
+        }
     }
 
     function generateOrderSummaryHTML(cartItems, subtotal, shipping, total, isFreeShipping) {
@@ -373,17 +386,24 @@ const CustomerOrderManager = (function() {
     }
 
     function generateCartItemHTML(item) {
-        const itemTotal = item.price * item.quantity;
-        
-        return `
-            <div class="summary-item">
-                <div class="item-name">
-                    ${item.productName} × ${item.quantity}
-                    ${item.isDiscounted ? '<span class="discount-badge">(Discounted)</span>' : ''}
+        try {
+            const price = parseFloat(item.price) || 0;
+            const quantity = parseInt(item.quantity) || 1;
+            const itemTotal = price * quantity;
+            
+            return `
+                <div class="summary-item">
+                    <div class="item-name">
+                        ${item.productName} × ${quantity}
+                        ${item.isDiscounted ? '<span class="discount-badge">(Discounted)</span>' : ''}
+                    </div>
+                    <div class="item-price">R${itemTotal.toFixed(2)}</div>
                 </div>
-                <div class="item-price">R${itemTotal.toFixed(2)}</div>
-            </div>
-        `;
+            `;
+        } catch (error) {
+            console.error('[CustomerOrder] Failed to generate cart item HTML:', error);
+            return '<div class="error-item">Error loading item</div>';
+        }
     }
 
     // ========================================================
@@ -429,7 +449,7 @@ const CustomerOrderManager = (function() {
             }
             
             // Inventory validation if available
-            if (typeof InventoryManager !== 'undefined') {
+            if (typeof InventoryManager !== 'undefined' && typeof InventoryManager.checkStockBeforeAddToCart === 'function') {
                 for (const item of cartItems) {
                     const stockCheck = InventoryManager.checkStockBeforeAddToCart(item.productId, item.quantity);
                     if (!stockCheck.available) {
@@ -454,6 +474,9 @@ const CustomerOrderManager = (function() {
         event.preventDefault();
         
         try {
+            // Clear any previous errors
+            clearError();
+            
             // Get form data
             const formData = getFormData();
             console.log('[CustomerOrder] Form data collected:', formData);
@@ -493,20 +516,40 @@ const CustomerOrderManager = (function() {
     }
 
     function getFormData() {
-        return {
-            firstName: document.getElementById('customer-firstname').value.trim(),
-            surname: document.getElementById('customer-surname').value.trim(),
-            customerPhone: document.getElementById('customer-phone').value.trim(),
-            customerWhatsApp: document.getElementById('customer-whatsapp').value.trim(),
-            customerEmail: document.getElementById('customer-email').value.trim(),
-            customerType: document.getElementById('customer-type').value,
-            preferredPaymentMethod: document.getElementById('preferred-payment-method').value,
-            priority: document.getElementById('order-priority').value,
-            shippingAddress: document.getElementById('shipping-address').value.trim(),
-            orderNotes: document.getElementById('order-notes').value.trim(),
-            cartItems: BeautyHubCart.getCartItems(),
-            totalAmount: BeautyHubCart.getCartTotal()
-        };
+        try {
+            return {
+                firstName: document.getElementById('customer-firstname')?.value.trim() || '',
+                surname: document.getElementById('customer-surname')?.value.trim() || '',
+                customerPhone: document.getElementById('customer-phone')?.value.trim() || '',
+                customerWhatsApp: document.getElementById('customer-whatsapp')?.value.trim() || '',
+                customerEmail: document.getElementById('customer-email')?.value.trim() || '',
+                customerType: document.getElementById('customer-type')?.value || 'personal',
+                preferredPaymentMethod: document.getElementById('preferred-payment-method')?.value || 'manual',
+                priority: document.getElementById('order-priority')?.value || 'normal',
+                shippingAddress: document.getElementById('shipping-address')?.value.trim() || '',
+                orderNotes: document.getElementById('order-notes')?.value.trim() || '',
+                cartItems: BeautyHubCart.getCartItems(),
+                discount: 0, // No discount applied initially
+                adminNotes: '' // Empty by default
+            };
+        } catch (error) {
+            console.error('[CustomerOrder] Failed to get form data:', error);
+            return {
+                firstName: '',
+                surname: '',
+                customerPhone: '',
+                customerWhatsApp: '',
+                customerEmail: '',
+                customerType: 'personal',
+                preferredPaymentMethod: 'manual',
+                priority: 'normal',
+                shippingAddress: '',
+                orderNotes: '',
+                cartItems: [],
+                discount: 0,
+                adminNotes: ''
+            };
+        }
     }
 
     async function handleExistingCustomerUpdate(formData) {
@@ -518,110 +561,87 @@ const CustomerOrderManager = (function() {
             if (isExistingCustomer && existingOrderId) {
                 console.log('[CustomerOrder] Updating existing customer details:', existingOrderId);
                 
-                await updateExistingCustomerDetails(existingOrderId, {
-                    firstName: formData.firstName,
-                    surname: formData.surname,
-                    customerPhone: formData.customerPhone,
-                    customerWhatsApp: formData.customerWhatsApp,
-                    customerEmail: formData.customerEmail,
-                    shippingAddress: formData.shippingAddress,
-                    customerType: formData.customerType,
-                    preferredPaymentMethod: formData.preferredPaymentMethod,
-                    updatedAt: new Date().toISOString()
-                });
+                // Update in localStorage
+                const ordersJSON = localStorage.getItem(CONFIG.STORAGE_KEYS.ORDERS);
+                if (ordersJSON) {
+                    const orders = JSON.parse(ordersJSON) || [];
+                    const orderIndex = orders.findIndex(order => order.id === existingOrderId);
+                    
+                    if (orderIndex !== -1) {
+                        orders[orderIndex] = {
+                            ...orders[orderIndex],
+                            firstName: formData.firstName,
+                            surname: formData.surname,
+                            customerPhone: formData.customerPhone,
+                            customerWhatsApp: formData.customerWhatsApp,
+                            customerEmail: formData.customerEmail,
+                            shippingAddress: formData.shippingAddress,
+                            customerType: formData.customerType,
+                            preferredPaymentMethod: formData.preferredPaymentMethod,
+                            updatedAt: new Date().toISOString()
+                        };
+                        localStorage.setItem(CONFIG.STORAGE_KEYS.ORDERS, JSON.stringify(orders));
+                        console.log('[CustomerOrder] Updated customer details in localStorage');
+                    }
+                }
             }
         } catch (error) {
             console.warn('[CustomerOrder] Failed to update existing customer:', error);
+            // Non-critical error, continue with order
         }
     }
 
     async function handleSuccessfulOrder(order, formData) {
-        console.log('[CustomerOrder] Order created successfully:', order.id);
-        
-        // Clear cart
-        BeautyHubCart.clearCart();
-        
-        // Clear customer tracking data
-        const checkoutForm = document.getElementById('checkout-form');
-        if (checkoutForm) {
-            delete checkoutForm.dataset.existingCustomer;
-            delete checkoutForm.dataset.existingCustomerId;
-        }
-        
-        // Show success message
-        const isExistingCustomer = checkoutForm && checkoutForm.dataset.existingCustomer === 'true';
-        const successMessage = isExistingCustomer 
-            ? `Order #${order.id} placed! Customer details updated.`
-            : `Order #${order.id} placed successfully!`;
-        
-        showSuccess(successMessage, order.id);
-        
-        // Dispatch order created event
-        if (typeof AppManager !== 'undefined') {
-            AppManager.dispatchOrderCreated();
-        }
-        
-        // Update inventory if available
-        if (typeof InventoryManager !== 'undefined') {
-            await updateInventory(formData.cartItems);
-        }
-        
-        // Close modal after delay
-        setTimeout(() => {
-            closeCheckout();
-        }, 3000);
-    }
-
-    async function updateInventory(cartItems) {
         try {
-            for (const item of cartItems) {
-                const success = await InventoryManager.updateStockAfterOrder(item.productId, item.quantity);
-                if (success) {
-                    console.log(`[CustomerOrder] Inventory updated for ${item.productName}`);
-                } else {
-                    console.warn(`[CustomerOrder] Failed to update inventory for ${item.productName}`);
-                }
-            }
-        } catch (error) {
-            console.error('[CustomerOrder] Inventory update failed:', error);
-        }
-    }
-
-    // ========================================================
-    // CUSTOMER MANAGEMENT
-    // ========================================================
-    async function updateExistingCustomerDetails(orderId, updatedDetails) {
-        console.log('[CustomerOrder] Updating customer details for order:', orderId);
-        
-        try {
-            // Update in localStorage
-            const ordersJSON = localStorage.getItem(CONFIG.STORAGE_KEYS.ORDERS);
-            if (ordersJSON) {
-                const orders = JSON.parse(ordersJSON) || [];
-                const orderIndex = orders.findIndex(order => order.id === orderId);
-                
-                if (orderIndex !== -1) {
-                    orders[orderIndex] = {
-                        ...orders[orderIndex],
-                        ...updatedDetails
-                    };
-                    localStorage.setItem(CONFIG.STORAGE_KEYS.ORDERS, JSON.stringify(orders));
-                    console.log('[CustomerOrder] Updated customer details in localStorage');
-                }
+            console.log('[CustomerOrder] Order created successfully:', order.id);
+            
+            // Clear cart
+            if (typeof BeautyHubCart !== 'undefined' && typeof BeautyHubCart.clearCart === 'function') {
+                BeautyHubCart.clearCart();
             }
             
-            // Update Firestore if available
-            if (typeof firebase !== 'undefined' && firebase.firestore) {
-                const db = firebase.firestore();
-                await db.collection('orders').doc(orderId).update(updatedDetails);
-                console.log('[CustomerOrder] Updated customer details in Firestore');
+            // Clear customer tracking data
+            const checkoutForm = document.getElementById('checkout-form');
+            if (checkoutForm) {
+                delete checkoutForm.dataset.existingCustomer;
+                delete checkoutForm.dataset.existingCustomerId;
             }
             
-            return true;
+            // Show success message
+            const isExistingCustomer = checkoutForm && checkoutForm.dataset.existingCustomer === 'true';
+            const successMessage = isExistingCustomer 
+                ? `Order #${order.id} placed! Customer details updated.`
+                : `Order #${order.id} placed successfully!`;
+            
+            showSuccess(successMessage, order.id);
+            
+            // Dispatch order created event for other modules
+            window.dispatchEvent(new CustomEvent('orderCreated', { 
+                detail: { orderId: order.id, order: order } 
+            }));
+            
+            // Trigger inventory update via event
+            window.dispatchEvent(new CustomEvent('orderPlaced', {
+                detail: { orderId: order.id, items: formData.cartItems }
+            }));
+            
+            // Update admin badge if available
+            if (typeof AdminManager !== 'undefined' && typeof AdminManager.updateAdminButtonVisibility === 'function') {
+                AdminManager.updateAdminButtonVisibility();
+            }
+            
+            // Close modal after delay
+            setTimeout(() => {
+                closeCheckout();
+            }, 3000);
             
         } catch (error) {
-            console.error('[CustomerOrder] Error updating customer details:', error);
-            return false;
+            console.error('[CustomerOrder] Error handling successful order:', error);
+            // Still show success but log the error
+            showSuccess(`Order #${order.id} placed successfully!`, order.id);
+            setTimeout(() => {
+                closeCheckout();
+            }, 3000);
         }
     }
 
@@ -645,6 +665,11 @@ const CustomerOrderManager = (function() {
                         Order ID: <strong>${orderId}</strong>
                     </p>
                     ` : ''}
+                    <div class="success-actions">
+                        <button type="button" class="continue-shopping-btn" onclick="CustomerOrderManager.closeCheckout()">
+                            Continue Shopping
+                        </button>
+                    </div>
                 </div>
             `;
             
@@ -689,6 +714,12 @@ const CustomerOrderManager = (function() {
                 // Reset customer tracking data
                 delete checkoutForm.dataset.existingCustomer;
                 delete checkoutForm.dataset.existingCustomerId;
+                
+                // Reset order summary
+                const summaryContainer = document.getElementById('checkout-items-summary');
+                const totalElement = document.getElementById('checkout-total-summary');
+                if (summaryContainer) summaryContainer.innerHTML = '';
+                if (totalElement) totalElement.textContent = 'R0.00';
             }
         } catch (error) {
             console.error('[CustomerOrder] Failed to reset form:', error);
@@ -703,10 +734,24 @@ const CustomerOrderManager = (function() {
         
         try {
             // Close modal button
-            document.addEventListener('click', handleCloseCheckout);
+            const closeBtn = document.getElementById('close-checkout');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeCheckout);
+            }
+            
+            // Click outside to close
+            checkoutModal?.addEventListener('click', function(e) {
+                if (e.target === checkoutModal) {
+                    closeCheckout();
+                }
+            });
             
             // Escape key closes modal
-            document.addEventListener('keydown', handleEscapeKey);
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && checkoutModal?.style.display === 'flex') {
+                    closeCheckout();
+                }
+            });
             
             // Form submission
             if (checkoutForm) {
@@ -717,19 +762,6 @@ const CustomerOrderManager = (function() {
             
         } catch (error) {
             console.error('[CustomerOrder] Failed to setup event listeners:', error);
-        }
-    }
-
-    function handleCloseCheckout(e) {
-        if (e.target.id === 'close-checkout' || 
-            (e.target.id === 'checkout-modal' && e.target.classList.contains('checkout-modal'))) {
-            closeCheckout();
-        }
-    }
-
-    function handleEscapeKey(e) {
-        if (e.key === 'Escape' && checkoutModal.style.display === 'flex') {
-            closeCheckout();
         }
     }
 
