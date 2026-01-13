@@ -1,7 +1,6 @@
 // productsManager.js - Product CRUD & Management System WITH FIRESTORE
 const ProductsManager = (function() {
     console.log('[ProductsManager] Initializing Products Manager module');
-    
     // Configuration
     const CONFIG = {
         STORAGE_KEY: 'beautyhub_products',
@@ -121,7 +120,9 @@ const ProductsManager = (function() {
         }
     }
     
-// Save product to Firestore
+//==========================================
+    //Save product to Firestore
+//==========================================
 async function saveProductToFirestore(product) {
         console.log('[ProductsManager] Attempting to save product to Firestore:', product.id);
         
@@ -145,15 +146,15 @@ async function saveProductToFirestore(product) {
         }
     }
     
-// Update product in Firestore
+//======================================
+    // Update product in Firestore
+//==========================================
 async function updateProductInFirestore(productId, updateData) {
-        console.log('[ProductsManager] Attempting to update product in Firestore:', productId);
-        
+        console.log('[ProductsManager] Attempting to update product in Firestore:', productId);        
         if (!CONFIG.FIREBASE_READY() || !CONFIG.USE_FIRESTORE) {
             console.log('[ProductsManager] Firestore disabled or not ready');
             return false;
-        }
-        
+        }        
         try {
             const db = firebase.firestore();
             const productRef = db.collection(CONFIG.FIRESTORE_COLLECTION).doc(productId);
@@ -174,9 +175,9 @@ async function updateProductInFirestore(productId, updateData) {
             return false;
         }
     }
-    
-
-// Permanently delete product from Firestore
+//================================================
+   // Permanently delete product from Firestore
+//=========================================================
 async function permanentlyDeleteFromFirestore(productId) {
     console.log('[ProductsManager] Attempting permanent delete from Firestore:', productId);
     
@@ -199,11 +200,10 @@ async function permanentlyDeleteFromFirestore(productId) {
         console.error('[ProductsManager] Firestore permanent delete error:', error);
         return false;
     }
-}
-    
-    // ============================================
+}    
+// ============================================
     // CORE PRODUCT FUNCTIONS (UPDATED)
-    // ============================================
+// ============================================
 async function loadProducts() {
     console.log('[ProductsManager] Starting product loading process');
     
@@ -268,7 +268,8 @@ async function loadProducts() {
     console.log('[ProductsManager] Dispatching productsManagerReady event (final)');
     window.dispatchEvent(new CustomEvent('productsManagerReady'));
 }
-//HELPER  Background Firestore update function
+
+// HELPER  Background Firestore update function
 async function updateFromFirestoreInBackground() {
     try {
         const firestoreProducts = await loadProductsFromFirestore();
@@ -287,7 +288,9 @@ async function updateFromFirestoreInBackground() {
     }
 }
     
-    // Save products to localStorage (backup)
+//=====================================
+// Save products to localStorage (backup)
+//=========================================
     function saveProductsToLocalStorage() {
         try {
             localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(products));
@@ -296,8 +299,9 @@ async function updateFromFirestoreInBackground() {
             console.error('[ProductsManager] Error saving to localStorage:', error);
         }
     }
-    
-    // Cache management functions (keep existing)
+//===========================================
+// Cache management functions (keep existing)
+//===========================================
     function loadProductsFromCache() {
         console.log('[ProductsManager] Loading products from cache');
         try {
@@ -325,8 +329,8 @@ async function updateFromFirestoreInBackground() {
             return null;
         }
     }
-    
-    function saveProductsToCache() {
+// saveProductsToCache    
+function saveProductsToCache() {
         console.log('[ProductsManager] Saving products to cache');
         try {
             const cacheData = {
@@ -357,11 +361,10 @@ async function updateFromFirestoreInBackground() {
         console.log('[ProductsManager] Cache invalidated');
     }
       
-    // ============================================
-    // CRUD OPERATIONS (UPDATED FOR FIRESTORE)
-    // ============================================
-    
-    // Add new product (to both Firestore and local)
+// ============================================
+// CRUD OPERATIONS (UPDATED FOR FIRESTORE)
+// ============================================
+// Add new product (to both Firestore and local)
     async function addProduct(productData) {
         console.log('[ProductsManager] Adding new product with data:', productData);
         
