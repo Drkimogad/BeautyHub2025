@@ -111,10 +111,10 @@ const ProductsDisplay = (function() {
     
     const displayId = product.id;
     const isOnSale = product.isOnSale || product.discountPercent > 0;
-    const hasDiscount = product.discountPercent > 0 && product.originalPrice > product.price;
-    const discountAmount = hasDiscount ? product.originalPrice - product.price : 0;
+    const hasDiscount = product.discountPercent > 0 && product.retailPrice > product.currentprice;
+    const discountAmount = hasDiscount ? product.retailPrice - product.currenprice : 0;
     const discountPercentage = product.discountPercent || 
-                              (hasDiscount ? Math.round((discountAmount / product.originalPrice) * 100) : 0);
+                              (hasDiscount ? Math.round((discountAmount / product.retailPrice) * 100) : 0);
     
     // Determine badges
     let badges = [];
@@ -206,7 +206,7 @@ const ProductsDisplay = (function() {
         </div>
         ` : ''}
         
-        <div class="price-line" style="
+        <div class="currentprice-line" style="
             display: flex !important;
             align-items: center !important;
             gap: 10px !important;
@@ -215,14 +215,14 @@ const ProductsDisplay = (function() {
             width: 100% !important;
             clear: both !important;
         ">
-            <span class="original-price" style="
+            <span class="retail-price" style="
                 text-decoration: line-through !important;
                 color: #999 !important;
                 font-size: 0.9rem !important;
                 display: inline !important;
                 margin: 0 !important;
             ">
-                R${product.originalPrice.toFixed(2)}
+                R${product.retailPrice.toFixed(2)}
             </span>
             <span class="current-price" style="
                 font-size: 1.2rem !important;
@@ -231,18 +231,18 @@ const ProductsDisplay = (function() {
                 display: inline !important;
                 margin: 0 !important;
             ">
-                R${product.price.toFixed(2)}
+                R${product.currentprice.toFixed(2)}
             </span>
         </div>
     </div>
     ` : `
-    <span class="price" style="
+    <span class="currentprice" style="
         font-size: 1.2rem !important;
         font-weight: bold !important;
         color: #e91e63 !important;
         display: block !important;
     ">
-        R${product.price.toFixed(2)}
+        R${product.currentprice.toFixed(2)}
     </span>
     `}
 </div>
@@ -270,7 +270,7 @@ const ProductsDisplay = (function() {
                     <button class="add-to-cart" 
                             data-product-id="${displayId}"
                             data-product-name="${product.name}"
-                            data-product-price="${product.price}"
+                            data-product-currentprice="${product.currentprice}"
                             data-product-img="${product.imageUrl || 'gallery/placeholder.jpg'}"
                             ${product.stock === 0 ? 'disabled' : ''}>
                         <i class="fas fa-shopping-cart"></i> 
@@ -339,14 +339,14 @@ function getProductById(productId) {
                 
                 const productId = btn.dataset.productId;
                 const productName = btn.dataset.productName;
-                const productPrice = btn.dataset.productPrice;
+                const productcurrentPrice = btn.dataset.productcurrentPrice;
                 const productImg = btn.dataset.productImg;
                 
                 if (productId && typeof BeautyHubCart !== 'undefined') {
                     BeautyHubCart.addToCart(
                         productId, 
                         productName, 
-                        productPrice, 
+                        productcurrentPrice, 
                         productImg, 
                         1
                     );
@@ -374,10 +374,10 @@ function getProductById(productId) {
         if (!product) return;
         
         const isOnSale = product.isOnSale || product.discountPercent > 0;
-        const hasDiscount = product.discountPercent > 0 && product.originalPrice > product.price;
-        const discountAmount = hasDiscount ? product.originalPrice - product.price : 0;
+        const hasDiscount = product.discountPercent > 0 && product.retailPrice > product.currentprice;
+        const discountAmount = hasDiscount ? product.retailPrice - product.price : 0;
         const discountPercentage = product.discountPercent || 
-                                  (hasDiscount ? Math.round((discountAmount / product.originalPrice) * 100) : 0);
+                                  (hasDiscount ? Math.round((discountAmount / product.retailPrice) * 100) : 0);
         
         const tags = product.tags || [];
         const category = product.category ? product.category.charAt(0).toUpperCase() + product.category.slice(1) : '';
@@ -438,17 +438,17 @@ function getProductById(productId) {
                         <div class="quick-view-pricing">
                             ${hasDiscount ? `
                             <div class="discounted-pricing">
-                                <span class="quick-view-original-price">
-                                    R${product.originalPrice.toFixed(2)}
+                                <span class="quick-view-retail-price">
+                                    R${product.retailPrice.toFixed(2)}
                                 </span>
                                 <span class="quick-view-current-price">
-                                    R${product.price.toFixed(2)}
+                                    R${product.currentprice.toFixed(2)}
                                 </span>
                             </div>
                             ` : `
                             <div class="regular-pricing">
-                                <span class="quick-view-price">
-                                    R${product.price.toFixed(2)}
+                                <span class="quick-view-currentprice">
+                                    R${product.currentprice.toFixed(2)}
                                 </span>
                             </div>
                             `}
@@ -504,7 +504,7 @@ function getProductById(productId) {
                             <button class="add-to-cart-quickview" 
                                     data-product-id="${product.id}"
                                     data-product-name="${product.name}"
-                                    data-product-price="${product.price}"
+                                    data-product-currentprice="${product.currentprice}"
                                     data-product-img="${product.imageUrl || 'gallery/placeholder.jpg'}"
                                     ${isOutOfStock ? 'disabled' : ''}>
                                 <i class="fas fa-shopping-cart"></i>
@@ -540,7 +540,7 @@ function getProductById(productId) {
                 BeautyHubCart.addToCart(
                     product.id,
                     product.name,
-                    product.price,
+                    product.currentprice,
                     product.imageUrl || 'gallery/placeholder.jpg',
                     1
                 );
