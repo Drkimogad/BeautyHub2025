@@ -10,7 +10,6 @@
 // 6. Order summary with shipping calculation
 // 7. Success/error handling with user feedback
 // ========================================================
-
 const CustomerOrderManager = (function() {
     // ========================================================
     // CONFIGURATION & CONSTANTS
@@ -24,7 +23,6 @@ const CustomerOrderManager = (function() {
             CUSTOMERS: 'beautyhub_customers'
         }
     };
-
     // ========================================================
     // STATE MANAGEMENT
     // ========================================================
@@ -65,7 +63,6 @@ const CustomerOrderManager = (function() {
             return null;
         }
     }
-
     // ========================================================
     // MODAL CREATION
     // ========================================================
