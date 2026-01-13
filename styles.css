@@ -4736,6 +4736,410 @@ header {
 
 
 
+/* ========================================================
+   CUSTOMER SEARCH STYLES
+   ======================================================== */
+
+/* Search Container */
+.customer-search-container {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f0f8ff;
+    border-radius: 8px;
+    border-left: 4px solid #2196f3;
+}
+
+.search-header {
+    margin-bottom: 0.75rem;
+}
+
+.search-header h4 {
+    margin: 0 0 0.25rem 0;
+    color: #2196f3;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.search-header p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Search Form */
+.search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.search-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.625rem;
+    align-items: end;
+}
+
+@media (max-width: 768px) {
+    .search-fields {
+        grid-template-columns: 1fr;
+    }
+}
+
+.search-field-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.search-field-group label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.search-field-group label .required {
+    color: #e91e63;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input:focus {
+    border-color: #2196f3;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+.search-button-group {
+    display: flex;
+    align-items: center;
+}
+
+.search-btn {
+    padding: 0.75rem 1.5rem;
+    background: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    font-size: 0.95rem;
+}
+
+.search-btn:hover {
+    background: #0d8bf2;
+    transform: translateY(-1px);
+}
+
+.search-btn:active {
+    transform: translateY(0);
+}
+
+/* Search Result */
+.search-result {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 4px;
+    display: none;
+}
+
+.search-result.success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.search-result.info {
+    background: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #bbdefb;
+}
+
+.search-result .result-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.result-success {
+    color: inherit;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.result-details {
+    font-size: 0.9rem;
+    color: inherit;
+    opacity: 0.9;
+}
+
+.result-stats {
+    font-size: 0.85rem;
+    color: inherit;
+    opacity: 0.8;
+    margin-top: 0.125rem;
+}
+
+.clear-search-btn {
+    background: none;
+    border: 1px solid #ddd;
+    color: #666;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    align-self: flex-end;
+    transition: background 0.2s;
+}
+
+.clear-search-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* Search Error */
+.search-error {
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 4px;
+    background: #ffebee;
+    color: #d32f2f;
+    display: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Search Loading */
+.search-loading {
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    text-align: center;
+    display: none;
+    color: #666;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+/* Search Footer */
+.search-footer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed #ddd;
+    font-size: 0.85rem;
+    color: #777;
+}
+
+.search-footer p {
+    margin: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+/* Search Message */
+.customer-search-message {
+    margin: 0.75rem 0;
+    padding: 0.75rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.customer-search-message.success {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.customer-search-message.info {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.customer-search-message.error {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+/* ========================================================
+   RESPONSIVE STYLES
+   ======================================================== */
+
+@media (max-width: 768px) {
+    .customer-search-container {
+        padding: 0.875rem;
+    }
+    
+    .search-header h4 {
+        font-size: 1rem;
+    }
+    
+    .search-header p {
+        font-size: 0.85rem;
+    }
+    
+    .search-input {
+        padding: 0.625rem;
+        font-size: 0.9rem;
+    }
+    
+    .search-btn {
+        padding: 0.625rem 1.25rem;
+        font-size: 0.9rem;
+        width: 100%;
+    }
+    
+    .result-success {
+        font-size: 0.9rem;
+    }
+    
+    .result-details {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .customer-search-container {
+        padding: 0.75rem;
+    }
+    
+    .search-fields {
+        gap: 0.5rem;
+    }
+    
+    .search-field-group label {
+        font-size: 0.85rem;
+    }
+    
+    .search-input {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .search-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .search-result,
+    .search-error,
+    .search-loading {
+        padding: 0.625rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .customer-search-container {
+        background: #1a237e;
+        border-left-color: #2196f3;
+    }
+    
+    .search-header h4 {
+        color: #bbdefb;
+    }
+    
+    .search-header p {
+        color: #b0bec5;
+    }
+    
+    .search-input {
+        background: #263238;
+        border-color: #37474f;
+        color: #e0e0e0;
+    }
+    
+    .search-input:focus {
+        border-color: #2196f3;
+        box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+    }
+    
+    .search-field-group label {
+        color: #b0bec5;
+    }
+    
+    .search-result.success {
+        background: #1b5e20;
+        color: #c8e6c9;
+        border-color: #2e7d32;
+    }
+    
+    .search-result.info {
+        background: #0d47a1;
+        color: #bbdefb;
+        border-color: #1565c0;
+    }
+    
+    .search-error {
+        background: #3a1f1f;
+        color: #ff8a80;
+    }
+    
+    .search-loading {
+        color: #b0bec5;
+    }
+    
+    .search-footer {
+        border-top-color: #37474f;
+        color: #b0bec5;
+    }
+    
+    .clear-search-btn {
+        border-color: #37474f;
+        color: #b0bec5;
+    }
+    
+    .clear-search-btn:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .customer-search-message.success {
+        background: #1b5e20;
+        color: #c8e6c9;
+    }
+    
+    .customer-search-message.info {
+        background: #0d47a1;
+        color: #bbdefb;
+    }
+    
+    .customer-search-message.error {
+        background: #3a1f1f;
+        color: #ff8a80;
+    }
+}
+
+
+
+
 
 
 
