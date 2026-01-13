@@ -8,7 +8,6 @@
 // 5. Integration with localStorage and order system
 // 6. User feedback with loading states and error messages
 // ========================================================
-
 const CustomerSearchManager = (function() {
     // ========================================================
     // CONFIGURATION & CONSTANTS
@@ -19,7 +18,6 @@ const CustomerSearchManager = (function() {
         MIN_SURNAME_LENGTH: 2,
         MIN_PHONE_LENGTH: 10
     };
-
     // ========================================================
     // STATE MANAGEMENT
     // ========================================================
