@@ -4,6 +4,11 @@ const AppManager = (function() {
     // ===== MAIN INITIALIZATION =====
     function init() {
         try {
+            // Initialize ProductsManager FIRST
+        if (typeof ProductsManager !== 'undefined' && ProductsManager.init) {
+            ProductsManager.init();
+            console.log('[AppManager] ProductsManager initialized');
+        }
                 // Check if admin.js loaded properly
     if (typeof AdminManager === 'undefined') {
         console.error('[AppManager] CRITICAL: AdminManager not loaded!');
