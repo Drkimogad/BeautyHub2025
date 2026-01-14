@@ -536,7 +536,7 @@ if (searchContainer) {
                 priority: document.getElementById('order-priority')?.value || 'normal',
                 shippingAddress: document.getElementById('shipping-address')?.value.trim() || '',
                 orderNotes: document.getElementById('order-notes')?.value.trim() || '',
-                cartItems: BeautyHubCart.getCartItems(),
+                cartItems: BeautyHubCart.getCartItemsWithPrices(),  // CHANGED FEOM cartItems: BeautyHubCart.getCartItems(),
                 discount: 0, // No discount applied initially
                 adminNotes: '' // Empty by default
             };
