@@ -284,6 +284,8 @@ const ProductsDisplay = (function() {
                                 data-product-id="${displayId}"
                                 data-product-name="${product.name}"
                                 data-product-currentprice="${currentPrice}"
+data-product-retailprice="${retailPrice}"
+data-product-wholesaleprice="${wholesalePrice}"
                                 data-product-img="${product.imageUrl || 'gallery/placeholder.jpg'}"
                                 ${product.stock === 0 ? 'disabled' : ''}>
                             <i class="fas fa-shopping-cart"></i> 
@@ -364,17 +366,24 @@ const ProductsDisplay = (function() {
                         
                         const productId = btn.dataset.productId;
                         const productName = btn.dataset.productName;
-                        const productCurrentPrice = btn.dataset.productCurrentprice;
+                        const productCurrentPrice = btn.dataset.productCurrentprice
+                        // Create price data object
+const priceData = {
+    currentPrice: parseFloat(productCurrentPrice),
+    retailPrice: parseFloat(btn.dataset.productRetailprice || 0),
+    wholesalePrice: parseFloat(btn.dataset.productWholesaleprice || 0)
+};
+
                         const productImg = btn.dataset.productImg;
                         
                         if (productId && typeof BeautyHubCart !== 'undefined') {
                             BeautyHubCart.addToCart(
-                                productId, 
-                                productName, 
-                                parseFloat(productCurrentPrice), 
-                                productImg, 
-                                1
-                            );
+    productId, 
+    productName, 
+    priceData, 
+    productImg, 
+    1
+);
                         }
                     }
                     
@@ -548,9 +557,6 @@ const ProductsDisplay = (function() {
                                     ${isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
                                 </button>
                                 
-                                <button class="wishlist-btn">
-                                    <i class="fas fa-heart"></i> Wishlist
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -572,31 +578,38 @@ const ProductsDisplay = (function() {
                 });
             }
             
-            if (addToCartBtn && !isOutOfStock && typeof BeautyHubCart !== 'undefined') {
-                addToCartBtn.addEventListener('click', () => {
-                    try {
-                        BeautyHubCart.addToCart(
-                            product.id,
-                            product.name,
-                            currentPrice,
-                            product.imageUrl || 'gallery/placeholder.jpg',
-                            1
-                        );
-                        
-                        // Show confirmation
-                        const originalText = addToCartBtn.innerHTML;
-                        addToCartBtn.innerHTML = '<i class="fas fa-check"></i> Added!';
-                        addToCartBtn.classList.add('added-to-cart');
-                        
-                        setTimeout(() => {
-                            addToCartBtn.innerHTML = originalText;
-                            addToCartBtn.classList.remove('added-to-cart');
-                        }, 2000);
-                    } catch (error) {
-                        console.error('[ProductsDisplay] Error adding to cart from quick view:', error);
-                    }
-                });
-            }
+if (addToCartBtn && !isOutOfStock && typeof BeautyHubCart !== 'undefined') {
+    addToCartBtn.addEventListener('click', () => {
+        try {
+            // Create price data object with ALL price fields
+            const priceData = {
+                currentPrice: parseFloat(currentPrice),
+                retailPrice: parseFloat(retailPrice || 0),
+                wholesalePrice: parseFloat(wholesalePrice || 0)
+            };
+            
+            BeautyHubCart.addToCart(
+                product.id,
+                product.name,
+                priceData,  // Pass the OBJECT, not just currentPrice
+                product.imageUrl || 'gallery/placeholder.jpg',
+                1
+            );
+            
+            // Show confirmation
+            const originalText = addToCartBtn.innerHTML;
+            addToCartBtn.innerHTML = '<i class="fas fa-check"></i> Added!';
+            addToCartBtn.classList.add('added-to-cart');
+            
+            setTimeout(() => {
+                addToCartBtn.innerHTML = originalText;
+                addToCartBtn.classList.remove('added-to-cart');
+            }, 2000);
+        } catch (error) {
+            console.error('[ProductsDisplay] Error adding to cart from quick view:', error);
+        }
+    });
+}
             
             // Gallery thumbnail click
             galleryThumbs.forEach(thumb => {
