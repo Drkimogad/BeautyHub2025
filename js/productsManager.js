@@ -218,76 +218,48 @@ const ProductsManager = (function() {
     // ============================================
     // CORE PRODUCT FUNCTIONS
     // ============================================
-    
-    async function loadProducts() {
-        try {
-            console.log('[ProductsManager] Starting product loading process');
-            
-            // 1. Try cache FIRST
-            console.log('[ProductsManager] Checking cache first...');
-            const cached = loadProductsFromCache();
-            
-            if (cached && cached.products && cached.products.length > 0) {
-                // Normalize product property names
-                products = cached.products.map(p => normalizeProductProperties(p));
-                console.log('[ProductsManager] Loaded from cache, count:', products.length);
-                
-                console.log('[ProductsManager] Dispatching productsManagerReady event (cache)');
-                window.dispatchEvent(new CustomEvent('productsManagerReady'));
-                
-                const cacheAge = Date.now() - cached.timestamp;
-                const REFRESH_THRESHOLD = 30 * 60 * 1000; // 30 minutes
-                
-                if (CONFIG.USE_FIRESTORE && cacheAge > REFRESH_THRESHOLD) {
-                    console.log('[ProductsManager] Cache is ' + Math.round(cacheAge/1000/60) + 
-                               ' minutes old, refreshing from Firestore in background...');
-                    updateFromFirestoreInBackground();
-                }
-                return;
-            }
-            
-            // 2. If cache empty, try localStorage
-            console.log('[ProductsManager] Cache empty, checking localStorage...');
-            const saved = localStorage.getItem(CONFIG.STORAGE_KEY);
-            if (saved) {
-                try {
-                    const savedProducts = JSON.parse(saved) || [];
-                    products = savedProducts.map(p => normalizeProductProperties(p));
-                    console.log('[ProductsManager] Loaded from localStorage, count:', products.length);
-                    console.log('[ProductsManager] Dispatching productsManagerReady event (localStorage)');
-                    window.dispatchEvent(new CustomEvent('productsManagerReady'));
-                    
-                    if (CONFIG.USE_FIRESTORE) {
-                        updateFromFirestoreInBackground();
-                    }
-                    return;
-                } catch (e) {
-                    products = [];
-                    console.error('[ProductsManager] Error loading from localStorage:', e);
-                }
-            }
-            
-            // 3. If no cache/localStorage, try Firestore
-            if (CONFIG.USE_FIRESTORE) {
-                console.log('[ProductsManager] No cache found, loading from Firestore...');
-                const firestoreProducts = await loadProductsFromFirestore();
-                if (firestoreProducts !== null) {
-                    products = firestoreProducts.map(p => normalizeProductProperties(p));
-                    console.log('[ProductsManager] Loaded from Firestore, count:', products.length);
-                    saveProductsToCache();
-                    saveProductsToLocalStorage();
-                }
-            }
-            
-            console.log('[ProductsManager] Dispatching productsManagerReady event (final)');
-            window.dispatchEvent(new CustomEvent('productsManagerReady'));
-            
-        } catch (error) {
-            console.error('[ProductsManager] Error loading products:', error);
-            products = [];
-            window.dispatchEvent(new CustomEvent('productsManagerReady'));
+//The key: Single event dispatch at the end, no early returns, clear loading flow.
+async function loadProducts() {
+    try {
+        console.log('[ProductsManager] Starting product loading process');
+        
+        let loadedFrom = 'none';
+        
+        // 1. Try cache
+        const cached = loadProductsFromCache();
+        if (cached && cached.products && cached.products.length > 0) {
+            products = cached.products.map(p => normalizeProductProperties(p));
+            loadedFrom = 'cache';
+            console.log('[ProductsManager] Loaded from cache');
+        } 
+        // 2. Try localStorage
+        else if (localStorage.getItem(CONFIG.STORAGE_KEY)) {
+            const savedProducts = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY)) || [];
+            products = savedProducts.map(p => normalizeProductProperties(p));
+            loadedFrom = 'localStorage';
+            console.log('[ProductsManager] Loaded from localStorage');
         }
+        // 3. Try Firestore (if enabled)
+        else if (CONFIG.USE_FIRESTORE) {
+            const firestoreProducts = await loadProductsFromFirestore();
+            if (firestoreProducts !== null) {
+                products = firestoreProducts.map(p => normalizeProductProperties(p));
+                saveProductsToCache();
+                saveProductsToLocalStorage();
+                loadedFrom = 'firestore';
+                console.log('[ProductsManager] Loaded from Firestore');
+            }
+        }
+        
+        console.log(`[ProductsManager] Loaded ${products.length} products from ${loadedFrom}`);
+        window.dispatchEvent(new CustomEvent('productsManagerReady'));
+        
+    } catch (error) {
+        console.error('[ProductsManager] Error loading products:', error);
+        products = [];
+        window.dispatchEvent(new CustomEvent('productsManagerReady'));
     }
+}
     
     async function updateFromFirestoreInBackground() {
         try {
