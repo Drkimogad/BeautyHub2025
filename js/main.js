@@ -16,6 +16,7 @@ const AppManager = (function() {
             setupSmoothScrolling();
             initializeShippingSection();
             initializePrivacySection();
+            initializeNavigation(); // ← ADD THIS HERE
             setupNavigationHandlers();
             
             // Initialize modules in correct dependency order
@@ -192,7 +193,46 @@ const AppManager = (function() {
             throw error;
         }
     }
-
+// ===== NAVIGATION INITIALIZATION new =====
+function initializeNavigation() {
+    try {
+        const navLinks = document.querySelector('.nav-links');
+        if (!navLinks) {
+            console.warn('[Main] Navigation container not found');
+            return;
+        }
+        
+        // Create admin button (if not exists)
+        if (!document.getElementById('admin-btn')) {
+            const adminBtn = document.createElement('a');
+            adminBtn.id = 'admin-btn';
+            adminBtn.href = '#';
+            adminBtn.className = 'nav-item';
+            adminBtn.innerHTML = `
+                <i class="fas fa-user-shield"></i>
+                Admin
+                <span id="admin-badge" class="admin-badge"></span>
+            `;
+            navLinks.appendChild(adminBtn);
+        }
+        
+        // Create cart button (if not exists)
+        if (!document.getElementById('cart-btn-nav')) {
+            const cartBtn = document.createElement('button');
+            cartBtn.id = 'cart-btn-nav';
+            cartBtn.className = 'nav-item cart-btn';
+            cartBtn.innerHTML = `
+                <i class="fas fa-shopping-cart"></i>
+                <span id="cart-count" class="cart-count">0</span>
+            `;
+            navLinks.appendChild(cartBtn);
+        }
+        
+        console.log('[Main] Navigation initialized');
+    } catch (error) {
+        console.error('[Main] Failed to initialize navigation:', error);
+    }
+}
 // ===== NAVIGATION HANDLERS =====
     function setupNavigationHandlers() {
         try {
