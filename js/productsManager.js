@@ -218,7 +218,6 @@ const ProductsManager = (function() {
     // ============================================
     // CORE PRODUCT FUNCTIONS
     // ============================================
-//The key: Single event dispatch at the end, no early returns, clear loading flow.
 async function loadProducts() {
     try {
         console.log('[ProductsManager] Starting product loading process');
@@ -252,12 +251,18 @@ async function loadProducts() {
         }
         
         console.log(`[ProductsManager] Loaded ${products.length} products from ${loadedFrom}`);
+        
+        // ===== EVENT DISPATCH HERE - AFTER ALL LOADING ATTEMPTS =====
         window.dispatchEvent(new CustomEvent('productsManagerReady'));
+        // ============================================================
         
     } catch (error) {
         console.error('[ProductsManager] Error loading products:', error);
         products = [];
+        
+        // ===== EVENT DISPATCH HERE TOO - EVEN ON ERROR =====
         window.dispatchEvent(new CustomEvent('productsManagerReady'));
+        // ===================================================
     }
 }
     
