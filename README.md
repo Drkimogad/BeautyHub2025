@@ -655,3 +655,13 @@ ok . USER OR SITE VISITOR SCENARIO: when the app loads initially, first thing sh
 7. inventoryManager.js    ← Admin inventory (DEPENDS ON PRODUCTS & ORDERS)
 8. admin.js               ← Admin modal/auth (DEPENDS ON ALL MANAGEMENT MODULES)
 9. main.js                ← Orchestrates everything (DEPENDS ON ALL)
+
+Plain English Mapping of Dependencies:
+USER JOURNEY:
+Visitor → Sees Products (products.js) → Needs Product Data (productsManager.js) → Adds to Cart (cart.js) → Checks Out (customerorder.js) → Maybe Finds Previous Order (customerSearch.js)
+
+ADMIN JOURNEY:
+Admin → Logs In (admin.js) → Manages Orders (ordersManager.js needs customerorder.js data) → Manages Products (productsManager.js) → Checks Inventory (inventoryManager.js needs products + orders)
+
+CONTROL FLOW:
+main.js ← Waits for ALL modules → Starts App → Conditions → Updates UI
