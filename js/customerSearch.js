@@ -639,7 +639,3 @@ const CustomerSearchManager = (function() {
     };
 })();
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    CustomerSearchManager.init();
-});
