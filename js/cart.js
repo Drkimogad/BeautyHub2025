@@ -80,13 +80,13 @@ const BeautyHubCart = (function() {
     // ========================================================
     // CART OPERATIONS
     // ========================================================
-    function addToCart(productId, productName, price, imageUrl, quantity = 1) {
-        console.log('[Cart] Adding to cart:', { productId, productName, quantity });
-        
+function addToCart(productId, productName, priceData, imageUrl, quantity = 1) {
+console.log('[Cart] Adding to cart:', { productId, productName, priceData, quantity });   
+    
         try {
             // Validate input parameters
-            if (!productId || !productName || price === undefined || !imageUrl) {
-                throw new Error('Invalid product data provided');
+if (!productId || !productName || !priceData || !imageUrl) {
+    throw new Error('Invalid product data provided');
             }
 
             // Check stock availability
@@ -119,17 +119,16 @@ const BeautyHubCart = (function() {
                 existingItem.quantity += quantity;
                 console.log(`[Cart] Updated quantity for ${productName}: ${existingItem.quantity}`);
             } else {
-                cartItems.push({
-                    productId,
-                    productName,
-                  //  price: parseFloat(price), NO BACKWARD COMPATABILITY NEEDED
-                    currentPrice: parseFloat(price), // The actual price shown to customer
-                    wholesalePrice: 0, // Will be populated if available
-                    retailPrice: 0, // Will be populated if available
-                    imageUrl,
-                    quantity,
-                    addedAt: new Date().toISOString()
-                });
+cartItems.push({
+    productId,
+    productName,
+    currentPrice: parseFloat(priceData.currentPrice || priceData.price || 0),
+    wholesalePrice: parseFloat(priceData.wholesalePrice) || 0,
+    retailPrice: parseFloat(priceData.retailPrice) || 0,
+    imageUrl,
+    quantity,
+    addedAt: new Date().toISOString()
+});
                 console.log(`[Cart] Added new item: ${productName}`);
             }
 
