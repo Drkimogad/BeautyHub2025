@@ -193,16 +193,16 @@
         <p>&copy; <span id="current-year">2025</span> BeautyHub2025. All rights reserved.</p>
     </footer>
 
-    <!-- Scripts (in correct order) -->
-    <script src="js/cart.js"></script>
-    <script src="js/products.js"></script>
-    <script src="js/productsManager.js"></script>
-    <script src="js/inventoryManager.js"></script>
-    <script src="js/ordersManager.js"></script>
-    <script src="js/customerSearch.js"></script>
-    <script src="js/customerorder.js"></script>
-    <script src="js/admin.js"></script>
-    <script src="js/main.js"></script>
+  <!-- Scripts (CORRECT DEPENDENCY ORDER) -->
+<script src="js/productsManager.js" defer></script>
+<script src="js/products.js" defer></script>
+<script src="js/cart.js" defer></script>
+<script src="js/customerorder.js" defer></script>
+<script src="js/customerSearch.js" defer></script>
+<script src="js/ordersManager.js" defer></script>
+<script src="js/inventoryManager.js" defer></script>
+<script src="js/admin.js" defer></script>
+<script src="js/main.js" defer></script>
     
     <script>
         // Simple current year injection
