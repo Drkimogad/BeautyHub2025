@@ -62,11 +62,11 @@ if (!checkoutForm) {
         
         try {
             // === ADD THIS CHECK ===
-        const checkoutForm = document.querySelector('#checkout-form');
-        if (!checkoutForm) {
-            console.log('[CustomerSearch] No checkout form, skipping UI creation');
-            return;
-        }
+        const checkoutFormElement = document.querySelector('#checkout-form');
+if (!checkoutFormElement) {
+    console.log('[CustomerSearch] No checkout form, skipping UI creation');
+    return;
+}
         // === END CHECK ===
             // Remove existing search UI if present
             const existingSearch = document.getElementById('customer-search-container');
