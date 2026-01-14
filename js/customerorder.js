@@ -774,7 +774,3 @@ const CustomerOrderManager = (function() {
     };
 })();
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    CustomerOrderManager.init();
-});
