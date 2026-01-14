@@ -249,6 +249,11 @@ const CustomerOrderManager = (function() {
             // Show modal
             checkoutModal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
+            // Initialize CustomerSearch if available
+if (typeof CustomerSearchManager !== 'undefined') {
+    console.log('[CustomerOrder] Initializing CustomerSearchManager for checkout');
+    CustomerSearchManager.init('#checkout-form');
+}
             
             // Focus on first field
             const firstNameField = document.getElementById('customer-firstname');
@@ -288,6 +293,12 @@ const CustomerOrderManager = (function() {
             document.body.style.overflow = '';
             clearError();
             resetForm();
+            // Remove customer search UI if present
+const searchContainer = document.getElementById('customer-search-container');
+if (searchContainer) {
+    searchContainer.remove();
+    console.log('[CustomerOrder] Removed customer search UI');
+}
             
             // Clear customer tracking data
             if (checkoutForm) {
@@ -647,6 +658,12 @@ const CustomerOrderManager = (function() {
     // ========================================================
     function showSuccess(message, orderId) {
         console.log('[CustomerOrder] Showing success message:', message);
+        // Remove customer search UI if present
+const searchContainer = document.getElementById('customer-search-container');
+if (searchContainer) {
+    searchContainer.remove();
+    console.log('[CustomerOrder] Removed customer search UI for success display');
+}
         
         try {
             const form = document.getElementById('checkout-form');
