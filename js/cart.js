@@ -633,7 +633,3 @@ const BeautyHubCart = (function() {
     };
 })();
 
-// Initialize cart when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    BeautyHubCart.init();
-});
