@@ -4,6 +4,15 @@ const AppManager = (function() {
     // ===== MAIN INITIALIZATION =====
     function init() {
         try {
+                // Check if admin.js loaded properly
+    if (typeof AdminManager === 'undefined') {
+        console.error('[AppManager] CRITICAL: AdminManager not loaded!');
+        console.log('[AppManager] Available modules:', {
+            ProductsManager: typeof ProductsManager,
+            BeautyHubCart: typeof BeautyHubCart,
+            AdminManager: typeof AdminManager
+        });
+    }
             console.log('[AppManager] BeautyHub2025 PWA Initializing...');
             
             // Setup core UI functionality
@@ -15,7 +24,7 @@ const AppManager = (function() {
             // Connect cart button
             connectCartButton();
             
-            // Connect admin button
+            //  admin button
             connectAdminButton();
             
             // Connect checkout button
@@ -171,23 +180,47 @@ const AppManager = (function() {
         }
     }
     
+//AdminManager is an IIFE that returns an object
     function connectAdminButton() {
-        try {
-            const adminBtn = document.getElementById('admin-btn');
-            if (adminBtn) {
-                adminBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    if (typeof AdminManager !== 'undefined' && AdminManager.toggleAdminPanel) {
-                        AdminManager.toggleAdminPanel();
-                    } else {
-                        console.warn('[AppManager] AdminManager not available');
-                    }
-                });
+    try {
+        const adminBtn = document.getElementById('admin-btn');
+        
+        if (adminBtn) {
+            // Initialize AdminManager first
+            if (typeof AdminManager !== 'undefined' && AdminManager.init) {
+                AdminManager.init();
+                console.log('[AppManager] AdminManager initialized');
             }
-        } catch (error) {
-            console.error('[AppManager] Failed to connect admin button:', error);
+            
+            adminBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('[AppManager] Admin button clicked');
+                
+                // Check if AdminManager is initialized
+                if (typeof AdminManager === 'undefined') {
+                    console.error('[AppManager] AdminManager not loaded');
+                    return;
+                }
+                
+                // Check authentication status
+                if (AdminManager.isAuthenticated && AdminManager.isAuthenticated()) {
+                    console.log('[AppManager] Admin authenticated, opening dashboard');
+                    AdminManager.openDashboard();
+                } else {
+                    console.log('[AppManager] Admin not authenticated, opening login');
+                    AdminManager.openAdminLogin();
+                }
+            });
+            
+            console.log('[AppManager] Admin button connected');
+        } else {
+            console.warn('[AppManager] Admin button not found');
         }
+        
+    } catch (error) {
+        console.error('[AppManager] Failed to connect admin button:', error);
     }
+}
     
     function connectCheckoutButton() {
         try {
