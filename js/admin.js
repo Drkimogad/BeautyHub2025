@@ -1216,7 +1216,7 @@ const AdminManager = (function() {
                 width: 100%;
                 height: 100%;
                 background: rgba(0,0,0,0.7);
-                z-index: 1006;
+                z-index: 1009;  /* CHANGED FROM 1006 SAME AS INVENTORY MODAL*/
                 align-items: center;
                 justify-content: center;
                 padding: 20px;
