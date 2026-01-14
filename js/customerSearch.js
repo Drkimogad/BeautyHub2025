@@ -32,14 +32,11 @@ const CustomerSearchManager = (function() {
         
         try {
             // Check if checkout form exists
-            if (!document.getElementById('checkout-form')) {
-                console.log('[CustomerSearch] No checkout form found on this page');
-                return {
-                    searchCustomer,
-                    autoFillForm,
-                    normalizePhone
-                };
-            }
+const checkoutForm = document.getElementById('checkout-form');
+if (!checkoutForm) {
+    console.warn('[CustomerSearch] Checkout form not found initially');
+    // Still return API, form may be created later
+}
             
             createSearchUI();
             setupEventListeners();
