@@ -122,7 +122,10 @@ const BeautyHubCart = (function() {
                 cartItems.push({
                     productId,
                     productName,
-                    price: parseFloat(price),
+                  //  price: parseFloat(price), NO BACKWARD COMPATABILITY NEEDED
+                    currentPrice: parseFloat(price), // The actual price shown to customer
+                    wholesalePrice: 0, // Will be populated if available
+                    retailPrice: 0, // Will be populated if available
                     imageUrl,
                     quantity,
                     addedAt: new Date().toISOString()
@@ -222,11 +225,22 @@ const BeautyHubCart = (function() {
         return [...cartItems];
     }
 
+//Add this after the getCartItems() function:
+function getCartItemsWithPrices() {
+    return cartItems.map(item => ({
+        ...item,
+        // Ensure all price fields exist for ordersManager.js
+        price: item.currentPrice,
+        wholesalePrice: item.wholesalePrice,
+        retailPrice: item.retailPrice
+    }));
+}
+
     function getCartTotal() {
         try {
             const total = cartItems.reduce((sum, item) => {
-                return sum + (item.price * item.quantity);
-            }, 0);
+    return sum + (item.currentPrice * item.quantity);
+}, 0);
             return parseFloat(total.toFixed(2));
         } catch (error) {
             console.error('[Cart] Failed to calculate total:', error);
@@ -350,8 +364,8 @@ const BeautyHubCart = (function() {
                 <img src="${item.imageUrl}" alt="${item.productName}">
                 <div class="cart-item-details">
                     <h4>${item.productName}</h4>
-                    <p>R${item.price.toFixed(2)} × ${item.quantity}</p>
-                </div>
+<p>R${item.currentPrice.toFixed(2)} × ${item.quantity}</p>
+</div>
                 <div class="cart-item-controls">
                     <button class="qty-btn minus" data-id="${item.productId}">−</button>
                     <span class="qty-display">${item.quantity}</span>
@@ -625,6 +639,7 @@ const BeautyHubCart = (function() {
         updateQuantity,
         clearCart,
         getCartItems,
+        getCartItemsWithPrices, // NEW - for ordersManager.js
         getCartTotal,
         getCartCount,
         updateCartUI,
