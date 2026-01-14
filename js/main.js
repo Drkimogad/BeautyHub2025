@@ -192,7 +192,7 @@ const AppManager = (function() {
             throw error;
         }
     }
-    
+
 // ===== NAVIGATION HANDLERS =====
     function setupNavigationHandlers() {
         try {
@@ -669,6 +669,51 @@ const AppManager = (function() {
             return { status: 'error', error: error.message, timestamp: new Date().toISOString() };
         }
     }
+
+    // Inside AppManager, add to PUBLIC API section
+function debugPriceAlignment() {
+    console.log('🔍 ========== PRICE ALIGNMENT DEBUG ==========');
+    
+    // 1. Check cart items
+    if (typeof BeautyHubCart !== 'undefined') {
+        const cartItems = BeautyHubCart.getCartItems();
+        console.log('📦 Cart Items:', cartItems.map(item => ({
+            name: item.productName,
+            currentPrice: item.currentPrice,
+            retailPrice: item.retailPrice,
+            wholesalePrice: item.wholesalePrice,
+            hasAllPrices: !!(item.currentPrice && item.retailPrice && item.wholesalePrice)
+        })));
+    }
+    
+    // 2. Check product schema
+    if (typeof ProductsManager !== 'undefined') {
+        const products = ProductsManager.getProducts({ activeOnly: true });
+        if (products && products.length > 0) {
+            const sampleProduct = products[0];
+            console.log('🏷️ Product Schema Sample:', {
+                id: sampleProduct.id,
+                name: sampleProduct.name,
+                currentPrice: sampleProduct.currentPrice || sampleProduct.currentprice,
+                retailPrice: sampleProduct.retailPrice || sampleProduct.retailprice,
+                wholesalePrice: sampleProduct.wholesalePrice || sampleProduct.wholesaleprice,
+                hasAllFields: !!(sampleProduct.currentPrice && sampleProduct.retailPrice && sampleProduct.wholesalePrice)
+            });
+        }
+    }
+    
+    // 3. Test tiered pricing
+    if (typeof OrdersManager !== 'undefined') {
+        console.log('💰 Tiered Pricing Test:');
+        const testPrice = 100;
+        const testCustomerTypes = ['personal', 'retailer', 'wholesaler', 'corporate'];
+        
+        testCustomerTypes.forEach(type => {
+            const tier = OrdersManager.getPriceTierForCustomer(type);
+            console.log(`  ${type} -> ${tier} tier`);
+        });
+    }
+}
     
     // ===== PUBLIC API =====
     return {
@@ -677,6 +722,7 @@ const AppManager = (function() {
         dispatchOrderCreated,
         initializeAfterProducts,
         checkSystemHealth,
+        debugPriceAlignment, // Add this
         getModuleStatus: () => moduleStatus
     };
 })();
@@ -714,6 +760,8 @@ window.addEventListener('load', () => {
             if (health.status === 'critical') {
                 console.error('[Main] Critical system issues detected:', health.message);
             }
+            // ADD DEBUG FUNCTION HERE
+            debugPriceAlignment();
         }, 2000);
     } catch (error) {
         console.error('[Main] Failed to initialize delayed components:', error);
