@@ -1070,7 +1070,4 @@ const OrdersManager = (function() {
     };
 })();
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    OrdersManager.init();
-});
+
