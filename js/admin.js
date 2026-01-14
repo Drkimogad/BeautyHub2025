@@ -1532,7 +1532,3 @@ const AdminManager = (function() {
     };
 })();
 
-// Add to styles.css after document is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    AdminManager.init();
-});
