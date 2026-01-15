@@ -1012,6 +1012,19 @@ async function loadProducts() {
                             </label>
                             <textarea id="product-description" rows="3" class="form-textarea">${product?.description || ''}</textarea>
                         </div>
+                        
+                        <div class="form-group">
+    <label class="form-label">
+        Specifications (JSON format)
+    </label>
+    <textarea id="product-specifications" rows="3" class="form-textarea" 
+              placeholder='{"Size":"100ml","Type":"Eau de Parfum","Gender":"Unisex"}'>
+        ${product?.specifications ? JSON.stringify(product.specifications, null, 2) : ''}
+    </textarea>
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
+        Enter as JSON key-value pairs
+    </div>
+</div>
 
                         <div class="form-grid-3">
                             <div class="form-group">
@@ -1201,7 +1214,18 @@ async function loadProducts() {
                     .filter(tag => tag.length > 0),
                 salesCount: parseInt(document.getElementById('product-sales-count').value) || 0,
                 gallery: [],
-                specifications: {},
+                specifications: (() => {  // ← ADD THIS BLOCK HERE
+    try {
+        const specsText = document.getElementById('product-specifications')?.value;
+        if (specsText && specsText.trim()) {
+            return JSON.parse(specsText);
+        }
+        return {};
+    } catch (error) {
+        console.error('[ProductsManager] Error parsing specifications:', error);
+        return {};
+    }
+})(),  // ← NOTE THE COMMA AFTER CLOSING PARENTHESIS
                 isActive: true
             };
             
