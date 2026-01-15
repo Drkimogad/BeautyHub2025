@@ -21,6 +21,27 @@ if (typeof ProductsDisplay !== 'undefined' && ProductsDisplay.init) {
         BeautyHubCart.init();
         console.log('[AppManager] Cart initialized');
     }
+            // Add AFTER cart initialization but BEFORE "Checkout system ready" log:
+
+// CustomerOrderManager (for checkout forms)
+if (typeof CustomerOrderManager !== 'undefined' && CustomerOrderManager.init) {
+    CustomerOrderManager.init();
+    console.log('[AppManager] CustomerOrderManager initialized');
+} else {
+    console.warn('[AppManager] CustomerOrderManager not available for checkout');
+}
+
+// OrdersManager (for order processing)
+if (typeof OrdersManager !== 'undefined' && OrdersManager.init) {
+    OrdersManager.init();
+    console.log('[AppManager] OrdersManager initialized');
+}
+
+// CustomerSearchManager (for customer lookup in checkout)
+if (typeof CustomerSearchManager !== 'undefined' && CustomerSearchManager.init) {
+    CustomerSearchManager.init();
+    console.log('[AppManager] CustomerSearchManager initialized');
+}
 
                 // Check if admin.js loaded properly
     if (typeof AdminManager === 'undefined') {
