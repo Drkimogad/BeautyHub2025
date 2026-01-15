@@ -6412,4 +6412,8 @@ header {
     min-height: 250px;
 }
 
-
+/* Add at END of styles.css */
+.product-modal[style*="display: flex"],
+.stock-modal[style*="display: flex"] {
+    display: flex !important; /* display none hide the modals, a quick fix to be connsidered in refactoring of css*/
+}
