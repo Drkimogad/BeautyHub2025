@@ -4,6 +4,11 @@ const AppManager = (function() {
     // ===== MAIN INITIALIZATION =====
     function init() {
         try {
+             // Initialize Cart FIRST (before any products can be added)
+    if (typeof BeautyHubCart !== 'undefined' && BeautyHubCart.init) {
+        BeautyHubCart.init();
+        console.log('[AppManager] Cart initialized');
+    }
             // Initialize ProductsManager FIRST
         if (typeof ProductsManager !== 'undefined' && ProductsManager.init) {
             ProductsManager.init();
