@@ -541,9 +541,9 @@ const priceData = {
                             ` : ''}
                             
                             <div class="quick-view-features">
-                                <p><i class="fas fa-shipping-fast"></i> Free shipping on orders over R500</p>
-                                <p><i class="fas fa-undo"></i> 30-day return policy</p>
-                                <p><i class="fas fa-shield-alt"></i> Secure payment</p>
+                                <p><i class="fas fa-shipping-fast"></i> Free shipping on orders over R1000</p>
+                                <p><i class="fas fa-undo"></i> No return on damaged products</p>
+                                <p><i class="fas fa-shield-alt"></i> flexible payment</p>
                             </div>
                             
                             <div class="quick-view-actions">
