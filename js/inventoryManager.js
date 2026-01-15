@@ -408,11 +408,10 @@ const InventoryManager = (function() {
     // Check stock before adding to cart
     function checkStockBeforeAddToCart(productId, requestedQuantity) {
         try {
-            if (typeof ProductsManager === 'undefined') {
-            return { available: true, reason: 'Stock check skipped', availableStock: 999 };
-               }
-            
-            const product = ProductsManager.getProductById(productId);
+            if (!ProductsManager || typeof ProductsManager.getProductById !== 'function') {
+    return { available: true, reason: 'Stock check system offline', availableStock: 999 };
+}
+const product = ProductsManager.getProductById(productId);
             if (!product) {
                 return { 
                     available: false, 
