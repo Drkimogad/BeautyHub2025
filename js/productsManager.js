@@ -226,6 +226,8 @@ async function loadProducts() {
         
         // 1. Try cache
         const cached = loadProductsFromCache();
+        console.log('[DEBUG] After cache check, cached:', cached);
+        
         if (cached && cached.products && cached.products.length > 0) {
             products = cached.products.map(p => normalizeProductProperties(p));
             loadedFrom = 'cache';
@@ -233,6 +235,7 @@ async function loadProducts() {
         } 
         // 2. Try localStorage
         else if (localStorage.getItem(CONFIG.STORAGE_KEY)) {
+            console.log('[DEBUG] localStorage has data');
             const savedProducts = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY)) || [];
             products = savedProducts.map(p => normalizeProductProperties(p));
             loadedFrom = 'localStorage';
@@ -240,9 +243,13 @@ async function loadProducts() {
         }
         // 3. Try Firestore (if enabled)
         else if (CONFIG.USE_FIRESTORE) {
+            console.log('[DEBUG] Trying Firestore...');
             const firestoreProducts = await loadProductsFromFirestore();
+            console.log('[DEBUG] Firestore returned:', firestoreProducts?.length);
+            
             if (firestoreProducts !== null) {
                 products = firestoreProducts.map(p => normalizeProductProperties(p));
+                console.log('[DEBUG] Products assigned, length:', products.length);
                 saveProductsToCache();
                 saveProductsToLocalStorage();
                 loadedFrom = 'firestore';
@@ -251,17 +258,21 @@ async function loadProducts() {
         }
         
         console.log(`[ProductsManager] Loaded ${products.length} products from ${loadedFrom}`);
+        console.log('[DEBUG] About to dispatch event...');
         
         // ===== EVENT DISPATCH HERE - AFTER ALL LOADING ATTEMPTS =====
         window.dispatchEvent(new CustomEvent('productsManagerReady'));
+        console.log('[DEBUG] Event dispatched!');
         // ============================================================
         
     } catch (error) {
         console.error('[ProductsManager] Error loading products:', error);
         products = [];
         
+        console.log('[DEBUG] In catch block, about to dispatch error event');
         // ===== EVENT DISPATCH HERE TOO - EVEN ON ERROR =====
         window.dispatchEvent(new CustomEvent('productsManagerReady'));
+        console.log('[DEBUG] Error event dispatched');
         // ===================================================
     }
 }
