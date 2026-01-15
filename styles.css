@@ -6406,7 +6406,10 @@ header {
     }
 }
 
-
-
+/* Remove overflow:hidden ONLY from admin cards to allow the products card  buttons to show again*/
+.dashboard-body .products-grid .product-admin-card {
+    overflow: visible;   /* hidden is removed*/
+    min-height: 250px;
+}
 
 
