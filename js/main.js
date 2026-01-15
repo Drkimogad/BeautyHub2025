@@ -9,6 +9,11 @@ const AppManager = (function() {
             ProductsManager.init();
             console.log('[AppManager] ProductsManager initialized');
         }
+    // In main.js init() function, after ProductsManager.init(): THIS WAS MISSING
+if (typeof ProductsDisplay !== 'undefined' && ProductsDisplay.init) {
+    ProductsDisplay.init();
+    console.log('[AppManager] ProductsDisplay initialized');
+}
                 // Check if admin.js loaded properly
     if (typeof AdminManager === 'undefined') {
         console.error('[AppManager] CRITICAL: AdminManager not loaded!');
