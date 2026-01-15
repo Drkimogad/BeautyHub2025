@@ -479,3 +479,30 @@ Optimizing performance
 Adding error handling improvements
 
 Or any other specific issues
+  this isssue might be here:
+  
+  // Add these to your init() function after cart initialization:
+
+// 1. InventoryManager (if used for stock checks)
+if (typeof InventoryManager !== 'undefined' && InventoryManager.init) {
+    InventoryManager.init();
+    console.log('[AppManager] InventoryManager initialized');
+}
+
+// 2. OrdersManager (if used for order management)
+if (typeof OrdersManager !== 'undefined' && OrdersManager.init) {
+    OrdersManager.init();
+    console.log('[AppManager] OrdersManager initialized');
+}
+
+// 3. CustomerOrderManager (for checkout)
+if (typeof CustomerOrderManager !== 'undefined' && CustomerOrderManager.init) {
+    CustomerOrderManager.init();
+    console.log('[AppManager] CustomerOrderManager initialized');
+}
+
+// 4. CustomerSearchManager (for customer lookup)
+if (typeof CustomerSearchManager !== 'undefined' && CustomerSearchManager.init) {
+    CustomerSearchManager.init();
+    console.log('[AppManager] CustomerSearchManager initialized');
+}
