@@ -1020,31 +1020,923 @@ const OrdersManager = (function() {
         }
     }
 
-    // ========================================================
-    // HTML TEMPLATE FUNCTIONS (simplified for brevity)
-    // ========================================================
-    function createOrderDetailsModal(order) {
-        // Implementation would be similar to previous but with tiered pricing display
-        // This is a placeholder - the full implementation would be extensive
-        console.log(`[OrdersManager] Creating details modal for order ${order.id}`);
+// ========================================================
+// ORDER DETAILS MODAL - FULLY IMPLEMENTED
+// ========================================================
+function createOrderDetailsModal(order) {
+    console.log(`[OrdersManager] Creating details modal for order ${order.id}`);
+    
+    try {
+        // Create or update modal
+        let modal = document.getElementById('order-details-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'order-details-modal';
+            modal.className = 'order-details-modal';
+            modal.style.cssText = `
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 9999;
+                align-items: center;
+                justify-content: center;
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        const orderDate = new Date(order.createdAt).toLocaleString();
+        const shippingDate = order.shippingDate 
+            ? new Date(order.shippingDate).toLocaleDateString()
+            : 'Not shipped yet';
+        
+        // Build items list with tiered pricing display
+        let itemsHtml = '';
+        order.items.forEach(item => {
+            const itemTotal = (item.finalPrice || item.price || 0) * (item.quantity || 1);
+            itemsHtml += `
+            <div class="order-item" style="
+                display: flex;
+                justify-content: space-between;
+                padding: 0.5rem 0;
+                border-bottom: 1px solid #eee;
+            ">
+                <div class="item-name">
+                    ${item.productName} × ${item.quantity}
+                    ${item.isDiscounted ? '<span style="color:#e91e63; font-size:0.9em; margin-left:0.5rem;">(Discounted)</span>' : ''}
+                    ${item.priceType === 'wholesalePrice' ? '<span style="color:#9c27b0; font-size:0.9em; margin-left:0.5rem;">(Wholesale)</span>' : ''}
+                    ${item.priceType === 'retailPrice' ? '<span style="color:#4CAF50; font-size:0.9em; margin-left:0.5rem;">(Retail)</span>' : ''}
+                </div>
+                <div class="item-price">R${itemTotal.toFixed(2)}</div>
+            </div>`;
+        });
+        
+        // Financial breakdown with tiered pricing
+        const financialBreakdown = `
+        <div style="
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        ">
+            <h4 style="margin-top: 0; margin-bottom: 1rem;">Order Breakdown</h4>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Subtotal:</span>
+                <span>R${order.subtotal.toFixed(2)}</span>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Shipping:</span>
+                <span style="color: ${order.shippingCost === 0 ? '#4CAF50' : '#333'}; font-weight: ${order.shippingCost === 0 ? 'bold' : 'normal'}">
+                    ${order.shippingCost === 0 ? 'FREE' : `R${order.shippingCost.toFixed(2)}`}
+                    ${order.shippingCost === 0 ? ' (over R' + order.shippingThreshold + ')' : ''}
+                </span>
+            </div>
+            
+            ${order.discount > 0 ? `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #e91e63;">
+                <span>Discount:</span>
+                <span>-R${order.discount.toFixed(2)}</span>
+            </div>
+            ` : ''}
+            
+            ${order.tax > 0 ? `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Tax (${CONFIG.VAT_PERCENTAGE}%):</span>
+                <span>R${order.tax.toFixed(2)}</span>
+            </div>
+            ` : ''}
+            
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                margin-top: 0.5rem;
+                padding-top: 0.5rem;
+                border-top: 2px solid #ddd;
+                font-weight: bold;
+                font-size: 1.1rem;
+            ">
+                <span>Total Amount:</span>
+                <span>R${order.totalAmount.toFixed(2)}</span>
+            </div>
+            
+            ${order.priceTier === 'wholesale' ? `
+            <div style="margin-top: 0.5rem; padding: 0.5rem; background: #f3e5f5; border-radius: 4px; font-size: 0.9em;">
+                <strong>Wholesale Pricing Applied</strong>
+            </div>
+            ` : ''}
+            
+            ${order.returnPolicy ? `
+            <div style="
+                margin-top: 1rem;
+                padding-top: 1rem;
+                border-top: 1px dashed #ddd;
+                font-size: 0.85rem;
+                color: #666;
+            ">
+                <strong>Return Policy:</strong> ${order.returnPolicy}
+            </div>
+            ` : ''}
+        </div>
+        `;
+        
+        modal.innerHTML = `
+            <div class="order-modal-content" style="
+                background: white;
+                border-radius: 8px;
+                width: 90%;
+                max-width: 600px;
+                max-height: 90vh;
+                overflow-y: auto;
+                padding: 2rem;
+                position: relative;
+            ">
+                <button id="close-details-modal" style="
+                    position: absolute;
+                    top: 1rem;
+                    right: 1rem;
+                    background: none;
+                    border: none;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    color: #666;
+                ">&times;</button>
+                
+                <h2 style="margin-top: 0; color: #333;">
+                    Order Details: ${order.id}
+                    <span class="status-badge" style="
+                        background: ${order.status === 'pending' ? '#ff9800' : 
+                                    order.status === 'paid' ? '#2196f3' : 
+                                    order.status === 'shipped' ? '#4caf50' : '#9e9e9e'};
+                        color: white;
+                        padding: 0.25rem 0.75rem;
+                        border-radius: 20px;
+                        font-size: 0.8rem;
+                        margin-left: 1rem;
+                    ">${order.status.toUpperCase()}</span>
+                </h2>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                    <div>
+                        <h3 style="margin-top: 0;">Customer Information</h3>
+                        <div style="margin-bottom: 0.5rem;">
+                          <strong>Name:</strong> ${order.firstName} ${order.surname}
+                          ${order.customerId ? `<br><span style="font-size: 0.85rem; color: #666;">ID: ${order.customerId}</span>` : ''}
+                        </div>
+                        <div style="margin-bottom: 0.5rem;">
+                            <strong>Phone:</strong> ${order.customerPhone}
+                        </div>
+                        ${order.customerWhatsApp ? `<div style="margin-bottom: 0.5rem;">
+                            <strong>WhatsApp:</strong> ${order.customerWhatsApp}
+                        </div>` : ''}
+                        ${order.customerEmail ? `<div style="margin-bottom: 0.5rem;">
+                            <strong>Email:</strong> ${order.customerEmail}
+                        </div>` : ''}
+                        ${order.customerType ? `
+                        <div style="margin-bottom: 0.5rem;">
+                            <strong>Customer Type:</strong> ${order.customerType.charAt(0).toUpperCase() + order.customerType.slice(1)}
+                        </div>
+                        ` : ''}
+                        
+                        ${order.preferredPaymentMethod ? `
+                        <div style="margin-bottom: 0.5rem;">
+                            <strong>Preferred Payment:</strong> ${order.preferredPaymentMethod}
+                        </div>
+                        ` : ''}
+                        
+                        ${order.priority ? `
+                        <div style="margin-bottom: 0.5rem;">
+                            <strong>Priority:</strong> ${order.priority.toUpperCase()}
+                        </div>
+                        ` : ''}
+                        
+                        ${order.priceTier ? `
+                        <div style="margin-bottom: 0.5rem;">
+                            <strong>Price Tier:</strong> ${order.priceTier.toUpperCase()}
+                        </div>
+                        ` : ''}
+                        
+                        <div style="margin-bottom: 0.5rem;">
+                            <strong>Order Date:</strong> ${orderDate}
+                        </div>
+                        <div>
+                            <strong>Shipping Date:</strong> ${shippingDate}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 style="margin-top: 0;">Shipping Address</h3>
+                        <div style="
+                            background: #f8f9fa;
+                            padding: 1rem;
+                            border-radius: 4px;
+                            white-space: pre-wrap;
+                            font-size: 0.95rem;
+                        ">${order.shippingAddress}</div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <h3>Order Items</h3>
+                    <div style="
+                        background: #f8f9fa;
+                        padding: 1rem;
+                        border-radius: 4px;
+                    ">
+                        ${itemsHtml}
+                    </div>
+                    
+                    ${financialBreakdown}
+                </div>
+                
+                ${order.notes ? `<div style="margin-bottom: 2rem;">
+                    <h3>Customer Notes</h3>
+                    <div style="
+                        background: #f8f9fa;
+                        padding: 1rem;
+                        border-radius: 4px;
+                        white-space: pre-wrap;
+                        font-size: 0.95rem;
+                    ">${order.notes}</div>
+                </div>` : ''}
+                
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button id="print-order-details" class="print-btn" style="
+                        padding: 0.75rem 1.5rem;
+                        background: #2196f3;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-weight: 600;
+                    ">
+                        <i class="fas fa-print" style="margin-right: 0.5rem;"></i>
+                        Print Order
+                    </button>
+                    
+                    <button id="delete-order-details" class="delete-btn" style="
+                        padding: 0.75rem 1.5rem;
+                        background: #ff5252;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-weight: 600;
+                    ">
+                        <i class="fas fa-trash" style="margin-right: 0.5rem;"></i>
+                        Delete Order
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Show modal
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+        // Add event listeners
+        const closeBtn = document.getElementById('close-details-modal');
+        const printBtn = document.getElementById('print-order-details');
+        const deleteBtn = document.getElementById('delete-order-details');
+        
+        if (closeBtn) {
+            closeBtn.onclick = () => {
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            };
+        }
+        
+        if (printBtn) {
+            printBtn.onclick = () => generatePrintHTML(order);
+        }
+        
+        if (deleteBtn) {
+            deleteBtn.onclick = () => {
+                if (confirm('Are you sure you want to delete this order?')) {
+                    deleteOrder(order.id);
+                    modal.style.display = 'none';
+                    document.body.style.overflow = '';
+                    
+                    if (document.getElementById('admin-dashboard')?.style.display !== 'none') {
+                        renderOrders();
+                        renderCompletedOrders();
+                    }
+                }
+            };
+        }
+        
+        console.log(`[OrdersManager] Details modal created for order ${order.id}`);
+        
+    } catch (error) {
+        console.error('[OrdersManager] Failed to create details modal:', error);
     }
+}
 
-    function createCancellationModal(order) {
-        // Implementation would be similar to previous
-        console.log(`[OrdersManager] Creating cancellation modal for order ${order.id}`);
+// ========================================================
+// CANCELLATION MODAL - FULLY IMPLEMENTED
+// ========================================================
+function createCancellationModal(order) {
+    console.log(`[OrdersManager] Creating cancellation modal for order ${order.id}`);
+    
+    try {
+        // Create modal
+        const modal = document.createElement('div');
+        modal.id = 'cancellation-modal';
+        modal.className = 'cancellation-modal';
+        modal.style.cssText = `
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 10010;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        `;
+        
+        modal.innerHTML = `
+            <div style="
+                background: white;
+                border-radius: 12px;
+                width: 100%;
+                max-width: 500px;
+                padding: 2rem;
+                position: relative;
+            ">
+                <button id="close-cancel-modal" style="
+                    position: absolute;
+                    top: 1rem;
+                    right: 1rem;
+                    background: none;
+                    border: none;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    color: #666;
+                ">&times;</button>
+                
+                <h2 style="margin-top: 0; color: #333;">Cancel Order: ${order.id}</h2>
+                
+                <div style="
+                    background: #fff8e1;
+                    border-left: 4px solid #ff9800;
+                    padding: 1rem;
+                    border-radius: 4px;
+                    margin-bottom: 1.5rem;
+                ">
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">Customer:</div>
+                    <div>${order.firstName} ${order.surname}</div>
+                    <div>${order.customerPhone}</div>
+                    <div style="margin-top: 0.5rem; font-weight: 600;">Total: R${order.totalAmount.toFixed(2)}</div>
+                </div>
+                
+                <form id="cancellation-form">
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                            Cancellation Reason *
+                        </label>
+                        <select id="cancellation-reason" required style="
+                            width: 100%;
+                            padding: 0.75rem;
+                            border: 2px solid #e0e0e0;
+                            border-radius: 8px;
+                            font-size: 1rem;
+                            background: white;
+                        ">
+                            <option value="">Select a reason</option>
+                            <option value="customer_requested">Customer Requested</option>
+                            <option value="out_of_stock">Out of Stock</option>
+                            <option value="payment_failed">Payment Failed</option>
+                            <option value="fraudulent">Fraudulent Order</option>
+                            <option value="delivery_issue">Delivery Issue</option>
+                            <option value="price_dispute">Price Dispute</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                            Refund Amount (R)
+                        </label>
+                        <input type="number" 
+                               id="refund-amount" 
+                               min="0" 
+                               max="${order.totalAmount}"
+                               step="0.01"
+                               value="${order.totalAmount}"
+                               style="
+                                    width: 100%;
+                                    padding: 0.75rem;
+                                    border: 2px solid #e0e0e0;
+                                    border-radius: 8px;
+                                    font-size: 1rem;
+                               ">
+                        <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
+                            Enter 0 for no refund. Max: R${order.totalAmount.toFixed(2)}
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                            Additional Notes
+                        </label>
+                        <textarea id="cancel-notes" rows="3" style="
+                            width: 100%;
+                            padding: 0.75rem;
+                            border: 2px solid #e0e0e0;
+                            border-radius: 8px;
+                            font-size: 1rem;
+                            resize: vertical;
+                        "></textarea>
+                    </div>
+                    
+                    <div id="cancel-error" style="
+                        background: #ffebee;
+                        color: #d32f2f;
+                        padding: 1rem;
+                        border-radius: 8px;
+                        margin-bottom: 1.5rem;
+                        display: none;
+                    "></div>
+                    
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button type="button" id="cancel-cancel" style="
+                            background: white;
+                            color: #666;
+                            border: 2px solid #e0e0e0;
+                            padding: 0.75rem 1.5rem;
+                            border-radius: 8px;
+                            font-size: 1rem;
+                            font-weight: 600;
+                            cursor: pointer;
+                        ">
+                            Back
+                        </button>
+                        
+                        <button type="submit" style="
+                            background: #ff5252;
+                            color: white;
+                            border: none;
+                            padding: 0.75rem 1.5rem;
+                            border-radius: 8px;
+                            font-size: 1rem;
+                            font-weight: 600;
+                            cursor: pointer;
+                        ">
+                            <i class="fas fa-ban" style="margin-right: 0.5rem;"></i>
+                            Confirm Cancellation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Form submission
+        document.getElementById('cancellation-form').onsubmit = function(e) {
+            e.preventDefault();
+            
+            const cancellationData = {
+                reason: document.getElementById('cancellation-reason').value,
+                refundAmount: document.getElementById('refund-amount').value,
+                notes: document.getElementById('cancel-notes').value,
+                cancelledBy: 'admin'
+            };
+            
+            if (!cancellationData.reason) {
+                document.getElementById('cancel-error').textContent = 'Please select a cancellation reason';
+                document.getElementById('cancel-error').style.display = 'block';
+                return;
+            }
+            
+            if (cancelOrder(order.id, cancellationData)) {
+                modal.remove();
+                renderOrders();
+                renderCompletedOrders();
+                alert(`Order ${order.id} cancelled successfully.${cancellationData.refundAmount > 0 ? ` Refund: R${parseFloat(cancellationData.refundAmount).toFixed(2)}` : ''}`);
+            }
+        };
+        
+        // Close buttons
+        document.getElementById('close-cancel-modal').onclick = () => modal.remove();
+        document.getElementById('cancel-cancel').onclick = () => modal.remove();
+        
+    } catch (error) {
+        console.error('[OrdersManager] Failed to create cancellation modal:', error);
     }
+}
 
-    function generateCompletedOrderCardHTML(order) {
-        // Similar to generateOrderCardHTML but for completed orders
-        // This is a placeholder
-        return `<div>Completed order card for ${order.id}</div>`;
+// ========================================================
+// COMPLETED ORDER CARD HTML - FULLY IMPLEMENTED
+// ========================================================
+function generateCompletedOrderCardHTML(order) {
+    try {
+        const orderDate = new Date(order.createdAt).toLocaleDateString();
+        const shippingDate = order.shippingDate 
+            ? new Date(order.shippingDate).toLocaleDateString()
+            : 'Not shipped';
+        
+        return `
+            <div class="completed-order-card" data-order-id="${order.id}" style="
+                background: white;
+                border-radius: 8px;
+                padding: 1.5rem;
+                margin-bottom: 1rem;
+                border: 1px solid #e0e0e0;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            ">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                    <div>
+                        <h3 style="margin: 0 0 0.5rem 0; color: #333;">${order.id}</h3>
+                        <div style="color: #666; font-size: 0.9rem;">
+                            ${orderDate} • ${order.customerType ? order.customerType.charAt(0).toUpperCase() + order.customerType.slice(1) : 'Personal'} Customer
+                        </div>
+                        <div style="margin-top: 0.5rem; font-weight: 600;">
+                            ${order.firstName} ${order.surname}
+                        </div>
+                        <div style="color: #666; font-size: 0.9rem;">
+                            ${order.customerPhone}${order.customerEmail ? ` • ${order.customerEmail}` : ''}
+                        </div>
+                    </div>
+                    <div>
+                        <span style="
+                            background: ${order.status === 'shipped' ? '#4CAF50' : 
+                                       order.status === 'paid' ? '#2196f3' : '#9e9e9e'};
+                            color: white;
+                            padding: 0.25rem 0.75rem;
+                            border-radius: 20px;
+                            font-size: 0.8rem;
+                            font-weight: 600;
+                        ">
+                            ${order.status.toUpperCase()}
+                        </span>
+                        <div style="text-align: right; margin-top: 0.5rem; font-weight: bold; font-size: 1.2rem;">
+                            R${order.totalAmount.toFixed(2)}
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                        <span>Shipped on:</span>
+                        <span>${shippingDate}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                        <span>Payment:</span>
+                        <span>${order.preferredPaymentMethod || 'Manual'}</span>
+                    </div>
+                    ${order.priceTier ? `
+                    <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                        <span>Price Tier:</span>
+                        <span style="color: ${order.priceTier === 'wholesale' ? '#9c27b0' : '#2196f3'}; font-weight: 600;">
+                            ${order.priceTier.toUpperCase()}
+                        </span>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="action-btn view-details" data-order-id="${order.id}" style="
+                        flex: 1;
+                        padding: 0.75rem;
+                        background: #2196f3;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-weight: 600;
+                        font-size: 0.9rem;
+                    ">
+                        <i class="fas fa-eye" style="margin-right: 0.5rem;"></i>
+                        Details
+                    </button>
+                    
+                    <button class="action-btn print-order" data-order-id="${order.id}" style="
+                        flex: 1;
+                        padding: 0.75rem;
+                        background: #4CAF50;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-weight: 600;
+                        font-size: 0.9rem;
+                    ">
+                        <i class="fas fa-print" style="margin-right: 0.5rem;"></i>
+                        Print
+                    </button>
+                    
+                    <button class="action-btn delete-order" data-order-id="${order.id}" style="
+                        flex: 1;
+                        padding: 0.75rem;
+                        background: #ff5252;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-weight: 600;
+                        font-size: 0.9rem;
+                    ">
+                        <i class="fas fa-trash" style="margin-right: 0.5rem;"></i>
+                        Delete
+                    </button>
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        console.error('[OrdersManager] Failed to generate completed order card:', error);
+        return '<div class="order-error">Failed to load order</div>';
     }
+}
 
-    function generatePrintHTML(order) {
-        // HTML generation for printing with tiered pricing
-        // This is a placeholder
-        return `<html><body>Print view for order ${order.id}</body></html>`;
+// ========================================================
+// PRINT HTML GENERATION - FULLY IMPLEMENTED WITH TIERED PRICING
+// ========================================================
+function generatePrintHTML(order) {
+    console.log(`[OrdersManager] Printing order ${order.id}`);
+    
+    try {
+        const printWindow = window.open('', '_blank');
+        const orderDate = new Date(order.createdAt).toLocaleString();
+        const shippingDate = order.shippingDate 
+            ? new Date(order.shippingDate).toLocaleDateString()
+            : 'Not shipped yet';
+        
+        // Build items table with tiered pricing
+        let itemsHtml = '';
+        order.items.forEach(item => {
+            const itemTotal = (item.finalPrice || item.price || 0) * (item.quantity || 1);
+            itemsHtml += `
+            <tr>
+                <td>${item.productName}${item.isDiscounted ? ' (Discounted)' : ''}</td>
+                <td>${item.quantity}</td>
+                <td>R${(item.finalPrice || item.price || 0).toFixed(2)}</td>
+                <td>R${itemTotal.toFixed(2)}</td>
+            </tr>`;
+        });
+        
+        // Financial breakdown for print with tier info
+        const financialBreakdown = `
+        <div style="margin-top: 20px;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0;">Subtotal:</td>
+                    <td style="text-align: right; padding: 8px 0;">R${order.subtotal.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0;">Shipping:</td>
+                    <td style="text-align: right; padding: 8px 0; color: ${order.shippingCost === 0 ? '#4CAF50' : '#333'}">
+                        ${order.shippingCost === 0 ? 'FREE' : `R${order.shippingCost.toFixed(2)}`}
+                        ${order.shippingCost === 0 ? ' (over R' + order.shippingThreshold + ')' : ''}
+                    </td>
+                </tr>
+                ${order.discount > 0 ? `
+                <tr style="color: #e91e63;">
+                    <td style="padding: 8px 0;">Discount:</td>
+                    <td style="text-align: right; padding: 8px 0;">-R${order.discount.toFixed(2)}</td>
+                </tr>
+                ` : ''}
+                ${order.tax > 0 ? `
+                <tr>
+                    <td style="padding: 8px 0;">Tax (${CONFIG.VAT_PERCENTAGE}%):</td>
+                    <td style="text-align: right; padding: 8px 0;">R${order.tax.toFixed(2)}</td>
+                </tr>
+                ` : ''}
+                ${order.priceTier === 'wholesale' ? `
+                <tr style="color: #9c27b0; font-style: italic;">
+                    <td style="padding: 8px 0;">Wholesale Pricing Applied:</td>
+                    <td style="text-align: right; padding: 8px 0;"></td>
+                </tr>
+                ` : ''}
+                <tr style="font-weight: bold; border-top: 2px solid #333;">
+                    <td style="padding: 12px 0;">Total Amount:</td>
+                    <td style="text-align: right; padding: 12px 0;">R${order.totalAmount.toFixed(2)}</td>
+                </tr>
+            </table>
+        </div>
+        `;
+        
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Order ${order.id} - BeautyHub2025</title>
+                <style>
+                    * {
+                        box-sizing: border-box;
+                    }
+                    
+                    body { 
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                        margin: 0;
+                        padding: 20px;
+                        color: #333;
+                        background: white;
+                    }
+                    
+                    .container {
+                        max-width: 800px;
+                        margin: 0 auto;
+                    }
+                    
+                    .header { 
+                        text-align: center; 
+                        margin-bottom: 30px; 
+                        padding-bottom: 20px;
+                        border-bottom: 2px solid #e91e63;
+                    }
+                    
+                    .header h1 {
+                        color: #e91e63;
+                        margin-bottom: 5px;
+                    }
+                    
+                    .header h2 {
+                        color: #555;
+                        font-weight: normal;
+                    }
+                    
+                    .order-info { 
+                        margin-bottom: 30px; 
+                        padding: 15px;
+                        background: #f9f9f9;
+                        border-radius: 8px;
+                    }
+                    
+                    .order-info p {
+                        margin: 8px 0;
+                    }
+                    
+                    table { 
+                        width: 100%; 
+                        border-collapse: collapse; 
+                        margin: 20px 0; 
+                    }
+                    
+                    th, td { 
+                        border: 1px solid #ddd; 
+                        padding: 12px 8px; 
+                        text-align: left; 
+                    }
+                    
+                    th { 
+                        background-color: #f2f2f2; 
+                        font-weight: bold;
+                    }
+                    
+                    .total-row { 
+                        font-weight: bold; 
+                        background-color: #f9f9f9;
+                    }
+                    
+                    .footer { 
+                        margin-top: 40px; 
+                        font-size: 14px; 
+                        color: #666; 
+                        text-align: center;
+                        padding-top: 20px;
+                        border-top: 1px solid #eee;
+                    }
+                    
+                    .print-buttons {
+                        margin-top: 30px;
+                        text-align: center;
+                    }
+                    
+                    button {
+                        padding: 12px 24px;
+                        margin: 0 10px;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 16px;
+                        font-weight: bold;
+                    }
+                    
+                    .print-btn {
+                        background: #4CAF50;
+                        color: white;
+                    }
+                    
+                    .close-btn {
+                        background: #ff9800;
+                        color: white;
+                    }
+                    
+                    @media (max-width: 768px) {
+                        body {
+                            padding: 15px;
+                        }
+                        
+                        .header h1 {
+                            font-size: 24px;
+                        }
+                        
+                        .header h2 {
+                            font-size: 18px;
+                        }
+                        
+                        th, td {
+                            padding: 10px 6px;
+                            font-size: 14px;
+                        }
+                    }
+                    
+                    @media print {
+                        button { 
+                            display: none !important; 
+                        }
+                        
+                        .print-buttons {
+                            display: none !important;
+                        }
+                        
+                        body {
+                            padding: 0;
+                            margin: 0;
+                        }
+                        
+                        .container {
+                            max-width: 100%;
+                            margin: 0;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>BeautyHub2025</h1>
+                    <h2>Order Invoice: ${order.id}</h2>
+                </div>
+                
+                <div class="order-info">
+                    <p><strong>Order Date:</strong> ${orderDate}</p>
+                    <p><strong>Customer Name:</strong> ${order.firstName} ${order.surname}</p>
+                    <p><strong>Phone:</strong> ${order.customerPhone}</p>
+                    ${order.customerType ? `<p><strong>Customer Type:</strong> ${order.customerType.charAt(0).toUpperCase() + order.customerType.slice(1)}</p>` : ''}
+                    ${order.preferredPaymentMethod ? `<p><strong>Preferred Payment:</strong> ${order.preferredPaymentMethod}</p>` : ''}
+                    ${order.priceTier ? `<p><strong>Price Tier:</strong> ${order.priceTier.toUpperCase()}</p>` : ''}
+                    <p><strong>Shipping Address:</strong> ${order.shippingAddress}</p>
+                    <p><strong>Shipping Date:</strong> ${shippingDate}</p>
+                    <p><strong>Status:</strong> ${order.status.toUpperCase()}</p>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
+                </table>
+                
+                ${financialBreakdown}
+                
+                ${order.notes ? `<div style="margin-top: 20px;">
+                    <strong>Customer Notes:</strong>
+                    <p>${order.notes}</p>
+                </div>` : ''}
+                
+                ${order.returnPolicy ? `<div style="margin-top: 20px; font-size: 0.9em; color: #666;">
+                    <strong>Return Policy:</strong> ${order.returnPolicy}
+                </div>` : ''}
+                
+                <div class="footer">
+                    <p>Thank you for your business!</p>
+                    <p>BeautyHub2025 | Luxury Beauty Products</p>
+                </div>
+                
+                <div class="print-buttons">
+                    <button onclick="window.print()" class="print-btn">
+                        Print Invoice
+                    </button>
+                    <button onclick="window.close()" class="close-btn">
+                        Close Window
+                    </button>
+                </div>
+            </body>
+            </html>
+        `);
+        
+        printWindow.document.close();
+        
+    } catch (error) {
+        console.error('[OrdersManager] Failed to print order details:', error);
+        alert('Failed to print order. Please try again.');
     }
+}
 
     // ========================================================
     // PUBLIC API
