@@ -4,21 +4,24 @@ const AppManager = (function() {
     // ===== MAIN INITIALIZATION =====
     function init() {
         try {
-             // Initialize Cart FIRST (before any products can be added)
-    if (typeof BeautyHubCart !== 'undefined' && BeautyHubCart.init) {
-        BeautyHubCart.init();
-        console.log('[AppManager] Cart initialized');
-    }
-            // Initialize ProductsManager FIRST
-        if (typeof ProductsManager !== 'undefined' && ProductsManager.init) {
-            ProductsManager.init();
-            console.log('[AppManager] ProductsManager initialized');
-        }
-    // In main.js init() function, after ProductsManager.init(): THIS WAS MISSING
+   
+            // call this before productsManager.js
 if (typeof ProductsDisplay !== 'undefined' && ProductsDisplay.init) {
     ProductsDisplay.init();
     console.log('[AppManager] ProductsDisplay initialized');
 }
+            // Initialize ProductsManager then
+        if (typeof ProductsManager !== 'undefined' && ProductsManager.init) {
+            ProductsManager.init();
+            console.log('[AppManager] ProductsManager initialized');
+        }
+            
+     // Initialize Cart FIRST (before any products can be added)
+    if (typeof BeautyHubCart !== 'undefined' && BeautyHubCart.init) {
+        BeautyHubCart.init();
+        console.log('[AppManager] Cart initialized');
+    }
+
                 // Check if admin.js loaded properly
     if (typeof AdminManager === 'undefined') {
         console.error('[AppManager] CRITICAL: AdminManager not loaded!');
