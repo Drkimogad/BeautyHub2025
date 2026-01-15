@@ -32,18 +32,16 @@ const CustomerOrderManager = (function() {
     // ========================================================
     // INITIALIZATION
     // ========================================================
-    function init() {
-        console.log('[CustomerOrder] Initializing customer order system...');
+function init() {
+    console.log('[CustomerOrder] Initializing customer order system...');
+    
+    try {
+        // DON'T check for the checkout form here - it hasn't been created yet
+        // Just create the modal first
+        createCheckoutModal();
         
-        try {
-            // Check if checkout functionality is needed
-            const checkoutButton = document.querySelector('[onclick*="openCheckout"], [onclick*="CustomerOrderManager"]');
-            if (!checkoutButton && !document.getElementById('checkout-form')) {
-                console.log('[CustomerOrder] No checkout UI found, skipping initialization');
-                return;
-            }
-            
-            createCheckoutModal();
+        // Only setup event listeners if modal was created
+        if (checkoutModal) {
             setupEventListeners();
             
             // Initialize customer search if available
@@ -57,12 +55,13 @@ const CustomerOrderManager = (function() {
                 openCheckout,
                 closeCheckout
             };
-            
-        } catch (error) {
-            console.error('[CustomerOrder] Initialization failed:', error);
-            return null;
         }
+        
+    } catch (error) {
+        console.error('[CustomerOrder] Initialization failed:', error);
+        return null;
     }
+}
     // ========================================================
     // MODAL CREATION
     // ========================================================
@@ -70,6 +69,14 @@ const CustomerOrderManager = (function() {
         console.log('[CustomerOrder] Creating checkout modal...');
         
         try {
+            // Check if modal already exists in DOM
+        if (document.getElementById('checkout-modal')) {
+            checkoutModal = document.getElementById('checkout-modal');
+            checkoutForm = document.getElementById('checkout-form');
+            console.log('[CustomerOrder] Using existing checkout modal');
+            return; // Don't recreate if it exists
+        }
+
             // Remove existing modal if present
             const existingModal = document.getElementById('checkout-modal');
             if (existingModal) {
