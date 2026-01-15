@@ -504,24 +504,25 @@ function getCartItemsWithPrices() {
     // ========================================================
     // CART INTERACTION FUNCTIONS
     // ========================================================
-    function toggleCart() {
-        try {
-            const cartSidebar = document.getElementById('cart-sidebar');
-            if (!cartSidebar) {
-                console.error('[Cart] Cart sidebar not found');
-                return;
-            }
-            
-            const isOpen = parseInt(cartSidebar.style.right) < 0;
-            cartSidebar.style.right = isOpen ? '0' : '-400px';
-            document.body.style.overflow = isOpen ? 'hidden' : '';
-            
-            console.log('[Cart] Cart toggled:', isOpen ? 'opened' : 'closed');
-            
-        } catch (error) {
-            console.error('[Cart] Failed to toggle cart:', error);
+function toggleCart() {
+    try {
+        const cartSidebar = document.getElementById('cart-sidebar');
+        if (!cartSidebar) {
+            console.error('[Cart] Cart sidebar not found');
+            return;
         }
+        
+        const currentRight = parseInt(window.getComputedStyle(cartSidebar).right);
+        const isOpen = currentRight === 0;
+        cartSidebar.style.right = isOpen ? '-400px' : '0';
+        document.body.style.overflow = isOpen ? '' : 'hidden';
+        
+        console.log('[Cart] Cart toggled:', isOpen ? 'closed' : 'opened');
+        
+    } catch (error) {
+        console.error('[Cart] Failed to toggle cart:', error);
     }
+}
 
     function closeCart() {
         try {
