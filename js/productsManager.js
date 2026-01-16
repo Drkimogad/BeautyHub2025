@@ -33,9 +33,9 @@ const ProductsManager = (function() {
         name: '',           
         description: '',    
         category: '',       
-        wholesalePrice: 0,  // Your cost added new before refator
-        retailPrice: 0,     // Standard selling price it was originalprice
-        currentPrice: 0,    // Actual selling price it was named as price
+        wholesalePrice: 0,  // Your cost
+        retailPrice: 0,     // Standard selling price
+        currentPrice: 0,    // Actual selling price
         discountPercent: 0, 
         isOnSale: false,    
         saleEndDate: "",    
@@ -58,10 +58,7 @@ const ProductsManager = (function() {
     function init() {
         try {
             console.log('[ProductsManager] Initializing with Firestore:', CONFIG.USE_FIRESTORE);
-         // Start loading but don't wait for it
-            loadProducts().catch(error => {
-            console.error('[ProductsManager] Background load failed:', error);
-          });            
+            loadProducts();
             return {
                 products,
                 getProducts,
@@ -89,82 +86,49 @@ const ProductsManager = (function() {
     // FIRESTORE FUNCTIONS
 // ============================================
     
-// Add this right after the console.log statements in loadProductsFromFirestore:
-function loadProductsFromFirestore() {
-    try {
-        console.log('[ProductsManager] Starting Firestore load process');
-        
-        if (!CONFIG.FIREBASE_READY()) {
-            console.log('[ProductsManager] Firebase not ready, skipping Firestore');
+    async function loadProductsFromFirestore() {
+        try {
+            console.log('[ProductsManager] Starting Firestore load process');
+            
+            if (!CONFIG.FIREBASE_READY()) {
+                console.log('[ProductsManager] Firebase not ready, skipping Firestore');
+                return null;
+            }
+            
+            console.log('[ProductsManager] Loading from Firestore...');
+            const db = firebase.firestore();
+            console.log('[ProductsManager] Firestore database reference obtained');
+            
+            const snapshot = await db.collection(CONFIG.FIRESTORE_COLLECTION).get();
+            console.log('[ProductsManager] Firestore query completed, documents:', snapshot.size);
+            
+            const firestoreProducts = [];
+            snapshot.forEach(doc => {
+                console.log('[ProductsManager] Processing document:', doc.id);
+                const data = doc.data();
+                
+                // Ensure property names are consistent
+                const normalizedProduct = {
+                    id: doc.id,
+                    ...data,
+                    // Handle both naming conventions
+                    wholesalePrice: data.wholesalePrice || data.wholesaleprice || 0,
+                    retailPrice: data.retailPrice || data.retailprice || 0,
+                    currentPrice: data.currentPrice || data.currentprice || 0,
+                    discountPercent: data.discountPercent || data.discountedPercent || 0
+                };
+                
+                firestoreProducts.push(normalizedProduct);
+            });
+            
+            console.log(`[ProductsManager] Firestore loaded: ${firestoreProducts.length} products`);
+            return firestoreProducts;
+            
+        } catch (error) {
+            console.error('[ProductsManager] Firestore load error:', error);
             return null;
         }
-        
-        console.log('[ProductsManager] Loading from Firestore...');
-        const db = firebase.firestore();
-        console.log('[ProductsManager] Firestore database reference obtained');
-        
-        const snapshot = await db.collection(CONFIG.FIRESTORE_COLLECTION).get();
-        console.log('[ProductsManager] Firestore query completed, documents:', snapshot.size);
-        
-        const firestoreProducts = [];
-        snapshot.forEach(doc => {
-            console.log('[ProductsManager] Processing document:', doc.id);
-            const data = doc.data();
-            
-            // ===== DIAGNOSTIC LOG: SHOW ACTUAL FIELDS FROM FIRESTORE =====
-            console.log('[PRICE-DEBUG] Raw Firestore fields for', doc.id, ':', {
-                hasWholesalePrice: 'wholesalePrice' in data,
-                wholesalePrice: data.wholesalePrice,
-                hasWholesaleprice: 'wholesaleprice' in data,
-                wholesaleprice: data.wholesaleprice,
-                hasRetailPrice: 'retailPrice' in data,
-                retailPrice: data.retailPrice,
-                hasRetailprice: 'retailprice' in data,
-                retailprice: data.retailprice,
-                hasCurrentPrice: 'currentPrice' in data,
-                currentPrice: data.currentPrice,
-                hasCurrentprice: 'currentprice' in data,
-                currentprice: data.currentprice,
-                hasDiscountPercent: 'discountPercent' in data,
-                discountPercent: data.discountPercent,
-                hasDiscountedPercent: 'discountedPercent' in data,
-                discountedPercent: data.discountedPercent
-            });
-            // ===== END DIAGNOSTIC LOG =====
-            
-            // Ensure property names are consistent
-            const normalizedProduct = {
-                id: doc.id,
-                ...data,
-                // Handle both naming conventions
-                wholesalePrice: data.wholesalePrice || data.wholesaleprice || 0,
-                retailPrice: data.retailPrice || data.retailprice || 0,
-                currentPrice: data.currentPrice || data.currentprice || 0,
-                discountPercent: data.discountPercent || data.discountedPercent || 0
-            };
-            
-            // ===== DIAGNOSTIC LOG: SHOW NORMALIZED PRICES =====
-            console.log('[PRICE-DEBUG] Normalized prices for', doc.id, ':', {
-                wholesalePrice: normalizedProduct.wholesalePrice,
-                retailPrice: normalizedProduct.retailPrice,
-                currentPrice: normalizedProduct.currentPrice,
-                discountPercent: normalizedProduct.discountPercent,
-                id: normalizedProduct.id,
-                name: normalizedProduct.name
-            });
-            // ===== END DIAGNOSTIC LOG =====
-            
-            firestoreProducts.push(normalizedProduct);
-        });
-        
-        console.log(`[ProductsManager] Firestore loaded: ${firestoreProducts.length} products`);
-        return firestoreProducts;
-        
-    } catch (error) {
-        console.error('[ProductsManager] Firestore load error:', error);
-        return null;
     }
-}
     
     async function saveProductToFirestore(product) {
         try {
@@ -412,99 +376,75 @@ async function loadProducts() {
     // ============================================
     // CRUD OPERATIONS
     // ============================================
-async function addProduct(productData) {
-    try {
-        console.log('[ProductsManager] Adding new product with data:', productData);
-        
-        // ===== DIAGNOSTIC LOG: SHOW INCOMING DATA =====
-        console.log('[PRICE-DEBUG] Incoming productData for new product:', {
-            wholesalePrice: productData.wholesalePrice,
-            wholesaleprice: productData.wholesaleprice,
-            retailPrice: productData.retailPrice,
-            retailprice: productData.retailprice,
-            currentPrice: productData.currentPrice,
-            currentprice: productData.currentprice,
-            discountPercent: productData.discountPercent,
-            discountedPercent: productData.discountedPercent
-        });
-        // ===== END DIAGNOSTIC LOG =====
-        
-        // Handle property naming variations
-        const retailPrice = parseFloat(productData.retailPrice || productData.retailprice || 
-                                     productData.currentPrice || productData.currentprice || 0);
-        const discountPercent = parseFloat(productData.discountPercent || productData.discountedPercent || 0);
-        const calculatedPrice = discountPercent > 0 
-            ? calculateDiscountedPrice(retailPrice, discountPercent)
-            : parseFloat(productData.currentPrice || productData.currentprice || retailPrice);
-        
-        console.log('[ProductsManager] Price calculation:', {
-            retailPrice,
-            discountPercent,
-            calculatedPrice
-        });
-        
-        const newProduct = {
-            ...PRODUCT_SCHEMA,
-            id: generateProductId(),
-            name: productData.name?.trim() || '',
-            description: productData.description?.trim() || '',
-            category: productData.category || CONFIG.CATEGORIES[0],
-            wholesalePrice: parseFloat(productData.wholesalePrice || productData.wholesaleprice || 0),
-            retailPrice: retailPrice,
-            discountPercent: discountPercent,
-            currentPrice: calculatedPrice,
-            isOnSale: Boolean(productData.isOnSale) || (discountPercent > 0),
-            saleEndDate: productData.saleEndDate || "",
-            stock: parseInt(productData.stock) || 0,
-            imageUrl: productData.imageUrl?.trim() || CONFIG.DEFAULT_IMAGE,
-            gallery: productData.gallery || [],
-            tags: productData.tags || [],
-            specifications: productData.specifications || {},
-            isActive: productData.isActive !== undefined ? productData.isActive : true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            salesCount: parseInt(productData.salesCount) || 0
-        };
-        
-        // ===== DIAGNOSTIC LOG: SHOW FINAL PRODUCT =====
-        console.log('[PRICE-DEBUG] Final new product object:', {
-            id: newProduct.id,
-            name: newProduct.name,
-            wholesalePrice: newProduct.wholesalePrice,
-            retailPrice: newProduct.retailPrice,
-            currentPrice: newProduct.currentPrice,
-            discountPercent: newProduct.discountPercent,
-            isOnSale: newProduct.isOnSale
-        });
-        // ===== END DIAGNOSTIC LOG =====
-        
-        console.log('[ProductsManager] New product object created:', newProduct.id);
-        
-        // 1. Save to Firestore
-        let firestoreSuccess = true;
-        if (CONFIG.USE_FIRESTORE) {
-            firestoreSuccess = await saveProductToFirestore(newProduct);
+    
+    async function addProduct(productData) {
+        try {
+            console.log('[ProductsManager] Adding new product with data:', productData);
+            
+            // Handle property naming variations
+            const retailPrice = parseFloat(productData.retailPrice || productData.retailprice || 
+                                         productData.currentPrice || productData.currentprice || 0);
+            const discountPercent = parseFloat(productData.discountPercent || productData.discountedPercent || 0);
+            const calculatedPrice = discountPercent > 0 
+                ? calculateDiscountedPrice(retailPrice, discountPercent)
+                : parseFloat(productData.currentPrice || productData.currentprice || retailPrice);
+            
+            console.log('[ProductsManager] Price calculation:', {
+                retailPrice,
+                discountPercent,
+                calculatedPrice
+            });
+            
+            const newProduct = {
+                ...PRODUCT_SCHEMA,
+                id: generateProductId(),
+                name: productData.name?.trim() || '',
+                description: productData.description?.trim() || '',
+                category: productData.category || CONFIG.CATEGORIES[0],
+                wholesalePrice: parseFloat(productData.wholesalePrice || productData.wholesaleprice || 0),
+                retailPrice: retailPrice,
+                discountPercent: discountPercent,
+                currentPrice: calculatedPrice,
+                isOnSale: Boolean(productData.isOnSale) || (discountPercent > 0),
+                saleEndDate: productData.saleEndDate || "",
+                stock: parseInt(productData.stock) || 0,
+                imageUrl: productData.imageUrl?.trim() || CONFIG.DEFAULT_IMAGE,
+                gallery: productData.gallery || [],
+                tags: productData.tags || [],
+                specifications: productData.specifications || {},
+                isActive: productData.isActive !== undefined ? productData.isActive : true,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                salesCount: parseInt(productData.salesCount) || 0
+            };
+            
+            console.log('[ProductsManager] New product object created:', newProduct.id);
+            
+            // 1. Save to Firestore
+            let firestoreSuccess = true;
+            if (CONFIG.USE_FIRESTORE) {
+                firestoreSuccess = await saveProductToFirestore(newProduct);
+            }
+            
+            // 2. Save to local
+            products.push(newProduct);
+            saveProducts();
+            
+            console.log('[ProductsManager] Product added:', {
+                id: newProduct.id,
+                name: newProduct.name,
+                currentPrice: newProduct.currentPrice,
+                discount: `${newProduct.discountPercent}%`,
+                firestore: firestoreSuccess ? 'success' : 'failed',
+                local: 'success'
+            });
+            
+            return newProduct;
+        } catch (error) {
+            console.error('[ProductsManager] Error adding product:', error);
+            return null;
         }
-        
-        // 2. Save to local
-        products.push(newProduct);
-        saveProducts();
-        
-        console.log('[ProductsManager] Product added:', {
-            id: newProduct.id,
-            name: newProduct.name,
-            currentPrice: newProduct.currentPrice,
-            discount: `${newProduct.discountPercent}%`,
-            firestore: firestoreSuccess ? 'success' : 'failed',
-            local: 'success'
-        });
-        
-        return newProduct;
-    } catch (error) {
-        console.error('[ProductsManager] Error adding product:', error);
-        return null;
     }
-}
     
     async function updateProduct(productId, updateData) {
         try {
@@ -672,34 +612,17 @@ async function addProduct(productData) {
         }
     }
     
-function getProductById(productId) {
-    try {
-        console.log('[ProductsManager] Getting product by ID:', productId);
-        const product = products.find(p => p.id === productId);
-        console.log('[ProductsManager] Product found:', product ? 'yes' : 'no');
-        
-        if (product) {
-            const normalized = normalizeProductProperties(product);
-            // ===== DIAGNOSTIC LOG: SHOW WHAT GETS RETURNED =====
-            console.log('[PRICE-DEBUG] getProductById returning:', {
-                id: normalized.id,
-                name: normalized.name,
-                wholesalePrice: normalized.wholesalePrice,
-                retailPrice: normalized.retailPrice,
-                currentPrice: normalized.currentPrice,
-                discountPercent: normalized.discountPercent,
-                isOnSale: normalized.isOnSale
-            });
-            // ===== END DIAGNOSTIC LOG =====
-            return normalized;
+    function getProductsByCategory(category) {
+        try {
+            console.log('[ProductsManager] Getting products by category:', category);
+            const categoryProducts = products.filter(p => p.category === category && p.isActive);
+            console.log('[ProductsManager] Category products count:', categoryProducts.length);
+            return categoryProducts;
+        } catch (error) {
+            console.error('[ProductsManager] Error getting products by category:', error);
+            return [];
         }
-        
-        return null;
-    } catch (error) {
-        console.error('[ProductsManager] Error getting product by ID:', error);
-        return null;
     }
-}
     
     function getLowStockProducts() {
         try {
@@ -1719,27 +1642,6 @@ function getProductById(productId) {
             console.error('[ProductsManager] Error closing delete modal:', error);
         }
     }
-
-// Add this function to the public API at the end:
-function debugAllProductPrices() {
-    console.log('[PRICE-DEBUG] === ALL PRODUCT PRICES ===');
-    products.forEach((product, index) => {
-        const normalized = normalizeProductProperties(product);
-        console.log(`[PRICE-DEBUG] Product ${index + 1}/${products.length}:`, {
-            id: normalized.id,
-            name: normalized.name,
-            wholesalePrice: normalized.wholesalePrice,
-            retailPrice: normalized.retailPrice,
-            currentPrice: normalized.currentPrice,
-            discountPercent: normalized.discountPercent,
-            isOnSale: normalized.isOnSale,
-            stock: normalized.stock
-        });
-    });
-    console.log('[PRICE-DEBUG] === END PRICE DEBUG ===');
-}
-
-    
     
     console.log('[ProductsManager] Creating public API');
     return {
@@ -1758,8 +1660,7 @@ function debugAllProductPrices() {
         showStockAdjustmentForm,
         setupProductEventListeners,
         invalidateCache,
-        loadProducts,
-        debugAllProductPrices // ADD THIS LINE
+        loadProducts
     };
 })();
 
