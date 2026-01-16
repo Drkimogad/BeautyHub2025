@@ -13,21 +13,30 @@ const OrdersManager = (function() {
 // ========================================================
     // CONFIGURATION & CONSTANTS
 // ========================================================
-    const CONFIG = {
-        STORAGE_KEYS: {
-            ORDERS: 'beautyhub_orders',
-            ORDER_COUNTER: 'beautyhub_order_id_counter'
-        },
-        SHIPPING: {
-            THRESHOLD: 1000,
-            COST: 100
-        },
-        VAT_PERCENTAGE: 15,
-        ORDER_STATUSES: ['pending', 'paid', 'shipped', 'cancelled'],
-        CUSTOMER_TYPES: ['personal', 'retailer', 'wholesaler', 'corporate'],
-        PAYMENT_METHODS: ['manual', 'payfast', 'credit_card', 'eft'],
-        ORDER_PRIORITIES: ['low', 'normal', 'high', 'rush']
-    };
+const CONFIG = {
+    STORAGE_KEYS: {
+        ORDERS: 'beautyhub_orders',
+        ORDER_COUNTER: 'beautyhub_order_id_counter'
+    },
+    SHIPPING: {
+        THRESHOLD: 1000,
+        COST: 100
+    },
+    VAT_PERCENTAGE: 15,
+    ORDER_STATUSES: ['pending', 'paid', 'shipped', 'cancelled'],
+    CUSTOMER_TYPES: ['personal', 'retailer', 'wholesaler', 'corporate'],
+    PAYMENT_METHODS: ['cash on collection', 'eft'],  //['manual', 'payfast', 'credit_card', 'eft']
+    ORDER_PRIORITIES: ['low', 'normal', 'high', 'rush'],
+    // ADD FIRESTORE CONFIG
+    USE_FIRESTORE: true,
+    FIRESTORE_COLLECTION: 'orders',
+    FIREBASE_READY: () => {
+        return typeof firebase !== 'undefined' && 
+               firebase.apps && 
+               firebase.apps.length > 0 &&
+               firebase.firestore;
+    }
+};
 // ========================================================
     // STATE MANAGEMENT
 // ========================================================
@@ -96,6 +105,154 @@ const OrdersManager = (function() {
             console.error('[OrdersManager] Failed to save orders:', error);
         }
     }
+
+    // ========================================================
+// FIRESTORE FUNCTIONS
+// ========================================================
+
+async function saveOrderToFirestore(order) {
+    try {
+        console.log('[OrdersManager] Attempting to save order to Firestore:', order.id);
+        
+        if (!CONFIG.FIREBASE_READY() || !CONFIG.USE_FIRESTORE) {
+            console.log('[OrdersManager] Firestore disabled or not ready');
+            return false;
+        }
+        
+        const db = firebase.firestore();
+        const orderRef = db.collection(CONFIG.FIRESTORE_COLLECTION).doc(order.id);
+        
+        console.log('[OrdersManager] Setting order document in Firestore');
+        await orderRef.set(order);
+        console.log(`[OrdersManager] Saved to Firestore: ${order.id}`);
+        return true;
+        
+    } catch (error) {
+        console.error('[OrdersManager] Firestore save error:', error);
+        return false;
+    }
+}
+
+async function loadOrdersFromFirestore() {
+    try {
+        console.log('[OrdersManager] Loading orders from Firestore...');
+        
+        if (!CONFIG.FIREBASE_READY() || !CONFIG.USE_FIRESTORE) {
+            console.log('[OrdersManager] Firestore disabled or not ready');
+            return [];
+        }
+        
+        const db = firebase.firestore();
+        const snapshot = await db.collection(CONFIG.FIRESTORE_COLLECTION).get();
+        console.log('[OrdersManager] Firestore query completed, documents:', snapshot.size);
+        
+        const firestoreOrders = [];
+        snapshot.forEach(doc => {
+            firestoreOrders.push(doc.data());
+        });
+        
+        console.log(`[OrdersManager] Firestore loaded: ${firestoreOrders.length} orders`);
+        return firestoreOrders;
+        
+    } catch (error) {
+        console.error('[OrdersManager] Firestore load error:', error);
+        return [];
+    }
+}
+
+async function updateOrderInFirestore(orderId, updateData) {
+    try {
+        console.log('[OrdersManager] Updating order in Firestore:', orderId);
+        
+        if (!CONFIG.FIREBASE_READY() || !CONFIG.USE_FIRESTORE) {
+            console.log('[OrdersManager] Firestore disabled or not ready');
+            return false;
+        }
+        
+        const db = firebase.firestore();
+        const orderRef = db.collection(CONFIG.FIRESTORE_COLLECTION).doc(orderId);
+        
+        const updatePayload = {
+            ...updateData,
+            updatedAt: new Date().toISOString()
+        };
+        
+        console.log('[OrdersManager] Updating Firestore document');
+        await orderRef.update(updatePayload);
+        console.log(`[OrdersManager] Updated in Firestore: ${orderId}`);
+        return true;
+        
+    } catch (error) {
+        console.error('[OrdersManager] Firestore update error:', error);
+        return false;
+    }
+}
+
+async function deleteOrderFromFirestore(orderId) {
+    try {
+        console.log('[OrdersManager] Deleting order from Firestore:', orderId);
+        
+        if (!CONFIG.FIREBASE_READY() || !CONFIG.USE_FIRESTORE) {
+            console.log('[OrdersManager] Firestore disabled or not ready');
+            return false;
+        }
+        
+        const db = firebase.firestore();
+        const orderRef = db.collection(CONFIG.FIRESTORE_COLLECTION).doc(orderId);
+        
+        console.log('[OrdersManager] Deleting from Firestore');
+        await orderRef.delete();
+        console.log(`[OrdersManager] Deleted from Firestore: ${orderId}`);
+        return true;
+        
+    } catch (error) {
+        console.error('[OrdersManager] Firestore delete error:', error);
+        return false;
+    }
+}
+
+// Update loadOrders to include Firestore
+function loadOrders() {
+    console.log('[OrdersManager] Loading orders from storage...');
+    
+    try {
+        // Try localStorage first
+        const savedOrders = localStorage.getItem(CONFIG.STORAGE_KEYS.ORDERS);
+        if (savedOrders) {
+            orders = JSON.parse(savedOrders) || [];
+            console.log(`[OrdersManager] Successfully loaded ${orders.length} orders from localStorage`);
+        } else {
+            orders = [];
+            console.log('[OrdersManager] No saved orders found in localStorage');
+        }
+        
+        const savedCounter = localStorage.getItem(CONFIG.STORAGE_KEYS.ORDER_COUNTER);
+        if (savedCounter) {
+            orderIdCounter = parseInt(savedCounter) || 1000;
+        }
+        
+        // Load from Firestore in background
+        if (CONFIG.USE_FIRESTORE) {
+            loadOrdersFromFirestore().then(firestoreOrders => {
+                if (firestoreOrders.length > 0) {
+                    console.log('[OrdersManager] Merging Firestore orders with localStorage');
+                    // Merge strategy: Firestore overwrites localStorage
+                    const firestoreIds = new Set(firestoreOrders.map(o => o.id));
+                    const localOnly = orders.filter(o => !firestoreIds.has(o.id));
+                    orders = [...firestoreOrders, ...localOnly];
+                    saveOrders(); // Save merged data to localStorage
+                }
+            });
+        }
+        
+    } catch (error) {
+        console.error('[OrdersManager] Failed to load orders:', error);
+        orders = [];
+        orderIdCounter = 1000;
+        saveOrders();
+    }
+}
+    
 
     // ========================================================
     // ORDER CREATION WITH TIERED PRICING
@@ -184,6 +341,13 @@ const OrdersManager = (function() {
             // Add to orders array
             orders.push(newOrder);
             saveOrders();
+
+                    // Save to Firestore
+        if (CONFIG.USE_FIRESTORE) {
+            saveOrderToFirestore(newOrder).then(success => {
+                console.log(`[OrdersManager] Firestore save ${success ? 'successful' : 'failed'} for order ${orderId}`);
+            });
+        }
             
             // Update admin badge
             updateAdminBadge();
@@ -338,40 +502,58 @@ const OrdersManager = (function() {
     // ========================================================
     // ORDER STATUS MANAGEMENT
     // ========================================================
-    function updateOrderStatus(orderId, newStatus, shippingDate = '') {
-        console.log(`[OrdersManager] Updating order ${orderId} status to ${newStatus}`);
+function updateOrderStatus(orderId, newStatus, shippingDate = '') {
+    console.log(`[OrdersManager] Updating order ${orderId} status to ${newStatus}`);
+    
+    try {
+        const orderIndex = orders.findIndex(order => order.id === orderId);
         
-        try {
-            const orderIndex = orders.findIndex(order => order.id === orderId);
-            
-            if (orderIndex === -1) {
-                console.error(`[OrdersManager] Order ${orderId} not found`);
-                return false;
-            }
-            
-            if (!CONFIG.ORDER_STATUSES.includes(newStatus)) {
-                console.error(`[OrdersManager] Invalid status: ${newStatus}`);
-                return false;
-            }
-            
-            orders[orderIndex].status = newStatus;
-            orders[orderIndex].updatedAt = new Date().toISOString();
-            
-            if (newStatus === 'shipped' && shippingDate) {
-                orders[orderIndex].shippingDate = shippingDate;
-            }
-            
-            saveOrders();
-            updateAdminBadge();
-            
-            console.log(`[OrdersManager] Order ${orderId} status updated successfully`);
-            return true;
-            
-        } catch (error) {
-            console.error(`[OrdersManager] Failed to update order status:`, error);
+        if (orderIndex === -1) {
+            console.error(`[OrdersManager] Order ${orderId} not found`);
             return false;
         }
+        
+        if (!CONFIG.ORDER_STATUSES.includes(newStatus)) {
+            console.error(`[OrdersManager] Invalid status: ${newStatus}`);
+            return false;
+        }
+        
+        // Update local order
+        orders[orderIndex].status = newStatus;
+        orders[orderIndex].updatedAt = new Date().toISOString();
+        
+        if (newStatus === 'shipped' && shippingDate) {
+            orders[orderIndex].shippingDate = shippingDate;
+        }
+        
+        saveOrders();
+        
+        // Update Firestore
+        const updateData = {
+            status: newStatus,
+            updatedAt: orders[orderIndex].updatedAt
+        };
+        
+        if (newStatus === 'shipped' && shippingDate) {
+            updateData.shippingDate = shippingDate;
+        }
+        
+        if (CONFIG.USE_FIRESTORE) {
+            updateOrderInFirestore(orderId, updateData).then(success => {
+                console.log(`[OrdersManager] Firestore update ${success ? 'successful' : 'failed'} for order ${orderId}`);
+            });
+        }
+        
+        updateAdminBadge();
+        
+        console.log(`[OrdersManager] Order ${orderId} status updated successfully`);
+        return true;
+        
+    } catch (error) {
+        console.error(`[OrdersManager] Failed to update order status:`, error);
+        return false;
     }
+}
 
     function markAsPaid(orderId) {
         return updateOrderStatus(orderId, 'paid');
@@ -432,79 +614,234 @@ const OrdersManager = (function() {
     }
 
     // ========================================================
-    // ORDER CANCELLATION
+    // ORDER CANCELLATION. Remove refund logic for pending-only cancellation:
     // ========================================================
-    function cancelOrder(orderId, cancellationData) {
-        console.log(`[OrdersManager] Cancelling order ${orderId}`, cancellationData);
+function cancelOrder(orderId, cancellationData) {
+    console.log(`[OrdersManager] Cancelling order ${orderId}`, cancellationData);
+    
+    try {
+        const orderIndex = orders.findIndex(order => order.id === orderId);
         
-        try {
-            const orderIndex = orders.findIndex(order => order.id === orderId);
-            
-            if (orderIndex === -1) {
-                console.error(`[OrdersManager] Order ${orderId} not found`);
-                return false;
-            }
-            
-            // Update order with cancellation data
-            orders[orderIndex].status = 'cancelled';
-            orders[orderIndex].cancellationReason = cancellationData.reason || '';
-            orders[orderIndex].refundAmount = parseFloat(cancellationData.refundAmount) || 0;
-            orders[orderIndex].cancelledAt = new Date().toISOString();
-            orders[orderIndex].cancelledBy = cancellationData.cancelledBy || 'admin';
-            orders[orderIndex].updatedAt = new Date().toISOString();
-            
-            // Add admin note about refund
-            if (orders[orderIndex].refundAmount > 0) {
-                const refundNote = `\n[Refund issued: R${orders[orderIndex].refundAmount.toFixed(2)} on ${new Date().toLocaleDateString()}]`;
-                orders[orderIndex].adminNotes = (orders[orderIndex].adminNotes || '') + refundNote;
-            }
-            
-            // Restore inventory stock if applicable
-            if (typeof ProductsManager !== 'undefined') {
-                console.log(`[OrdersManager] Restoring inventory for cancelled order ${orderId}`);
-                orders[orderIndex].items.forEach(item => {
-                    ProductsManager.updateStock(item.productId, item.quantity);
-                });
-            }
-            
-            saveOrders();
-            updateAdminBadge();
-            
-            console.log(`[OrdersManager] Order ${orderId} cancelled successfully`);
-            return true;
-            
-        } catch (error) {
-            console.error(`[OrdersManager] Cancellation failed for order ${orderId}:`, error);
+        if (orderIndex === -1) {
+            console.error(`[OrdersManager] Order ${orderId} not found`);
             return false;
         }
+        
+        // Check if order is pending (only pending can be cancelled)
+        if (orders[orderIndex].status !== 'pending') {
+            console.error(`[OrdersManager] Only pending orders can be cancelled. Order status: ${orders[orderIndex].status}`);
+            alert('Only pending orders can be cancelled.');
+            return false;
+        }
+        
+        // Update order with cancellation data
+        orders[orderIndex].status = 'cancelled';
+        orders[orderIndex].cancellationReason = cancellationData.reason || '';
+        orders[orderIndex].cancelledAt = new Date().toISOString();
+        orders[orderIndex].cancelledBy = cancellationData.cancelledBy || 'admin';
+        orders[orderIndex].updatedAt = new Date().toISOString();
+        
+        // Restore inventory stock
+        if (typeof ProductsManager !== 'undefined') {
+            console.log(`[OrdersManager] Restoring inventory for cancelled order ${orderId}`);
+            orders[orderIndex].items.forEach(item => {
+                ProductsManager.updateStock(item.productId, item.quantity);
+            });
+        }
+        
+        saveOrders();
+        
+        // Update Firestore
+        const updateData = {
+            status: 'cancelled',
+            cancellationReason: cancellationData.reason || '',
+            cancelledAt: orders[orderIndex].cancelledAt,
+            cancelledBy: cancellationData.cancelledBy || 'admin',
+            updatedAt: orders[orderIndex].updatedAt
+        };
+        
+        if (CONFIG.USE_FIRESTORE) {
+            updateOrderInFirestore(orderId, updateData).then(success => {
+                console.log(`[OrdersManager] Firestore cancellation ${success ? 'successful' : 'failed'} for order ${orderId}`);
+            });
+        }
+        
+        updateAdminBadge();
+        
+        console.log(`[OrdersManager] Order ${orderId} cancelled successfully`);
+        return true;
+        
+    } catch (error) {
+        console.error(`[OrdersManager] Cancellation failed for order ${orderId}:`, error);
+        return false;
     }
+}
 
     // ========================================================
     // ORDER DELETION
     // ========================================================
-    function deleteOrder(orderId) {
-        console.log(`[OrdersManager] Deleting order ${orderId}`);
+function deleteOrder(orderId) {
+    console.log(`[OrdersManager] Deleting order ${orderId}`);
+    
+    try {
+        const orderIndex = orders.findIndex(order => order.id === orderId);
         
-        try {
-            const initialLength = orders.length;
-            orders = orders.filter(order => order.id !== orderId);
-            
-            if (orders.length < initialLength) {
-                saveOrders();
-                updateAdminBadge();
-                console.log(`[OrdersManager] Order ${orderId} deleted successfully`);
-                return true;
-            }
-            
+        if (orderIndex === -1) {
             console.warn(`[OrdersManager] Order ${orderId} not found for deletion`);
             return false;
-            
-        } catch (error) {
-            console.error(`[OrdersManager] Deletion failed for order ${orderId}:`, error);
+        }
+        
+        const order = orders[orderIndex];
+        
+        // Only allow deletion of shipped orders
+        if (order.status !== 'shipped') {
+            console.warn(`[OrdersManager] Only shipped orders can be deleted. Order status: ${order.status}`);
+            alert('Only shipped orders can be deleted.');
             return false;
         }
+        
+        // Remove from local storage
+        orders = orders.filter(order => order.id !== orderId);
+        saveOrders();
+        
+        // Delete from Firestore
+        if (CONFIG.USE_FIRESTORE) {
+            deleteOrderFromFirestore(orderId).then(success => {
+                console.log(`[OrdersManager] Firestore delete ${success ? 'successful' : 'failed'} for order ${orderId}`);
+            });
+        }
+        
+        updateAdminBadge();
+        
+        console.log(`[OrdersManager] Order ${orderId} deleted successfully`);
+        return true;
+        
+    } catch (error) {
+        console.error(`[OrdersManager] Deletion failed for order ${orderId}:`, error);
+        return false;
     }
+}
 
+    function renderCancelledOrders(containerId = 'cancelled-orders-list') {
+    console.log(`[OrdersManager] Rendering cancelled orders in ${containerId}`);
+    
+    try {
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.error(`[OrdersManager] Container ${containerId} not found`);
+            return;
+        }
+        
+        const cancelledOrders = getOrders('cancelled');
+        
+        if (cancelledOrders.length === 0) {
+            container.innerHTML = '<div class="no-orders">No cancelled orders</div>';
+            console.log('[OrdersManager] No cancelled orders to display');
+            return;
+        }
+        
+        container.innerHTML = cancelledOrders.map(order => generateCancelledOrderCardHTML(order)).join('');
+        console.log(`[OrdersManager] Rendered ${cancelledOrders.length} cancelled orders`);
+        
+    } catch (error) {
+        console.error('[OrdersManager] Failed to render cancelled orders:', error);
+    }
+}
+//===========================================================
+    //Add a function to generate cancelled orders:
+//====================================================
+function generateCancelledOrderCardHTML(order) {
+    try {
+        const orderDate = new Date(order.createdAt).toLocaleDateString();
+        
+        return `
+            <div class="cancelled-order-card" data-order-id="${order.id}" style="
+                background: #fff8e1;
+                border-radius: 8px;
+                padding: 1.5rem;
+                margin-bottom: 1rem;
+                border: 1px solid #ffecb3;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            ">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                    <div>
+                        <h3 style="margin: 0 0 0.5rem 0; color: #5d4037;">${order.id}</h3>
+                        <div style="color: #8d6e63; font-size: 0.9rem;">
+                            ${orderDate} • ${order.customerType ? order.customerType.charAt(0).toUpperCase() + order.customerType.slice(1) : 'Personal'} Customer
+                        </div>
+                        <div style="margin-top: 0.5rem; font-weight: 600; color: #5d4037;">
+                            ${order.firstName} ${order.surname}
+                        </div>
+                        <div style="color: #8d6e63; font-size: 0.9rem;">
+                            ${order.customerPhone}${order.customerEmail ? ` • ${order.customerEmail}` : ''}
+                        </div>
+                    </div>
+                    <div>
+                        <span style="
+                            background: #ff9800;
+                            color: white;
+                            padding: 0.25rem 0.75rem;
+                            border-radius: 20px;
+                            font-size: 0.8rem;
+                            font-weight: 600;
+                        ">
+                            CANCELLED
+                        </span>
+                        <div style="text-align: right; margin-top: 0.5rem; font-weight: bold; font-size: 1.2rem; color: #5d4037;">
+                            R${order.totalAmount.toFixed(2)}
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #ffecb3; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                    <div style="font-weight: 600; color: #5d4037; margin-bottom: 0.5rem;">
+                        Cancellation Details
+                    </div>
+                    <div style="color: #8d6e63; font-size: 0.9rem;">
+                        <div><strong>Reason:</strong> ${order.cancellationReason || 'Not specified'}</div>
+                        <div><strong>Cancelled By:</strong> ${order.cancelledBy || 'Admin'}</div>
+                        <div><strong>Cancelled On:</strong> ${new Date(order.cancelledAt).toLocaleDateString()}</div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="action-btn view-details" data-order-id="${order.id}" style="
+                        flex: 1;
+                        padding: 0.75rem;
+                        background: #ff9800;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-weight: 600;
+                        font-size: 0.9rem;
+                    ">
+                        <i class="fas fa-eye" style="margin-right: 0.5rem;"></i>
+                        View Details
+                    </button>
+                    
+                    <button class="action-btn print-order" data-order-id="${order.id}" style="
+                        flex: 1;
+                        padding: 0.75rem;
+                        background: #5d4037;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-weight: 600;
+                        font-size: 0.9rem;
+                    ">
+                        <i class="fas fa-print" style="margin-right: 0.5rem;"></i>
+                        Print
+                    </button>
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        console.error('[OrdersManager] Failed to generate cancelled order card:', error);
+        return '<div class="order-error">Failed to load cancelled order</div>';
+    }
+}
     // ========================================================
     // ADMIN UI FUNCTIONS
     // ========================================================
@@ -690,35 +1027,27 @@ const OrdersManager = (function() {
                         <strong>Return Policy:</strong> ${order.returnPolicy}
                     </div>
                     ` : ''}
-                    
                     <!-- Order Actions -->
-                    <div class="order-actions-detailed">
-                        ${order.status === 'pending' ? `
-                        <button class="action-btn mark-paid" data-order-id="${order.id}">
-                            <i class="fas fa-check-circle"></i>
-                            Mark as Paid
-                        </button>
-                        ` : ''}
-                        
-                        ${order.status === 'pending' || order.status === 'paid' ? `
-                        <button class="action-btn cancel-order" data-order-id="${order.id}">
-                            <i class="fas fa-ban"></i>
-                            Cancel Order
-                        </button>
-                        ` : ''}
-                        
-                        ${order.status !== 'shipped' ? `
-                        <button class="action-btn mark-shipped" data-order-id="${order.id}">
-                            <i class="fas fa-shipping-fast"></i>
-                            Mark as Shipped
-                        </button>
-                        ` : ''}
-                        
-                        <button class="action-btn delete-order" data-order-id="${order.id}">
-                            <i class="fas fa-trash"></i>
-                            Delete
-                        </button>
-                    </div>
+<div class="order-actions-detailed">
+    ${order.status === 'pending' ? `
+    <button class="action-btn mark-paid" data-order-id="${order.id}">
+        <i class="fas fa-check-circle"></i>
+        Mark as Paid
+    </button>
+    
+    <button class="action-btn cancel-order" data-order-id="${order.id}">
+        <i class="fas fa-ban"></i>
+        Cancel Order
+    </button>
+    ` : ''}
+    
+    ${order.status === 'paid' ? `
+    <button class="action-btn mark-shipped" data-order-id="${order.id}">
+        <i class="fas fa-shipping-fast"></i>
+        Mark as Shipped
+    </button>
+    ` : ''}
+</div>      
                 </div>
             `;
         } catch (error) {
@@ -1954,6 +2283,7 @@ function generatePrintHTML(order) {
         deleteOrder,
         renderOrders,
         renderCompletedOrders,
+        renderCancelledOrders, // Add this
         showOrderDetails,
         updateAdminBadge,
         showCancellationModal,
