@@ -736,25 +736,30 @@ function renderDashboardOrders(status = 'pending') {
                     </div>
                     
                     <div class="order-actions">
-                        <button class="dashboard-action-btn view-order" data-order-id="${orderId}">
-                            <i class="fas fa-eye"></i>
-                            Details
-                        </button>
-                        
-                        ${status === 'pending' ? `
-                        <button class="dashboard-action-btn mark-paid" data-order-id="${orderId}">
-                            <i class="fas fa-money-bill-wave"></i>
-                            Paid
-                        </button>
-                        ` : ''}
-                        
-                        ${(status === 'paid' || status === 'pending') ? `
-                        <button class="dashboard-action-btn mark-shipped" data-order-id="${orderId}">
-                            <i class="fas fa-truck"></i>
-                            Ship
-                        </button>
-                        ` : ''}
-                    </div>
+    <button class="dashboard-action-btn view-order" data-order-id="${orderId}">
+        <i class="fas fa-eye"></i>
+        Details
+    </button>
+    
+    ${status === 'pending' ? `
+    <button class="dashboard-action-btn mark-paid" data-order-id="${orderId}">
+        <i class="fas fa-money-bill-wave"></i>
+        Paid
+    </button>
+    
+    <button class="dashboard-action-btn cancel-order" data-order-id="${orderId}">
+        <i class="fas fa-ban"></i>
+        Cancel
+    </button>
+    ` : ''}
+    
+    ${status === 'paid' ? `
+    <button class="dashboard-action-btn mark-shipped" data-order-id="${orderId}">
+        <i class="fas fa-truck"></i>
+        Ship
+    </button>
+    ` : ''}
+</div>
                 </div>
             `;
         } catch (error) {
