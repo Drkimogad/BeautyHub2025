@@ -280,7 +280,7 @@ if (typeof CustomerSearchManager !== 'undefined') {
         try {
             return cartItems.reduce((total, item) => {
                 // Use item.price (from cart) which should already be the correct price
-                const price = parseFloat(item.price) || 0;
+                const price = parseFloat(item.currentPrice) || parseFloat(item.price) || 0;
                 const quantity = parseInt(item.quantity) || 1;
                 return total + (price * quantity);
             }, 0);
@@ -402,7 +402,7 @@ if (searchContainer) {
 
     function generateCartItemHTML(item) {
         try {
-            const price = parseFloat(item.price) || 0;
+            const price = parseFloat(item.currentPrice) || parseFloat(item.price) || 0;            
             const quantity = parseInt(item.quantity) || 1;
             const itemTotal = price * quantity;
             
