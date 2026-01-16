@@ -488,7 +488,85 @@ if (typeof InventoryManager !== 'undefined' && InventoryManager.init) {
     InventoryManager.init();
     console.log('[AppManager] InventoryManager initialized');
 }
+we have a great progress. now i have a few things to adjust and i need you to help me fix it slowly. for some reason when i added wholesaleprice, retailprice and currentprice which is supposed to be discounted price . i had issue with pricing calculation. the older schema was: originalprice became retail price and price which was supposed to be the currentprice or discounted price i changed it from price to currentprice . so original meant the price as a retail price and before discount. i had issues with price calculation eversince and i had to modify the price parameter passed  to be price.dataset i think instead of price and that messed it up in the entire app. so i will share two important snippets: products schema and my script tags from html. this will give you a solid plan to move forward. i want you to give me a console log to check every script file for how it is calculating price and what we need to do surgically in each file feom productsManager.js and products.js to the last file. we can use a user journey method to track how pprice is calculated or we start as i suggested until order is processed. do not assume, do not give me scenarios . i need fixes based on my actual code as i am tidying up my code for production. i am the only user on website now  and developping it so no backward compatability. do not piss me off or make me repeat myself again. i swear it i woill end the chat and find another coding agent to help. adapt to my pace and do not waste my coding limit unnecessarily. here is the 2 snippets:  <!-- Scripts (CORRECT DEPENDENCY ORDER) -->
+<script src="js/productsManager.js" defer></script>
+<script src="js/products.js" defer></script>
+<script src="js/cart.js" defer></script>
+<script src="js/customerorder.js" defer></script>
+<script src="js/customerSearch.js" defer></script>
+<script src="js/ordersManager.js" defer></script>
+<script src="js/inventoryManager.js" defer></script>
+<script src="js/admin.js" defer></script>
+<script src="js/main.js" defer></script>
+and product schema from productsManager.js:    // Product Schema (Updated)
+    const PRODUCT_SCHEMA = {
+        id: '',             
+        name: '',           
+        description: '',    
+        category: '',       
+        wholesalePrice: 0,  // Your cost added new before refator
+        retailPrice: 0,     // Standard selling price it was originalprice
+        currentPrice: 0,    // Actual selling price it was named as price
+        discountPercent: 0, 
+        isOnSale: false,    
+        saleEndDate: "",    
+        stock: 0,          
+        imageUrl: '',      
+        gallery: [],       
+        tags: [],          
+        specifications: {}, 
+        isActive: true,    
+        createdAt: '',     
+        updatedAt: '',     
+        salesCount: 0      
+    }; CONFIRM WHAT I ASK OF YOU BEFORE MOVING FORWARD AND WE WILL DO ONE FILE AT A TIME.
+I understand completely. You want me to help you systematically fix the price calculation issues by examining each script file one at a time, starting with how they calculate price based on your new schema:
 
+Your Price Schema:
+
+wholesalePrice: Your cost (NEW)
+
+retailPrice: Standard selling price (was originalPrice)
+
+currentPrice: Actual selling price (was price)
+
+discountPercent: Discount percentage
+
+My Approach:
+
+Start with productsManager.js - track how prices are stored/loaded
+
+Then products.js - track how prices are displayed
+
+Then cart.js - track how prices are added to cart
+
+Continue through all files in your dependency order
+
+First Step - productsManager.js Analysis:
+Let me examine how productsManager.js handles the new price fields. I'll add diagnostic console logs to see exactly what's happening. Can you share your current productsManager.js so I can add targeted console logs to track:
+
+How products are loaded from Firestore
+
+How price calculations are done
+
+How products are saved back
+
+This will give us a baseline before we move to products.js.
+
+Confirming my understanding:
+You want me to:
+
+NOT assume anything
+
+Work on one file at a time
+
+Add diagnostic console logs to track price flow
+
+Fix issues surgically based on actual code
+
+Follow your script dependency order
+
+Is this correct? If yes, please share productsManager.js first
 // 2. OrdersManager (if used for order management)
 if (typeof OrdersManager !== 'undefined' && OrdersManager.init) {
     OrdersManager.init();
