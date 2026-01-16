@@ -1027,37 +1027,44 @@ function generateCancelledOrderCardHTML(order) {
                         <strong>Return Policy:</strong> ${order.returnPolicy}
                     </div>
                     ` : ''}
-                    <!-- Order Actions -->
+<!-- Order Actions -->
 <div class="order-actions-detailed">
-${order.status === 'pending' ? `
-<button class="action-btn mark-paid" data-order-id="${order.id}">
-    <i class="fas fa-check-circle"></i>
-    Mark as Paid
-</button>
-
-<button class="action-btn cancel-order" data-order-id="${order.id}">
-    <i class="fas fa-ban"></i>
-    Cancel Order
-</button>
-
-<button class="action-btn view-details" data-order-id="${order.id}">
-    <i class="fas fa-eye"></i>
-    Details
-</button>
-` : ''}
+    ${order.status === 'pending' ? `
+    <button class="action-btn mark-paid" data-order-id="${order.id}">
+        <i class="fas fa-check-circle"></i>
+        Mark as Paid
+    </button>
+    
+    <button class="action-btn cancel-order" data-order-id="${order.id}">
+        <i class="fas fa-ban"></i>
+        Cancel Order
+    </button>
+    
+    <button class="action-btn view-details" data-order-id="${order.id}">
+        <i class="fas fa-eye"></i>
+        Details
+    </button>
+    ` : ''}
     
     ${order.status === 'paid' ? `
-<button class="action-btn mark-shipped" data-order-id="${order.id}">
-    <i class="fas fa-shipping-fast"></i>
-    Mark as Shipped
-</button>
-
-<button class="action-btn view-details" data-order-id="${order.id}">
-    <i class="fas fa-eye"></i>
-    Details
-</button>
-` : ''}
-</div>      
+    <button class="action-btn mark-shipped" data-order-id="${order.id}">
+        <i class="fas fa-shipping-fast"></i>
+        Mark as Shipped
+    </button>
+    
+    <button class="action-btn view-details" data-order-id="${order.id}">
+        <i class="fas fa-eye"></i>
+        Details
+    </button>
+    ` : ''}
+    
+    ${order.status === 'shipped' || order.status === 'cancelled' ? `
+    <button class="action-btn view-details" data-order-id="${order.id}">
+        <i class="fas fa-eye"></i>
+        Details
+    </button>
+    ` : ''}
+</div>    
                 </div>
             `;
         } catch (error) {
