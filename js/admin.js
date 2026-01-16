@@ -1130,6 +1130,24 @@ function renderDashboardOrders(status = 'pending') {
                     }
                 }
             }
+                        if (e.target.classList.contains('mark-shipped') || e.target.closest('.mark-shipped')) {
+                if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.markAsShipped === 'function') {
+                    if (OrdersManager.markAsShipped(orderId)) {
+                        loadDashboardData();
+                        updateAdminButtonVisibility();
+                    }
+                }
+            }
+            
+            // ADD THIS BLOCK
+            if (e.target.classList.contains('cancel-order') || e.target.closest('.cancel-order')) {
+                if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.showCancellationModal === 'function') {
+                    OrdersManager.showCancellationModal(orderId);
+                } else {
+                    alert('Cancellation feature not available');
+                }
+            }
+            
         } catch (error) {
             console.error('[Dashboard] Order action error:', error);
         }
