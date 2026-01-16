@@ -58,7 +58,10 @@ const ProductsManager = (function() {
     function init() {
         try {
             console.log('[ProductsManager] Initializing with Firestore:', CONFIG.USE_FIRESTORE);
-            loadProducts();
+         // Start loading but don't wait for it
+            loadProducts().catch(error => {
+            console.error('[ProductsManager] Background load failed:', error);
+          });            
             return {
                 products,
                 getProducts,
