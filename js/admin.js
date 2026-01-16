@@ -257,11 +257,6 @@ const AdminManager = (function() {
                                             Refresh
                                         </button>
                                         
-                                        <button id="export-orders" class="action-btn">
-                                            <i class="fas fa-download"></i>
-                                            Export
-                                        </button>
-                                        
                                         <!-- Status Filters -->
                                         <button class="status-filter active" data-status="pending">
                                             <i class="fas fa-clock"></i>
@@ -277,6 +272,12 @@ const AdminManager = (function() {
                                             <i class="fas fa-truck"></i>
                                             Shipped <span class="shipped-count">(0)</span>
                                         </button>
+                                     <!-- ADDED Cancelled Orders filter -->
+                                        <button class="status-filter" data-status="cancelled">
+                                          <i class="fas fa-ban"></i>
+                                          Cancelled <span class="cancelled-count">(0)</span>
+                                        </button>
+                                        
                                     </div>
                                 </div>
                                 
@@ -493,61 +494,67 @@ const AdminManager = (function() {
         }
     }
 
-    function updateOrderCounts() {
-        try {
-            let totalOrders = 0;
-            let pendingCount = 0;
-            let paidCount = 0;
-            let shippedCount = 0;
-            
-            // Try to get counts from OrdersManager
-            if (typeof OrdersManager !== 'undefined') {
-                if (typeof OrdersManager.getOrders === 'function') {
-                    const allOrders = OrdersManager.getOrders();
-                    totalOrders = allOrders.length;
-                    pendingCount = OrdersManager.getOrders('pending').length;
-                    paidCount = OrdersManager.getOrders('paid').length;
-                    shippedCount = OrdersManager.getOrders('shipped').length;
-                }
-            } else {
-                // Fallback: Read from localStorage
-                try {
-                    const ordersJSON = localStorage.getItem('beautyhub_orders');
-                    if (ordersJSON) {
-                        const orders = JSON.parse(ordersJSON) || [];
-                        totalOrders = orders.length;
-                        pendingCount = orders.filter(o => o.status === 'pending').length;
-                        paidCount = orders.filter(o => o.status === 'paid').length;
-                        shippedCount = orders.filter(o => o.status === 'shipped').length;
-                    }
-                } catch (error) {
-                    console.error('[Dashboard] Failed to read orders from localStorage:', error);
-                }
+  function updateOrderCounts() {
+    try {
+        let totalOrders = 0;
+        let pendingCount = 0;
+        let paidCount = 0;
+        let shippedCount = 0;
+        let cancelledCount = 0;
+        
+        // Try to get counts from OrdersManager
+        if (typeof OrdersManager !== 'undefined') {
+            if (typeof OrdersManager.getOrders === 'function') {
+                const allOrders = OrdersManager.getOrders();
+                totalOrders = allOrders.length;
+                pendingCount = OrdersManager.getOrders('pending').length;
+                paidCount = OrdersManager.getOrders('paid').length;
+                shippedCount = OrdersManager.getOrders('shipped').length;
+                cancelledCount = OrdersManager.getOrders('cancelled').length;
             }
-            
-            // Update UI
-            const ordersCount = document.getElementById('orders-count');
-            if (ordersCount) ordersCount.textContent = `(${totalOrders})`;
-            
-            const pendingEl = document.querySelector('.pending-count');
-            const paidEl = document.querySelector('.paid-count');
-            const shippedEl = document.querySelector('.shipped-count');
-            
-            if (pendingEl) pendingEl.textContent = `(${pendingCount})`;
-            if (paidEl) paidEl.textContent = `(${paidCount})`;
-            if (shippedEl) shippedEl.textContent = `(${shippedCount})`;
-            
-            console.log('[Dashboard] Order counts updated:', {
-                total: totalOrders,
-                pending: pendingCount,
-                paid: paidCount,
-                shipped: shippedCount
-            });
-            
-        } catch (error) {
-            console.error('[Dashboard] Failed to update order counts:', error);
+        } else {
+            // Fallback: Read from localStorage
+            try {
+                const ordersJSON = localStorage.getItem('beautyhub_orders');
+                if (ordersJSON) {
+                    const orders = JSON.parse(ordersJSON) || [];
+                    totalOrders = orders.length;
+                    pendingCount = orders.filter(o => o.status === 'pending').length;
+                    paidCount = orders.filter(o => o.status === 'paid').length;
+                    shippedCount = orders.filter(o => o.status === 'shipped').length;
+                    cancelledCount = orders.filter(o => o.status === 'cancelled').length;
+                }
+            } catch (error) {
+                console.error('[Dashboard] Failed to read orders from localStorage:', error);
+            }
         }
+        
+        // Update UI
+        const ordersCount = document.getElementById('orders-count');
+        if (ordersCount) ordersCount.textContent = `(${totalOrders})`;
+        
+        const pendingEl = document.querySelector('.pending-count');
+        const paidEl = document.querySelector('.paid-count');
+        const shippedEl = document.querySelector('.shipped-count');
+        const cancelledEl = document.querySelector('.cancelled-count');
+        
+        if (pendingEl) pendingEl.textContent = `(${pendingCount})`;
+        if (paidEl) paidEl.textContent = `(${paidCount})`;
+        if (shippedEl) shippedEl.textContent = `(${shippedCount})`;
+        if (cancelledEl) cancelledEl.textContent = `(${cancelledCount})`;
+        
+        console.log('[Dashboard] Order counts updated:', {
+            total: totalOrders,
+            pending: pendingCount,
+            paid: paidCount,
+            shipped: shippedCount,
+            cancelled: cancelledCount
+        });
+        
+    } catch (error) {
+        console.error('[Dashboard] Failed to update order counts:', error);
     }
+}
 
     function updateDashboardBadge() {
         try {
@@ -578,57 +585,93 @@ const AdminManager = (function() {
         }
     }
 
-    function renderDashboardOrders(status = 'pending') {
-        try {
-            const container = document.getElementById('dashboard-orders-container');
-            if (!container) {
-                console.error('[Dashboard] Orders container not found');
-                return;
-            }
-            
-            // Show loading state
-            container.innerHTML = `
-                <div class="loading-content">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <h3>Loading ${status} orders...</h3>
-                </div>
-            `;
-            
-            setTimeout(() => {
-                try {
-                    let orders = [];
-                    
-                    if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.getOrders === 'function') {
-                        orders = OrdersManager.getOrders(status);
-                    } else {
-                        // Fallback: Read from localStorage
-                        const ordersJSON = localStorage.getItem('beautyhub_orders');
-                        if (ordersJSON) {
-                            const allOrders = JSON.parse(ordersJSON) || [];
-                            orders = allOrders.filter(order => order.status === status);
-                        }
+function renderDashboardOrders(status = 'pending') {
+    try {
+        const container = document.getElementById('dashboard-orders-container');
+        if (!container) {
+            console.error('[Dashboard] Orders container not found');
+            return;
+        }
+        
+        // Handle cancelled status differently - use new renderCancelledOrders function
+        if (status === 'cancelled') {
+            renderCancelledDashboardOrders();
+            return;
+        }
+        
+        // Show loading state
+        container.innerHTML = `
+            <div class="loading-content">
+                <i class="fas fa-spinner fa-spin"></i>
+                <h3>Loading ${status} orders...</h3>
+            </div>
+        `;
+        
+        setTimeout(() => {
+            try {
+                let orders = [];
+                
+                if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.getOrders === 'function') {
+                    orders = OrdersManager.getOrders(status);
+                } else {
+                    // Fallback: Read from localStorage
+                    const ordersJSON = localStorage.getItem('beautyhub_orders');
+                    if (ordersJSON) {
+                        const allOrders = JSON.parse(ordersJSON) || [];
+                        orders = allOrders.filter(order => order.status === status);
                     }
-                    
-                    console.log(`[Dashboard] Rendering ${orders.length} ${status} orders`);
-                    
-                    if (orders.length === 0) {
-                        container.innerHTML = getNoOrdersHTML(`No ${status} orders`, 
-                            status === 'pending' ? 'All orders are processed!' : 'No orders in this category.');
-                        return;
-                    }
-                    
-                    container.innerHTML = getOrdersGridHTML(orders);
-                    
-                } catch (error) {
-                    console.error('[Dashboard] Failed to render orders:', error);
-                    container.innerHTML = getNoOrdersHTML('Error loading orders', 'Please try refreshing.');
                 }
-            }, 300);
-            
-        } catch (error) {
-            console.error('[Dashboard] Failed to render orders:', error);
+                
+                console.log(`[Dashboard] Rendering ${orders.length} ${status} orders`);
+                
+                if (orders.length === 0) {
+                    container.innerHTML = getNoOrdersHTML(`No ${status} orders`, 
+                        status === 'pending' ? 'All orders are processed!' : 
+                        status === 'paid' ? 'No paid orders yet.' :
+                        status === 'shipped' ? 'No shipped orders yet.' : 'No orders in this category.');
+                    return;
+                }
+                
+                container.innerHTML = getOrdersGridHTML(orders);
+                
+            } catch (error) {
+                console.error('[Dashboard] Failed to render orders:', error);
+                container.innerHTML = getNoOrdersHTML('Error loading orders', 'Please try refreshing.');
+            }
+        }, 300);
+        
+    } catch (error) {
+        console.error('[Dashboard] Failed to render orders:', error);
+    }
+}
+    
+//Create a new function renderCancelledDashboardOrders():
+    function renderCancelledDashboardOrders() {
+    try {
+        console.log('[Dashboard] Rendering cancelled orders');
+        
+        const container = document.getElementById('dashboard-orders-container');
+        if (!container) {
+            console.error('[Dashboard] Orders container not found');
+            return;
+        }
+        
+        container.innerHTML = '<div class="loading-content"><i class="fas fa-spinner fa-spin"></i><h3>Loading Cancelled Orders...</h3></div>';
+        
+        // Call the new renderCancelledOrders function from OrdersManager
+        if (typeof OrdersManager !== 'undefined' && OrdersManager.renderCancelledOrders) {
+            OrdersManager.renderCancelledOrders('dashboard-orders-container');
+        } else {
+            container.innerHTML = '<div class="no-orders"><i class="fas fa-ban"></i><h3>Unable to load cancelled orders</h3><p>Order manager not available</p></div>';
+        }
+    } catch (error) {
+        console.error('[Dashboard] Failed to render cancelled orders:', error);
+        const container = document.getElementById('dashboard-orders-container');
+        if (container) {
+            container.innerHTML = '<div class="error-content"><i class="fas fa-exclamation-triangle"></i><h3>Error loading cancelled orders</h3><p>Please try again</p></div>';
         }
     }
+}
 
     function getOrdersGridHTML(orders) {
         try {
@@ -1006,20 +1049,26 @@ const AdminManager = (function() {
     }
 
     function handleStatusFilter(e) {
-        try {
-            const filter = e.target.closest('.status-filter');
-            const status = filter.dataset.status;
-            
-            document.querySelectorAll('.status-filter').forEach(f => {
-                f.classList.toggle('active', f === filter);
-            });
-            
-            currentStatusFilter = status;
+    try {
+        const filter = e.target.closest('.status-filter');
+        const status = filter.dataset.status;
+        
+        document.querySelectorAll('.status-filter').forEach(f => {
+            f.classList.toggle('active', f === filter);
+        });
+        
+        currentStatusFilter = status;
+        
+        // Handle cancelled status differently
+        if (status === 'cancelled') {
+            renderCancelledDashboardOrders();
+        } else {
             renderDashboardOrders(status);
-        } catch (error) {
-            console.error('[Dashboard] Status filter error:', error);
         }
+    } catch (error) {
+        console.error('[Dashboard] Status filter error:', error);
     }
+}
 
     function handleAnalyticsButtons(e) {
         // Track Inventory button
