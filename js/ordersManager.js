@@ -1848,6 +1848,8 @@ function createCancellationModal(order) {
         // Form submission
         document.getElementById('cancellation-form').onsubmit = function(e) {
             e.preventDefault();
+            e.stopPropagation(); // ADD THIS LINE
+                console.log('[OrdersManager] Cancellation form submitted');
             
             const cancellationData = {
                 reason: document.getElementById('cancellation-reason').value,
@@ -1855,20 +1857,29 @@ function createCancellationModal(order) {
                 notes: document.getElementById('cancel-notes').value,
                 cancelledBy: 'admin'
             };
-            
+                console.log('[OrdersManager] Cancellation data:', cancellationData);
+
             if (!cancellationData.reason) {
                 document.getElementById('cancel-error').textContent = 'Please select a cancellation reason';
                 document.getElementById('cancel-error').style.display = 'block';
                 return;
             }
-            
-            if (cancelOrder(order.id, cancellationData)) {
-                modal.remove();
-                renderOrders();
-                renderCompletedOrders();
-                alert(`Order ${order.id} cancelled successfully.${cancellationData.refundAmount > 0 ? ` Refund: R${parseFloat(cancellationData.refundAmount).toFixed(2)}` : ''}`);
-            }
-        };
+                   console.log('[OrdersManager] Calling cancelOrder with:', order.id, cancellationData);
+    const success = cancelOrder(order.id, cancellationData);
+    console.log('[OrdersManager] cancelOrder returned:', success);
+    
+    if (success) {
+        console.log('[OrdersManager] Cancellation successful, removing modal');
+        modal.remove();
+        renderOrders();
+        renderCompletedOrders();
+        renderCancelledOrders(); // ADD THIS
+        alert(`Order ${order.id} cancelled successfully.${cancellationData.refundAmount > 0 ? ` Refund: R${parseFloat(cancellationData.refundAmount).toFixed(2)}` : ''}`);
+    } else {
+        console.log('[OrdersManager] Cancellation failed');
+    }
+};
+
         
         // Close buttons
         document.getElementById('close-cancel-modal').onclick = () => modal.remove();
