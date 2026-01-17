@@ -594,10 +594,11 @@ function renderDashboardOrders(status = 'pending') {
         }
         
         // Handle cancelled status differently - use the check here
-        if (status === 'cancelled') {
-            renderCancelledDashboardOrders();
-            return;
-        }
+       if (status === 'cancelled') {
+    // Use the same logic as other statuses but filter for cancelled
+           renderCancelledOrdersDirectly();
+          return;
+         }
         
         // Show loading state
         container.innerHTML = `
@@ -646,6 +647,45 @@ function renderDashboardOrders(status = 'pending') {
 }
     
 // rendercancelleddashboardorder function has been removed from admin.js. we rely on the one in ordersManager.js now
+// NEW FUNCTION FOR CANCELLED BUTTON, TO SOLVE UNDEFINED ISSUE
+function renderCancelledOrdersDirectly() {
+    try {
+        const container = document.getElementById('dashboard-orders-container');
+        if (!container) return;
+        
+        container.innerHTML = '<div class="loading-content"><i class="fas fa-spinner fa-spin"></i><h3>Loading Cancelled Orders...</h3></div>';
+        
+        setTimeout(() => {
+            try {
+                let cancelledOrders = [];
+                
+                // Get cancelled orders using the same pattern as other statuses
+                if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.getOrders === 'function') {
+                    cancelledOrders = OrdersManager.getOrders('cancelled');
+                } else {
+                    const ordersJSON = localStorage.getItem('beautyhub_orders');
+                    if (ordersJSON) {
+                        const allOrders = JSON.parse(ordersJSON) || [];
+                        cancelledOrders = allOrders.filter(order => order.status === 'cancelled');
+                    }
+                }
+                
+                if (cancelledOrders.length === 0) {
+                    container.innerHTML = getNoOrdersHTML('No Cancelled Orders', 'All orders are active or completed.');
+                    return;
+                }
+                
+                container.innerHTML = getOrdersGridHTML(cancelledOrders);
+                
+            } catch (error) {
+                console.error('[Dashboard] Failed to load cancelled orders:', error);
+                container.innerHTML = '<div class="no-orders"><i class="fas fa-ban"></i><h3>Error loading cancelled orders</h3><p>Please try again</p></div>';
+            }
+        }, 300);
+    } catch (error) {
+        console.error('[Dashboard] Failed to render cancelled orders:', error);
+    }
+}
     
     function getOrdersGridHTML(orders) {
         try {
