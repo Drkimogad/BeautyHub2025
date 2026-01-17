@@ -1988,18 +1988,19 @@ setTimeout(() => {
 }, 100);
 
 // Add keyboard support (ESC to close)
-document.addEventListener('keydown', function handleEsc(e) {
+// Add this function BEFORE the event listener
+function handleEscKey(e) {
     if (e.key === 'Escape' && modal && modal.parentNode) {
         console.log('ESC key pressed, closing modal');
         modal.parentNode.removeChild(modal);
         document.body.style.overflow = '';
-        // Remove this event listener
-        document.removeEventListener('keydown', handleEsc);
+        document.removeEventListener('keydown', handleEscKey);
     }
-});
-
-// Store reference to this handler for cleanup
-modal._escHandler = handleEsc;
+}
+// Then modify the event listener to use handleEscKey:
+document.addEventListener('keydown', handleEscKey);
+// Store reference for cleanup
+modal._escHandler = handleEscKey; // Change this line too
 
 // Also add Enter key to submit form when in input fields
 modal.addEventListener('keydown', function(e) {
