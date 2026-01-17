@@ -659,8 +659,8 @@ function renderDashboardOrders(status = 'pending') {
         container.innerHTML = '<div class="loading-content"><i class="fas fa-spinner fa-spin"></i><h3>Loading Cancelled Orders...</h3></div>';
         
         // Call the new renderCancelledOrders function from OrdersManager
-        if (typeof OrdersManager !== 'undefined' && OrdersManager.renderCancelledOrders) {
-            OrdersManager.renderCancelledOrders('dashboard-orders-container');
+        if (typeof OrdersManager !== 'undefined' && OrdersManager.renderCancelledDashboardOrders) {
+            OrdersManager.renderCancelledDashboardOrders('dashboard-orders-container');
         } else {
             container.innerHTML = '<div class="no-orders"><i class="fas fa-ban"></i><h3>Unable to load cancelled orders</h3><p>Order manager not available</p></div>';
         }
