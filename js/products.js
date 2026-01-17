@@ -117,9 +117,9 @@ const ProductsDisplay = (function() {
                 const displayId = product.id;
                 
                 // FIXED: Use updated property names
-                const retailPrice = product.retailprice || product.retailPrice;
-                const currentPrice = product.currentprice || product.currentPrice;
-                const wholesalePrice = product.wholesaleprice || product.wholesalePrice;
+                const retailPrice = product.retailPrice || 0;
+const currentPrice = product.currentPrice || 0;
+const wholesalePrice = product.wholesalePrice || 0;
                 
                 const isOnSale = product.isOnSale || product.discountPercent > 0;
                 const hasDiscount = product.discountPercent > 0 && retailPrice > currentPrice;
@@ -415,9 +415,9 @@ const priceData = {
             if (!product) return;
             
             // FIXED: Use updated property names
-            const retailPrice = product.retailprice || product.retailPrice;
-            const currentPrice = product.currentprice || product.currentPrice;
-            const wholesalePrice = product.wholesaleprice || product.wholesalePrice;
+            const retailPrice = product.retailPrice || 0;
+const currentPrice = product.currentPrice || 0;
+const wholesalePrice = product.wholesalePrice || 0;
             
             const isOnSale = product.isOnSale || product.discountPercent > 0;
             const hasDiscount = product.discountPercent > 0 && retailPrice > currentPrice;
