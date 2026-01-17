@@ -645,34 +645,8 @@ function renderDashboardOrders(status = 'pending') {
     }
 }
     
-//Create a new function renderCancelledDashboardOrders():
-    function renderCancelledDashboardOrders() {
-    try {
-        console.log('[Dashboard] Rendering cancelled orders');
-        
-        const container = document.getElementById('dashboard-orders-container');
-        if (!container) {
-            console.error('[Dashboard] Orders container not found');
-            return;
-        }
-        
-        container.innerHTML = '<div class="loading-content"><i class="fas fa-spinner fa-spin"></i><h3>Loading Cancelled Orders...</h3></div>';
-        
-        // Call the new renderCancelledOrders function from OrdersManager
-        if (typeof OrdersManager !== 'undefined' && OrdersManager.renderCancelledDashboardOrders) {
-            OrdersManager.renderCancelledDashboardOrders('dashboard-orders-container');
-        } else {
-            container.innerHTML = '<div class="no-orders"><i class="fas fa-ban"></i><h3>Unable to load cancelled orders</h3><p>Order manager not available</p></div>';
-        }
-    } catch (error) {
-        console.error('[Dashboard] Failed to render cancelled orders:', error);
-        const container = document.getElementById('dashboard-orders-container');
-        if (container) {
-            container.innerHTML = '<div class="error-content"><i class="fas fa-exclamation-triangle"></i><h3>Error loading cancelled orders</h3><p>Please try again</p></div>';
-        }
-    }
-}
-
+// rendercancelleddashboardorder function has been removed from admin.js. we rely on the one in ordersManager.js now
+    
     function getOrdersGridHTML(orders) {
         try {
             const orderCards = orders.map(order => getOrderCardHTML(order)).join('');
