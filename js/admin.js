@@ -1563,7 +1563,8 @@ function isDashboardOpen() {
 window.isAdminDashboardOpen = isDashboardOpen;
 
 // ========================================================
-// DASHBOARD REFRESH FUNCTION - FOR EXTERNAL CALLS new
+// DASHBOARD REFRESH FUNCTION - FOR EXTERNAL CALLS new.  I NEEED 5HIS TO REFRESH TH3 WEBSITE WHILE
+// IS OPEN AND IT UPDATES WHATEVER WAS UPDATED. ⛔️⛔️⛔️
 // ========================================================
 function refreshDashboardOrders() {
     console.log('[Admin] Dashboard refresh requested externally');
