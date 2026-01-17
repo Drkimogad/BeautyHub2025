@@ -6411,3 +6411,19 @@ header {
 .stock-modal[style*="display: flex"] {
     display: flex !important; /* display none hide the modals, a quick fix to be connsidered in refactoring of css*/
 }
+.status-filter[data-status="cancelled"] {
+    background: linear-gradient(135deg, #ff9800, #ff5722);
+}
+
+.status-filter[data-status="cancelled"]:hover {
+    background: linear-gradient(135deg, #ff5722, #f44336);
+}
+
+.cancelled-count {
+    background: #ff9800;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.8em;
+    margin-left: 5px;
+}
