@@ -143,13 +143,16 @@ const ProductsManager = (function() {
             const productRef = db.collection(CONFIG.FIRESTORE_COLLECTION).doc(product.id);
             
             // Ensure consistent property names for Firestore
-            const firestoreProduct = {
-                ...product,
-                wholesalePrice: product.wholesalePrice || product.wholesaleprice || 0,
-                retailPrice: product.retailPrice || product.retailprice || 0,
-                currentPrice: product.currentPrice || product.currentprice || 0,
-                discountPercent: product.discountPercent || product.discountedPercent || 0
-            };
+            // Your current line 155-162 is OK but add this check:
+const firestoreProduct = {
+    ...product,
+    wholesalePrice: product.wholesalePrice || product.wholesaleprice || 0,
+    retailPrice: product.retailPrice || product.retailprice || 0,
+    currentPrice: product.currentPrice || product.currentprice || 0,
+    discountPercent: product.discountPercent || product.discountedPercent || 0,
+    // ADD THIS LINE to ensure retailPrice exists:
+    retailPrice: product.retailPrice || product.retailprice || product.currentPrice || product.currentprice || 0
+};
             
             console.log('[ProductsManager] Setting document in Firestore');
             await productRef.set(firestoreProduct);
@@ -382,12 +385,12 @@ async function loadProducts() {
             console.log('[ProductsManager] Adding new product with data:', productData);
             
             // Handle property naming variations
-            const retailPrice = parseFloat(productData.retailPrice || productData.retailprice || 
-                                         productData.currentPrice || productData.currentprice || 0);
-            const discountPercent = parseFloat(productData.discountPercent || productData.discountedPercent || 0);
-            const calculatedPrice = discountPercent > 0 
-                ? calculateDiscountedPrice(retailPrice, discountPercent)
-                : parseFloat(productData.currentPrice || productData.currentprice || retailPrice);
+            // CORRECT:
+const retailPrice = parseFloat(productData.retailPrice || productData.retailprice || 0);
+const discountPercent = parseFloat(productData.discountPercent || productData.discountedPercent || 0);
+const calculatedPrice = discountPercent > 0 
+    ? calculateDiscountedPrice(retailPrice, discountPercent)
+    : retailPrice; // NO fallback to currentPrice!
             
             console.log('[ProductsManager] Price calculation:', {
                 retailPrice,
@@ -459,7 +462,10 @@ async function loadProducts() {
             // Normalize incoming data
             const normalizedUpdate = normalizeProductProperties(updateData);
             
-            let updatedCurrentPrice = normalizedUpdate.currentPrice || products[index].currentPrice;
+            let updatedCurrentPrice = normalizedUpdate.currentPrice !== undefined 
+             ? parseFloat(normalizedUpdate.currentPrice)
+              : products[index].currentPrice;
+            
             const retailPrice = normalizedUpdate.retailPrice !== undefined 
                 ? parseFloat(normalizedUpdate.retailPrice) 
                 : products[index].retailPrice;
@@ -1036,7 +1042,7 @@ async function loadProducts() {
                                        required 
                                        min="0" 
                                        step="0.01"
-                                       value="${product?.retailPrice || product?.currentPrice || ''}"
+                                       value="${product?.retailPrice || ''}"
                                        class="form-input">
                             </div>
                             
