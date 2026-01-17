@@ -593,7 +593,7 @@ function renderDashboardOrders(status = 'pending') {
             return;
         }
         
-        // Handle cancelled status differently - use new renderCancelledOrders function
+        // Handle cancelled status differently - use the check here
         if (status === 'cancelled') {
             renderCancelledDashboardOrders();
             return;
@@ -1036,14 +1036,11 @@ function handleStatusFilter(e) {
             f.classList.toggle('active', f === filter);
         });
         
-        currentStatusFilter = status; // Make sure this line exists!
+        currentStatusFilter = status;
         
-        // Handle cancelled status differently
-        if (status === 'cancelled') {
-            renderCancelledDashboardOrders();
-        } else {
-            renderDashboardOrders(status);
-        }
+        // ALWAYS use renderDashboardOrders - it already handles cancelled status!
+        renderDashboardOrders(status);
+        
     } catch (error) {
         console.error('[Dashboard] Status filter error:', error);
     }
