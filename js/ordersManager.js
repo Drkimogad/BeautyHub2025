@@ -188,25 +188,48 @@ async function updateOrderInFirestore(orderId, updateData) {
     }
 }
 
-async function deleteOrderFromFirestore(orderId) {
+    // ========================================================
+    // ORDER DELETION , it deletes with status check.
+    // ========================================================
+function deleteOrder(orderId) {
+    console.log(`[OrdersManager] Deleting order ${orderId}`);
+    
     try {
-        console.log('[OrdersManager] Deleting order from Firestore:', orderId);
+        const orderIndex = orders.findIndex(order => order.id === orderId);
         
-        if (!CONFIG.FIREBASE_READY() || !CONFIG.USE_FIRESTORE) {
-            console.log('[OrdersManager] Firestore disabled or not ready');
+        if (orderIndex === -1) {
+            console.warn(`[OrdersManager] Order ${orderId} not found for deletion`);
             return false;
         }
         
-        const db = firebase.firestore();
-        const orderRef = db.collection(CONFIG.FIRESTORE_COLLECTION).doc(orderId);
+        const order = orders[orderIndex];
         
-        console.log('[OrdersManager] Deleting from Firestore');
-        await orderRef.delete();
-        console.log(`[OrdersManager] Deleted from Firestore: ${orderId}`);
+        // Only allow deletion of shipped orders
+        if (order.status !== 'shipped') {
+            console.warn(`[OrdersManager] Only shipped orders can be deleted. Order status: ${order.status}`);
+            console.log('Full order object:', order); // ADD THIS LINE
+            alert('Only shipped orders can be deleted.');
+            return false;
+        }
+        
+        // Remove from local storage
+        orders = orders.filter(order => order.id !== orderId);
+        saveOrders();
+        
+        // Delete from Firestore
+        if (CONFIG.USE_FIRESTORE) {
+            deleteOrderFromFirestore(orderId).then(success => {
+                console.log(`[OrdersManager] Firestore delete ${success ? 'successful' : 'failed'} for order ${orderId}`);
+            });
+        }
+        
+        updateAdminBadge();
+        
+        console.log(`[OrdersManager] Order ${orderId} deleted successfully`);
         return true;
         
     } catch (error) {
-        console.error('[OrdersManager] Firestore delete error:', error);
+        console.error(`[OrdersManager] Deletion failed for order ${orderId}:`, error);
         return false;
     }
 }
@@ -676,52 +699,6 @@ function cancelOrder(orderId, cancellationData) {
         return false;
     }
 }
-
-    // ========================================================
-    // ORDER DELETION
-    // ========================================================
-function deleteOrder(orderId) {
-    console.log(`[OrdersManager] Deleting order ${orderId}`);
-    
-    try {
-        const orderIndex = orders.findIndex(order => order.id === orderId);
-        
-        if (orderIndex === -1) {
-            console.warn(`[OrdersManager] Order ${orderId} not found for deletion`);
-            return false;
-        }
-        
-        const order = orders[orderIndex];
-        
-        // Only allow deletion of shipped orders
-        if (order.status !== 'shipped') {
-            console.warn(`[OrdersManager] Only shipped orders can be deleted. Order status: ${order.status}`);
-            alert('Only shipped orders can be deleted.');
-            return false;
-        }
-        
-        // Remove from local storage
-        orders = orders.filter(order => order.id !== orderId);
-        saveOrders();
-        
-        // Delete from Firestore
-        if (CONFIG.USE_FIRESTORE) {
-            deleteOrderFromFirestore(orderId).then(success => {
-                console.log(`[OrdersManager] Firestore delete ${success ? 'successful' : 'failed'} for order ${orderId}`);
-            });
-        }
-        
-        updateAdminBadge();
-        
-        console.log(`[OrdersManager] Order ${orderId} deleted successfully`);
-        return true;
-        
-    } catch (error) {
-        console.error(`[OrdersManager] Deletion failed for order ${orderId}:`, error);
-        return false;
-    }
-}
-
 
 //===========================================================
     //Add a function to generate cancelled orders:
