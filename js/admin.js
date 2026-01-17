@@ -1053,7 +1053,7 @@ function renderDashboardOrders(status = 'pending') {
         }
     }
 
-    function handleStatusFilter(e) {
+function handleStatusFilter(e) {
     try {
         const filter = e.target.closest('.status-filter');
         const status = filter.dataset.status;
@@ -1062,7 +1062,7 @@ function renderDashboardOrders(status = 'pending') {
             f.classList.toggle('active', f === filter);
         });
         
-        currentStatusFilter = status;
+        currentStatusFilter = status; // Make sure this line exists!
         
         // Handle cancelled status differently
         if (status === 'cancelled') {
@@ -1540,6 +1540,55 @@ function renderDashboardOrders(status = 'pending') {
             console.error('[Analytics] Failed to setup report modal events:', error);
         }
     }
+
+// ========================================================
+// UTILITY: Check if dashboard is open
+// ========================================================
+function isDashboardOpen() {
+    return dashboardModal && dashboardModal.style.display === 'flex';
+}
+
+// Make it globally available
+window.isAdminDashboardOpen = isDashboardOpen;
+
+// ========================================================
+// DASHBOARD REFRESH FUNCTION - FOR EXTERNAL CALLS new
+// ========================================================
+function refreshDashboardOrders() {
+    console.log('[Admin] Dashboard refresh requested externally');
+    
+    try {
+        // Only refresh if dashboard is open
+        if (dashboardModal && dashboardModal.style.display === 'flex') {
+            console.log('[Admin] Dashboard is open, refreshing data...');
+            
+            // Update order counts
+            updateOrderCounts();
+            
+            // Refresh the currently active view
+            if (currentStatusFilter === 'cancelled') {
+                renderCancelledDashboardOrders();
+            } else {
+                renderDashboardOrders(currentStatusFilter);
+            }
+            
+            // Update badge
+            updateDashboardBadge();
+            
+            console.log('[Admin] Dashboard refreshed successfully');
+            return true;
+        } else {
+            console.log('[Admin] Dashboard not open, skipping refresh');
+            return false;
+        }
+    } catch (error) {
+        console.error('[Admin] Failed to refresh dashboard:', error);
+        return false;
+    }
+}
+
+// Make it globally available so ordersManager.js can call it
+window.refreshDashboardOrders = refreshDashboardOrders;
 
     // ========================================================
     // PRODUCTS TAB LOADING
