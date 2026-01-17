@@ -722,29 +722,52 @@ function deleteOrder(orderId) {
     }
 }
 
-    function renderCancelledOrders(containerId = 'cancelled-orders-list') {
-    console.log(`[OrdersManager] Rendering cancelled orders in ${containerId}`);
-    
+    function renderCancelledDashboardOrders() {
     try {
-        const container = document.getElementById(containerId);
+        console.log('[Dashboard] Rendering cancelled orders');
+        
+        const container = document.getElementById('dashboard-orders-container');
         if (!container) {
-            console.error(`[OrdersManager] Container ${containerId} not found`);
+            console.error('[Dashboard] Orders container not found');
             return;
         }
         
-        const cancelledOrders = getOrders('cancelled');
+        container.innerHTML = '<div class="loading-content"><i class="fas fa-spinner fa-spin"></i><h3>Loading Cancelled Orders...</h3></div>';
         
-        if (cancelledOrders.length === 0) {
-            container.innerHTML = '<div class="no-orders">No cancelled orders</div>';
-            console.log('[OrdersManager] No cancelled orders to display');
-            return;
-        }
-        
-        container.innerHTML = cancelledOrders.map(order => generateCancelledOrderCardHTML(order)).join('');
-        console.log(`[OrdersManager] Rendered ${cancelledOrders.length} cancelled orders`);
-        
+        // Get cancelled orders directly
+        setTimeout(() => {
+            try {
+                let cancelledOrders = [];
+                
+                if (typeof OrdersManager !== 'undefined') {
+                    if (typeof OrdersManager.getOrders === 'function') {
+                        cancelledOrders = OrdersManager.getOrders('cancelled');
+                    } else if (OrdersManager.orders) {
+                        cancelledOrders = OrdersManager.orders.filter(order => order.status === 'cancelled');
+                    }
+                } else {
+                    // Fallback: localStorage
+                    const ordersJSON = localStorage.getItem('beautyhub_orders');
+                    if (ordersJSON) {
+                        const allOrders = JSON.parse(ordersJSON) || [];
+                        cancelledOrders = allOrders.filter(order => order.status === 'cancelled');
+                    }
+                }
+                
+                if (cancelledOrders.length === 0) {
+                    container.innerHTML = getNoOrdersHTML('No Cancelled Orders', 'All orders are active or completed.');
+                    return;
+                }
+                
+                container.innerHTML = getOrdersGridHTML(cancelledOrders);
+                
+            } catch (error) {
+                console.error('[Dashboard] Failed to load cancelled orders:', error);
+                container.innerHTML = '<div class="error-content"><i class="fas fa-exclamation-triangle"></i><h3>Error loading cancelled orders</h3><p>Please try again</p></div>';
+            }
+        }, 300);
     } catch (error) {
-        console.error('[OrdersManager] Failed to render cancelled orders:', error);
+        console.error('[Dashboard] Failed to render cancelled orders:', error);
     }
 }
 //===========================================================
@@ -1901,34 +1924,36 @@ form.addEventListener('submit', function(e) {
         
         // Refresh all order displays with a small delay
         setTimeout(() => {
-            try {
-                console.log('🔄 Refreshing order displays...');
-                
-                // Check if dashboard is open and refresh if needed
-                const dashboard = document.getElementById('admin-dashboard');
-                if (dashboard && dashboard.style.display !== 'none') {
-                    // These functions should be available from your admin.js
-                    if (typeof window.renderDashboardOrders === 'function') {
-                        window.renderDashboardOrders();
-                    }
-                    
-                    // Update order counts in dashboard
-                    if (typeof window.updateOrderCounts === 'function') {
-                        window.updateOrderCounts();
-                    }
+    try {
+        console.log('🔄 Refreshing order displays...');
+        
+        // Method 1: Check if admin dashboard is open and refresh it
+        if (typeof window.isAdminDashboardOpen === 'function' && window.isAdminDashboardOpen()) {
+            console.log('📊 Admin dashboard is open, refreshing...');
+            
+            // Call the refresh function we just added to admin.js
+            if (typeof window.refreshDashboardOrders === 'function') {
+                window.refreshDashboardOrders();
+            } else {
+                // Fallback: Try to refresh via existing admin functions
+                if (typeof window.loadDashboardData === 'function') {
+                    window.loadDashboardData();
                 }
-                
-                // Refresh OrdersManager displays
-                renderOrders();
-                renderCompletedOrders();
-                renderCancelledOrders();
-                updateAdminBadge();
-                
-                console.log('✅ All displays refreshed');
-            } catch (refreshError) {
-                console.error('Failed to refresh displays:', refreshError);
             }
-        }, 100);
+        }
+        
+        // Method 2: Also refresh OrdersManager displays (for other parts of app)
+        renderOrders();
+        renderCompletedOrders();
+        renderCancelledOrders();
+        updateAdminBadge();
+        
+        console.log('✅ All displays refreshed');
+    } catch (refreshError) {
+        console.error('Failed to refresh displays:', refreshError);
+    }
+}, 100);
+        
         
         // Show success message
         alert(`✅ Order ${order.id} cancelled successfully.${cancellationData.refundAmount > 0 ? ` Refund: R${parseFloat(cancellationData.refundAmount).toFixed(2)}` : ''}`);
