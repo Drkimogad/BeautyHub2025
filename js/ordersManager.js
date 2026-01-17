@@ -1689,6 +1689,12 @@ function createCancellationModal(order) {
     console.log(`[OrdersManager] Creating cancellation modal for order ${order.id}`);
     
     try {
+        // Remove any existing modal first
+        const existingModal = document.getElementById('cancellation-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
         // Create modal
         const modal = document.createElement('div');
         modal.id = 'cancellation-modal';
@@ -1843,52 +1849,178 @@ function createCancellationModal(order) {
             </div>
         `;
         
-        document.body.appendChild(modal);
+document.body.appendChild(modal);
         
-        // Form submission
-        document.getElementById('cancellation-form').onsubmit = function(e) {
-            e.preventDefault();
-            e.stopPropagation(); // ADD THIS LINE
-                console.log('[OrdersManager] Cancellation form submitted');
-            
-            const cancellationData = {
-                reason: document.getElementById('cancellation-reason').value,
-                refundAmount: document.getElementById('refund-amount').value,
-                notes: document.getElementById('cancel-notes').value,
-                cancelledBy: 'admin'
-            };
-                console.log('[OrdersManager] Cancellation data:', cancellationData);
+// Form submission with improved event handling
+const form = document.getElementById('cancellation-form');
+form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('🎯 [OrdersManager] Cancellation form submitted for order:', order.id);
+    
+    const cancellationData = {
+        reason: document.getElementById('cancellation-reason').value,
+        refundAmount: document.getElementById('refund-amount').value,
+        notes: document.getElementById('cancel-notes').value,
+        cancelledBy: 'admin'
+    };
+    
+    console.log('📋 Cancellation data:', cancellationData);
 
-            if (!cancellationData.reason) {
-                document.getElementById('cancel-error').textContent = 'Please select a cancellation reason';
-                document.getElementById('cancel-error').style.display = 'block';
-                return;
-            }
-                   console.log('[OrdersManager] Calling cancelOrder with:', order.id, cancellationData);
+    // Validate
+    if (!cancellationData.reason) {
+        const errorDiv = document.getElementById('cancel-error');
+        errorDiv.textContent = 'Please select a cancellation reason';
+        errorDiv.style.display = 'block';
+        return false;
+    }
+
+    console.log('🔄 Calling cancelOrder...');
     const success = cancelOrder(order.id, cancellationData);
-    console.log('[OrdersManager] cancelOrder returned:', success);
+    console.log('✅ cancelOrder returned:', success);
     
     if (success) {
-        console.log('[OrdersManager] Cancellation successful, removing modal');
-        modal.remove();
-        renderOrders();
-        renderCompletedOrders();
-        renderCancelledOrders(); // ADD THIS
-        alert(`Order ${order.id} cancelled successfully.${cancellationData.refundAmount > 0 ? ` Refund: R${parseFloat(cancellationData.refundAmount).toFixed(2)}` : ''}`);
+        console.log('🗑️ Removing modal...');
+        
+        // Remove modal and clean up
+        if (modal && modal.parentNode) {
+            // Remove all event listeners first
+            const form = document.getElementById('cancellation-form');
+            if (form) {
+                const newForm = form.cloneNode(true);
+                form.parentNode.replaceChild(newForm, form);
+            }
+            
+            // Remove modal from DOM
+            modal.parentNode.removeChild(modal);
+        }
+        
+        // Restore body overflow
+        document.body.style.overflow = '';
+        
+        // Refresh all order displays with a small delay
+        setTimeout(() => {
+            try {
+                console.log('🔄 Refreshing order displays...');
+                
+                // Check if dashboard is open and refresh if needed
+                const dashboard = document.getElementById('admin-dashboard');
+                if (dashboard && dashboard.style.display !== 'none') {
+                    // These functions should be available from your admin.js
+                    if (typeof window.renderDashboardOrders === 'function') {
+                        window.renderDashboardOrders();
+                    }
+                    
+                    // Update order counts in dashboard
+                    if (typeof window.updateOrderCounts === 'function') {
+                        window.updateOrderCounts();
+                    }
+                }
+                
+                // Refresh OrdersManager displays
+                renderOrders();
+                renderCompletedOrders();
+                renderCancelledOrders();
+                updateAdminBadge();
+                
+                console.log('✅ All displays refreshed');
+            } catch (refreshError) {
+                console.error('Failed to refresh displays:', refreshError);
+            }
+        }, 100);
+        
+        // Show success message
+        alert(`✅ Order ${order.id} cancelled successfully.${cancellationData.refundAmount > 0 ? ` Refund: R${parseFloat(cancellationData.refundAmount).toFixed(2)}` : ''}`);
+        
+        return true;
     } else {
-        console.log('[OrdersManager] Cancellation failed');
+        console.log('❌ Cancellation failed');
+        const errorDiv = document.getElementById('cancel-error');
+        errorDiv.textContent = 'Failed to cancel order. Please try again.';
+        errorDiv.style.display = 'block';
+        return false;
     }
-};
+});
 
-        
-        // Close buttons
-        document.getElementById('close-cancel-modal').onclick = () => modal.remove();
-        document.getElementById('cancel-cancel').onclick = () => modal.remove();
-        
-    } catch (error) {
-        console.error('[OrdersManager] Failed to create cancellation modal:', error);
+// Close buttons with proper cleanup
+document.getElementById('close-cancel-modal').addEventListener('click', function() {
+    console.log('🚪 Closing cancellation modal via X button');
+    if (modal && modal.parentNode) {
+        modal.parentNode.removeChild(modal);
     }
+    document.body.style.overflow = '';
+});
+
+document.getElementById('cancel-cancel').addEventListener('click', function() {
+    console.log('🚪 Closing cancellation modal via Back button');
+    if (modal && modal.parentNode) {
+        modal.parentNode.removeChild(modal);
+    }
+    document.body.style.overflow = '';
+});
+
+// Also close modal when clicking outside
+modal.addEventListener('click', function(e) {
+    if (e.target === modal) {
+        console.log('🚪 Closing cancellation modal via background click');
+        if (modal && modal.parentNode) {
+            modal.parentNode.removeChild(modal);
+        }
+        document.body.style.overflow = '';
+    }
+});
+
+// Prevent clicks inside modal content from closing modal
+const modalContent = modal.querySelector('div');
+if (modalContent) {
+    modalContent.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
 }
+
+// Focus on reason field when modal opens
+setTimeout(() => {
+    const reasonSelect = document.getElementById('cancellation-reason');
+    if (reasonSelect) {
+        reasonSelect.focus();
+    }
+}, 100);
+
+// Add keyboard support (ESC to close)
+document.addEventListener('keydown', function handleEsc(e) {
+    if (e.key === 'Escape' && modal && modal.parentNode) {
+        console.log('ESC key pressed, closing modal');
+        modal.parentNode.removeChild(modal);
+        document.body.style.overflow = '';
+        // Remove this event listener
+        document.removeEventListener('keydown', handleEsc);
+    }
+});
+
+// Store reference to this handler for cleanup
+modal._escHandler = handleEsc;
+
+// Also add Enter key to submit form when in input fields
+modal.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+        e.preventDefault();
+        if (!e.shiftKey) {
+            form.dispatchEvent(new Event('submit'));
+        }
+    }
+});
+        
+} catch (error) {
+    console.error('[OrdersManager] Failed to create cancellation modal:', error);
+    // Clean up if there was an error
+    if (modal && modal.parentNode) {
+        modal.parentNode.removeChild(modal);
+    }
+    document.body.style.overflow = '';
+    alert('Failed to create cancellation modal. Please try again.');
+}
+} // CLOSES THE FUNCTION
 
 // ========================================================
 // COMPLETED ORDER CARD HTML - FULLY IMPLEMENTED
