@@ -8,7 +8,7 @@
 // 4. Inventory integration with proper price tracking
 // 5. Enhanced order analytics with price type tracking
 // ========================================================
-
+// ordersManager.js - UPDATED VERSION
 const OrdersManager = (function() {
 // ========================================================
     // CONFIGURATION & CONSTANTS
@@ -722,54 +722,7 @@ function deleteOrder(orderId) {
     }
 }
 
-    function renderCancelledDashboardOrders() {
-    try {
-        console.log('[Dashboard] Rendering cancelled orders');
-        
-        const container = document.getElementById('dashboard-orders-container');
-        if (!container) {
-            console.error('[Dashboard] Orders container not found');
-            return;
-        }
-        
-        container.innerHTML = '<div class="loading-content"><i class="fas fa-spinner fa-spin"></i><h3>Loading Cancelled Orders...</h3></div>';
-        
-        // Get cancelled orders directly
-        setTimeout(() => {
-            try {
-                let cancelledOrders = [];
-                
-                if (typeof OrdersManager !== 'undefined') {
-                    if (typeof OrdersManager.getOrders === 'function') {
-                        cancelledOrders = OrdersManager.getOrders('cancelled');
-                    } else if (OrdersManager.orders) {
-                        cancelledOrders = OrdersManager.orders.filter(order => order.status === 'cancelled');
-                    }
-                } else {
-                    // Fallback: localStorage
-                    const ordersJSON = localStorage.getItem('beautyhub_orders');
-                    if (ordersJSON) {
-                        const allOrders = JSON.parse(ordersJSON) || [];
-                        cancelledOrders = allOrders.filter(order => order.status === 'cancelled');
-                    }
-                }
-                
-                if (cancelledOrders.length === 0) {
-                    container.innerHTML = getNoOrdersHTML('No Cancelled Orders', 'All orders are active or completed.');
-                    return;
-                }
-                
-                container.innerHTML = getOrdersGridHTML(cancelledOrders);
-                
-            } catch (error) {
-                console.error('[Dashboard] Failed to load cancelled orders:', error);
-                container.innerHTML = '<div class="error-content"><i class="fas fa-exclamation-triangle"></i><h3>Error loading cancelled orders</h3><p>Please try again</p></div>';
-            }
-        }, 300);
-    } catch (error) {
-        console.error('[Dashboard] Failed to render cancelled orders:', error);
-    }
-}
+
 //===========================================================
     //Add a function to generate cancelled orders:
 //====================================================
@@ -910,6 +863,55 @@ function generateCancelledOrderCardHTML(order) {
             console.error('[OrdersManager] Failed to render orders:', error);
         }
     }
+
+        function renderCancelledDashboardOrders() {
+    try {
+        console.log('[Dashboard] Rendering cancelled orders');
+        
+        const container = document.getElementById('dashboard-orders-container');
+        if (!container) {
+            console.error('[Dashboard] Orders container not found');
+            return;
+        }
+        
+        container.innerHTML = '<div class="loading-content"><i class="fas fa-spinner fa-spin"></i><h3>Loading Cancelled Orders...</h3></div>';
+        
+        // Get cancelled orders directly
+        setTimeout(() => {
+            try {
+                let cancelledOrders = [];
+                
+                if (typeof OrdersManager !== 'undefined') {
+                    if (typeof OrdersManager.getOrders === 'function') {
+                        cancelledOrders = OrdersManager.getOrders('cancelled');
+                    } else if (OrdersManager.orders) {
+                        cancelledOrders = OrdersManager.orders.filter(order => order.status === 'cancelled');
+                    }
+                } else {
+                    // Fallback: localStorage
+                    const ordersJSON = localStorage.getItem('beautyhub_orders');
+                    if (ordersJSON) {
+                        const allOrders = JSON.parse(ordersJSON) || [];
+                        cancelledOrders = allOrders.filter(order => order.status === 'cancelled');
+                    }
+                }
+                
+                if (cancelledOrders.length === 0) {
+                    container.innerHTML = getNoOrdersHTML('No Cancelled Orders', 'All orders are active or completed.');
+                    return;
+                }
+                
+                container.innerHTML = getOrdersGridHTML(cancelledOrders);
+                
+            } catch (error) {
+                console.error('[Dashboard] Failed to load cancelled orders:', error);
+                container.innerHTML = '<div class="error-content"><i class="fas fa-exclamation-triangle"></i><h3>Error loading cancelled orders</h3><p>Please try again</p></div>';
+            }
+        }, 300);
+    } catch (error) {
+        console.error('[Dashboard] Failed to render cancelled orders:', error);
+    }
+}
 
     function renderCompletedOrders(containerId = 'completed-orders-list') {
         console.log(`[OrdersManager] Rendering completed orders in ${containerId}`);
@@ -1945,7 +1947,7 @@ form.addEventListener('submit', function(e) {
         // Method 2: Also refresh OrdersManager displays (for other parts of app)
         renderOrders();
         renderCompletedOrders();
-        renderCancelledOrders();
+        renderCancelledDashboardOrders();
         updateAdminBadge();
         
         console.log('✅ All displays refreshed');
@@ -2469,7 +2471,7 @@ function generatePrintHTML(order) {
         deleteOrder,
         renderOrders,
         renderCompletedOrders,
-        renderCancelledOrders, // Add this
+        renderCancelledDashboardOrders, // Add this
         showOrderDetails,
         updateAdminBadge,
         showCancellationModal,
@@ -2478,4 +2480,5 @@ function generatePrintHTML(order) {
     };
 })();
 
-
+// Make sure you have this line at the end:
+console.log('[OrdersManager] Module definition complete');
