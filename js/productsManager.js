@@ -456,10 +456,25 @@ const calculatedPrice = discountPercent > 0
                 firestore: firestoreSuccess ? 'success' : 'failed',
                 local: 'success'
             });
-            
+                    // ========== ADD NOTIFICATION ==========
+        if (typeof window.showDashboardNotification === 'function') {
+            window.showDashboardNotification(`Product "${newProduct.name}" added successfully!`, 'success');
+        }
+        
+        // ========== REFRESH DASHBOARD ==========
+        if (typeof window.refreshDashboardOrders === 'function') {
+            window.refreshDashboardOrders();
+        }
+        // ========== END ADDITIONS ==========
             return newProduct;
+            
         } catch (error) {
             console.error('[ProductsManager] Error adding product:', error);
+                    // ========== ADD ERROR NOTIFICATION ==========
+        if (typeof window.showDashboardNotification === 'function') {
+            window.showDashboardNotification('Failed to add product. Please try again.', 'error');
+        }
+
             return null;
         }
     }
@@ -534,7 +549,10 @@ const calculatedPrice = discountPercent > 0
             return false;
         }
     }
-    
+   
+//===================================================
+// do not delete this , keep it
+//==========================================
     async function deleteProduct(productId) {
         try {
             console.log('[ProductsManager] Soft deleting product:', productId);
@@ -1570,56 +1588,78 @@ const calculatedPrice = discountPercent > 0
 //===========================================================
     // handlePermanentDelete function
 //=================================================
-    async function handlePermanentDelete(productId) {
-        try {
-            console.log('[ProductsManager] Handling permanent delete for:', productId);
+async function handlePermanentDelete(productId) {
+    try {
+        console.log('[ProductsManager] Handling permanent delete for:', productId);
+        
+        const password = document.getElementById('admin-password').value;
+        const errorDiv = document.getElementById('delete-error');
+        
+        // DELETE CHECK IS REMOVED 
+        
+        const product = getProductById(productId);
+        if (!product) {
+            errorDiv.innerHTML = 'Product not found.';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        console.log('[ProductsManager] Password verified, proceeding with delete');
+        
+        const softDeleteSuccess = await deleteProduct(productId);
+        let firestoreDeleteSuccess = true;
+        
+        if (CONFIG.USE_FIRESTORE) {
+            firestoreDeleteSuccess = await permanentlyDeleteFromFirestore(productId);
+        }
+        
+        if (softDeleteSuccess) {
+            console.log('[ProductsManager] Delete successful:', {
+                id: productId,
+                firestore: firestoreDeleteSuccess ? 'permanently deleted' : 'failed',
+                local: 'soft deleted'
+            });
             
-            const password = document.getElementById('admin-password').value;
-            const errorDiv = document.getElementById('delete-error');
-            
-            // DELETE CHECK IS REMOVED 
-            
-            const product = getProductById(productId);
-            if (!product) {
-                errorDiv.innerHTML = 'Product not found.';
-                errorDiv.style.display = 'block';
-                return;
+            // ========== ADD NOTIFICATION ==========
+            if (typeof window.showDashboardNotification === 'function') {
+                window.showDashboardNotification(`Product deleted successfully!`, 'success');
             }
             
-            console.log('[ProductsManager] Password verified, proceeding with delete');
+            // ========== REFRESH DASHBOARD ==========
+            if (typeof window.refreshDashboardOrders === 'function') {
+                window.refreshDashboardOrders();
+            }
+            // ========== END ADDITIONS ==========
             
-            const softDeleteSuccess = await deleteProduct(productId);
-            let firestoreDeleteSuccess = true;
+            errorDiv.style.background = '#e8f5e9';
+            errorDiv.style.color = '#4CAF50';
+            errorDiv.innerHTML = '<i class="fas fa-check-circle"></i> Product deleted successfully!';
+            errorDiv.style.display = 'block';
             
-            if (CONFIG.USE_FIRESTORE) {
-                firestoreDeleteSuccess = await permanentlyDeleteFromFirestore(productId);
+            setTimeout(() => {
+                closeDeleteModal();
+                renderProductsAdmin();
+            }, 1500);
+        } else {
+            console.log('[ProductsManager] Delete failed');
+            
+            // ========== ADD ERROR NOTIFICATION ==========
+            if (typeof window.showDashboardNotification === 'function') {
+                window.showDashboardNotification('Failed to delete product. Please try again.', 'error');
             }
             
-            if (softDeleteSuccess) {
-                console.log('[ProductsManager] Delete successful:', {
-                    id: productId,
-                    firestore: firestoreDeleteSuccess ? 'permanently deleted' : 'failed',
-                    local: 'soft deleted'
-                });
-                
-                errorDiv.style.background = '#e8f5e9';
-                errorDiv.style.color = '#4CAF50';
-                errorDiv.innerHTML = '<i class="fas fa-check-circle"></i> Product deleted successfully!';
-                errorDiv.style.display = 'block';
-                
-                setTimeout(() => {
-                    closeDeleteModal();
-                    renderProductsAdmin();
-                }, 1500);
-            } else {
-                console.log('[ProductsManager] Delete failed');
-                errorDiv.innerHTML = 'Failed to delete product. Please try again.';
-                errorDiv.style.display = 'block';
-            }
-        } catch (error) {
-            console.error('[ProductsManager] Error handling permanent delete:', error);
+            errorDiv.innerHTML = 'Failed to delete product. Please try again.';
+            errorDiv.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('[ProductsManager] Error handling permanent delete:', error);
+        
+        // ========== ADD ERROR NOTIFICATION ==========
+        if (typeof window.showDashboardNotification === 'function') {
+            window.showDashboardNotification('Error deleting product. Please try again.', 'error');
         }
     }
+}
     
     function closeProductForm() {
         try {
