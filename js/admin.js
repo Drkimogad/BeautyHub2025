@@ -241,6 +241,12 @@ const AdminManager = (function() {
                                 <i class="fas fa-chart-bar"></i>
                                 Analytics <span class="tab-count">(Soon)</span>
                             </button>
+                                <!-- ADD THIS -->
+                           <button id="dashboard-refresh" class="tab-refresh-btn">
+                                <i class="fas fa-sync-alt"></i>
+                                Refresh All
+                           </button>
+                           
                         </div>
                         
                         <!-- Tab Content -->
@@ -251,12 +257,7 @@ const AdminManager = (function() {
                                 <div class="dashboard-toolbar">
                                     <h2>Order Management</h2>
                                     
-                                    <div class="dashboard-actions">
-                                        <button id="refresh-orders" class="action-btn">
-                                            <i class="fas fa-sync-alt"></i>
-                                            Refresh
-                                        </button>
-                                        
+                                    <div class="dashboard-actions">                            
                                         <!-- Status Filters -->
                                         <button class="status-filter active" data-status="pending">
                                             <i class="fas fa-clock"></i>
@@ -961,6 +962,46 @@ function renderCancelledOrdersDirectly() {
         }
     }
 
+//===================
+    // new function
+    function refreshAllDashboardData() {
+    console.log('[Dashboard] Refreshing all data...');
+    
+    // 1. Refresh orders
+    updateOrderCounts();
+    if (currentStatusFilter === 'cancelled') {
+        renderCancelledOrdersDirectly();
+    } else {
+        renderDashboardOrders(currentStatusFilter);
+    }
+    
+    // 2. Refresh products tab if open
+    const productsTab = document.getElementById('products-tab-content');
+    if (productsTab && productsTab.style.display !== 'none') {
+        console.log('[Dashboard] Refreshing products tab...');
+        loadProductsTab(); // or ProductsManager.renderProductsAdmin()
+    }
+    
+    // 3. Refresh badge
+    updateDashboardBadge();
+    
+    // 4. Update timestamp
+    updateDashboardTime();
+    
+    // 5. Force Firestore sync if needed
+    if (typeof ProductsManager !== 'undefined' && 
+        typeof ProductsManager.updateFromFirestoreInBackground === 'function') {
+        ProductsManager.updateFromFirestoreInBackground();
+    }
+    
+    if (typeof OrdersManager !== 'undefined' && 
+        typeof OrdersManager.refreshFromFirestore === 'function') {
+        OrdersManager.refreshFromFirestore();
+    }
+    
+    console.log('[Dashboard] All data refreshed');
+}
+    
     // ========================================================
     // EVENT LISTENERS SETUP
     // ========================================================
@@ -1022,14 +1063,14 @@ function renderCancelledOrdersDirectly() {
 
     function handleDashboardControls(e) {
         // Refresh button
-        if (e.target.id === 'refresh-orders' || 
-            (e.target.classList.contains('action-btn') && e.target.querySelector('i.fa-sync-alt'))) {
-            console.log('[Dashboard] Refresh button clicked');
-            loadDashboardData();
-            updateDashboardTime();
-            e.stopPropagation();
-        }
-        
+       if (e.target.id === 'dashboard-refresh' || 
+    (e.target.closest && e.target.closest('#dashboard-refresh'))) {
+    console.log('[Dashboard] Refresh All button clicked');
+    refreshAllDashboardData();
+    updateDashboardTime();
+    e.stopPropagation();
+}
+   
         // Tab switching
         if (e.target.classList.contains('dashboard-tab') || 
             e.target.closest('.dashboard-tab')) {
