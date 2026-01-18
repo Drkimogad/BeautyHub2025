@@ -1511,7 +1511,7 @@ const calculatedPrice = discountPercent > 0
                                placeholder="Enter admin password to confirm"
                                class="form-input">
                         <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
-                            Type "DELETE" to confirm permanent deletion
+                              Enter your admin password to confirm deletion
                         </div>
                     </div>
                     
@@ -1550,6 +1550,9 @@ const calculatedPrice = discountPercent > 0
         }
     }
     
+//===========================================================
+    // handlePermanentDelete function
+//=================================================
     async function handlePermanentDelete(productId) {
         try {
             console.log('[ProductsManager] Handling permanent delete for:', productId);
@@ -1557,12 +1560,7 @@ const calculatedPrice = discountPercent > 0
             const password = document.getElementById('admin-password').value;
             const errorDiv = document.getElementById('delete-error');
             
-            if (password !== 'DELETE') {
-                errorDiv.innerHTML = 'Incorrect password. Please type "DELETE" to confirm.';
-                errorDiv.style.display = 'block';
-                console.log('[ProductsManager] Delete password incorrect');
-                return;
-            }
+            // DELETE CHECK IS REMOVED 
             
             const product = getProductById(productId);
             if (!product) {
