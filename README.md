@@ -1,3 +1,30 @@
+   // ========== REFRESH DASHBOARD ==========
+            if (typeof window.refreshDashboardOrders === 'function') {
+                window.refreshDashboardOrders();
+            }
+            
+            // ========== ADD ERROR NOTIFICATION ==========
+            if (typeof window.showDashboardNotification === 'function') {
+                window.showDashboardNotification('Failed to delete product. Please try again.', 'error');
+            }
+            
+            errorDiv.innerHTML = 'Failed to delete product. Please try again.';
+            errorDiv.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('[ProductsManager] Error handling permanent delete:', error);
+        
+        // ========== ADD ERROR NOTIFICATION ==========
+        if (typeof window.showDashboardNotification === 'function') {
+            window.showDashboardNotification('Error deleting product. Please try again.', 'error');
+        }
+    }
+}
+
+
+
+
+
 // SIMPLIFIED but complete clearance
 console.log('Clearing BeautyHub session...');
 
