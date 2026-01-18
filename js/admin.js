@@ -962,11 +962,28 @@ function renderCancelledOrdersDirectly() {
         }
     }
 
-//===================
-    // new function
+//===================================
+    // new function for refresh button
+//=======================================
     function refreshAllDashboardData() {
     console.log('[Dashboard] Refreshing all data...');
+        
+    // Safety check: only refresh if dashboard is open
+    if (!isDashboardOpen()) {
+        console.log('[Dashboard] Dashboard not open, skipping refresh');
+        return;
+    }
     
+    console.log('[Dashboard] Refreshing all data...');
+    
+    const refreshBtn = document.getElementById('dashboard-refresh');
+    if (refreshBtn) {
+        refreshBtn.classList.add('refreshing');
+        refreshBtn.disabled = true;
+    }
+
+    
+    try {
     // 1. Refresh orders
     updateOrderCounts();
     if (currentStatusFilter === 'cancelled') {
@@ -998,7 +1015,15 @@ function renderCancelledOrdersDirectly() {
         typeof OrdersManager.refreshFromFirestore === 'function') {
         OrdersManager.refreshFromFirestore();
     }
-    
+        } finally {
+        // Remove spinning after refresh completes
+        setTimeout(() => {
+            if (refreshBtn) {
+                refreshBtn.classList.remove('refreshing');
+                refreshBtn.disabled = false;
+            }
+        }, 1000);
+    }    
     console.log('[Dashboard] All data refreshed');
 }
     
