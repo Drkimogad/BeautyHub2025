@@ -1650,7 +1650,8 @@ const calculatedPrice = discountPercent > 0
     console.log('[ProductsManager] Creating public API');
     return {
         init,
-        products,
+   //   products,
+        get products() { return products; },  // This ALWAYS returns current array
         getProducts,
         getProductById,
         addProduct,
