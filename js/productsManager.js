@@ -150,8 +150,6 @@ const firestoreProduct = {
     retailPrice: product.retailPrice || product.retailprice || 0,
     currentPrice: product.currentPrice || product.currentprice || 0,
     discountPercent: product.discountPercent || product.discountedPercent || 0,
-    // ADD THIS LINE to ensure retailPrice exists:
-    retailPrice: product.retailPrice || product.retailprice || product.currentPrice || product.currentprice || 0
 };
             
             console.log('[ProductsManager] Setting document in Firestore');
