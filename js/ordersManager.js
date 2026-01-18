@@ -187,10 +187,42 @@ async function updateOrderInFirestore(orderId, updateData) {
         return false;
     }
 }
+    
+// ==========================================================  
+// HELPER FUNCTION TO DELETE FROM FIRESTORE   
+// ==========================================================  
+async function deleteOrderFromFirestore(orderId) {
+    try {
+        console.log('[OrdersManager] Deleting order from Firestore:', orderId);
+        
+        if (!CONFIG.FIREBASE_READY() || !CONFIG.USE_FIRESTORE) {
+            console.log('[OrdersManager] Firestore disabled or not ready');
+            return false;
+        }
+        
+        const db = firebase.firestore();
+        const orderRef = db.collection(CONFIG.FIRESTORE_COLLECTION).doc(orderId);
+        
+        console.log('[OrdersManager] Deleting from Firestore');
+        await orderRef.delete();
+        console.log(`[OrdersManager] Deleted from Firestore: ${orderId}`);
+        return true;
+        
+    } catch (error) {
+        console.error('[OrdersManager] Firestore delete error:', error);
+        
+        // ========== ADD ERROR NOTIFICATION ==========
+        if (typeof window.showDashboardNotification === 'function') {
+            window.showDashboardNotification('Failed to delete order from database.', 'error');
+        }
+        
+        return false;
+    }
+}
 
-    // ========================================================
-    // ORDER DELETION , it deletes with status check.
-    // ========================================================
+// ========================================================
+// ORDER DELETION , it deletes with status check.
+// ========================================================
 function deleteOrder(orderId) {
     console.log(`[OrdersManager] Deleting order ${orderId}`);
     
@@ -199,6 +231,12 @@ function deleteOrder(orderId) {
         
         if (orderIndex === -1) {
             console.warn(`[OrdersManager] Order ${orderId} not found for deletion`);
+            
+            // ========== ADD ERROR NOTIFICATION ==========
+            if (typeof window.showDashboardNotification === 'function') {
+                window.showDashboardNotification('Order not found.', 'error');
+            }
+            
             return false;
         }
         
@@ -208,6 +246,12 @@ function deleteOrder(orderId) {
         if (order.status !== 'shipped') {
             console.warn(`[OrdersManager] Only shipped orders can be deleted. Order status: ${order.status}`);
             console.log('Full order object:', order); // ADD THIS LINE
+            
+            // ========== ADD ERROR NOTIFICATION ==========
+            if (typeof window.showDashboardNotification === 'function') {
+                window.showDashboardNotification('Only shipped orders can be deleted.', 'error');
+            }
+            
             alert('Only shipped orders can be deleted.');
             return false;
         }
@@ -220,7 +264,35 @@ function deleteOrder(orderId) {
         if (CONFIG.USE_FIRESTORE) {
             deleteOrderFromFirestore(orderId).then(success => {
                 console.log(`[OrdersManager] Firestore delete ${success ? 'successful' : 'failed'} for order ${orderId}`);
+                
+                if (success) {
+                    // ========== REFRESH DASHBOARD ==========
+                    if (typeof window.refreshDashboardOrders === 'function') {
+                        window.refreshDashboardOrders();
+                    }
+                    
+                    // ========== ADD SUCCESS NOTIFICATION ==========
+                    if (typeof window.showDashboardNotification === 'function') {
+                        window.showDashboardNotification('Order deleted successfully!', 'success');
+                    }
+                } else {
+                    // ========== ADD ERROR NOTIFICATION ==========
+                    if (typeof window.showDashboardNotification === 'function') {
+                        window.showDashboardNotification('Failed to delete order from database.', 'error');
+                    }
+                }
             });
+        } else {
+            // For local storage only (no Firestore)
+            // ========== REFRESH DASHBOARD ==========
+            if (typeof window.refreshDashboardOrders === 'function') {
+                window.refreshDashboardOrders();
+            }
+            
+            // ========== ADD SUCCESS NOTIFICATION ==========
+            if (typeof window.showDashboardNotification === 'function') {
+                window.showDashboardNotification('Order deleted successfully!', 'success');
+            }
         }
         
         updateAdminBadge();
@@ -230,10 +302,15 @@ function deleteOrder(orderId) {
         
     } catch (error) {
         console.error(`[OrdersManager] Deletion failed for order ${orderId}:`, error);
+        
+        // ========== ADD ERROR NOTIFICATION ==========
+        if (typeof window.showDashboardNotification === 'function') {
+            window.showDashboardNotification('Error deleting order. Please try again.', 'error');
+        }
+        
         return false;
     }
 }
-
 // Update loadOrders to include Firestore
 function loadOrders() {
     console.log('[OrdersManager] Loading orders from storage...');
