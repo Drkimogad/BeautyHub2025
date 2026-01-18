@@ -6427,3 +6427,31 @@ header {
     font-size: 0.8em;
     margin-left: 5px;
 }
+
+/* REFRESH BUTTON TAB*/
+.tab-refresh-btn {
+    margin-left: auto;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.tab-refresh-btn:hover {
+    background: #45a049;
+}
+
+.tab-refresh-btn .fa-sync-alt {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
