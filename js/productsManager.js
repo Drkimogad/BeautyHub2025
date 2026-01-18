@@ -1040,7 +1040,7 @@ const calculatedPrice = discountPercent > 0
                                        required 
                                        min="0" 
                                        step="0.01"
-                                       value="${product?.retailPrice || ''}"
+                                       value="${product?.retailPrice || 0}"
                                        class="form-input">
                             </div>
                             
@@ -1066,7 +1066,7 @@ const calculatedPrice = discountPercent > 0
                                        required 
                                        min="0" 
                                        step="0.01"
-                                       value="${product?.currentPrice || ''}"
+                                       value="${product?.currentPrice || 0}"
                                        class="form-input" readonly>
                             </div>
                         </div>
@@ -1080,7 +1080,7 @@ const calculatedPrice = discountPercent > 0
                                        id="product-wholesale-price" 
                                        min="0" 
                                        step="0.01"
-                                       value="${product?.wholesalePrice || ''}"
+                                       value="${product?.wholesalePrice || 0}"
                                        class="form-input"
                                        placeholder="Your cost price">
                             </div>
