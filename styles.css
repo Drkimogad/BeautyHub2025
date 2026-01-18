@@ -6441,13 +6441,20 @@ header {
     align-items: center;
     gap: 8px;
     font-size: 14px;
+    transition: background 0.3s;
 }
 
 .tab-refresh-btn:hover {
     background: #45a049;
 }
 
-.tab-refresh-btn .fa-sync-alt {
+/* Remove this permanent animation */
+/* .tab-refresh-btn .fa-sync-alt {
+    animation: spin 1s linear infinite;
+} */
+
+/* Add this class for spinning only during refresh */
+.tab-refresh-btn.refreshing .fa-sync-alt {
     animation: spin 1s linear infinite;
 }
 
