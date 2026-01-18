@@ -27,32 +27,42 @@ const CustomerSearchManager = (function() {
     // ========================================================
     // INITIALIZATION
     // ========================================================
-    function init(containerSelector = '#checkout-form') {
-        console.log('[CustomerSearch] Initializing customer search system...');
-        
-        try {
-            // Check if checkout form exists
-const checkoutForm = document.getElementById('checkout-form');
-if (!checkoutForm) {
-    console.warn('[CustomerSearch] Checkout form not found initially');
-    // Still return API, form may be created later
-}
+function init(containerSelector = '#checkout-form') {
+    console.log('[CustomerSearch] Initializing customer search system...');
+    
+    try {
+        // Check if UI already exists
+        if (document.getElementById('customer-search-container')) {
+            console.log('[CustomerSearch] Search UI already exists, skipping creation');
             
-            createSearchUI();
+            // Just reinitialize event listeners
             setupEventListeners();
+            showLoading(false); // Ensure loading is hidden
             
-            console.log('[CustomerSearch] Initialization complete');
-            
-        } catch (error) {
-            console.error('[CustomerSearch] Initialization failed:', error);
+            console.log('[CustomerSearch] Re-initialization complete');
+            return {
+                searchCustomer,
+                autoFillForm,
+                normalizePhone
+            };
         }
         
-        return {
-            searchCustomer,
-            autoFillForm,
-            normalizePhone
-        };
+        // Rest of your existing init code...
+        createSearchUI();
+        setupEventListeners();
+        
+        console.log('[CustomerSearch] Initialization complete');
+        
+    } catch (error) {
+        console.error('[CustomerSearch] Initialization failed:', error);
     }
+    
+    return {
+        searchCustomer,
+        autoFillForm,
+        normalizePhone
+    };
+}
 
 // ========================================================
     // SEARCH UI COMPONENT
@@ -116,7 +126,7 @@ if (!checkoutFormElement) {
                         </div>
                         
                         <div class="search-button-group">
-                            <button type="submit" id="search-btn" class="search-btn">
+                            <button type="button" id="search-btn" class="search-btn">
                                 <i class="fas fa-search"></i>
                                 Search
                             </button>
@@ -129,7 +139,7 @@ if (!checkoutFormElement) {
                     
                     <div id="search-error" class="search-error"></div>
                     
-                    <div id="search-loading" class="search-loading">
+                    <div id="search-loading" class="search-loading" style="display: none;">
                         <i class="fas fa-spinner fa-spin"></i>
                         Searching customer database...
                     </div>
@@ -152,6 +162,12 @@ if (!checkoutFormElement) {
             }
             
             searchForm = document.getElementById('customer-search-form');
+            // ========== ADD THESE LINES ==========
+// Initialize loading state
+showLoading(false);
+hideError();
+hideResult();
+// ========== END ADDITION ==========
             
             console.log('[CustomerSearch] Search UI created successfully');
             
@@ -581,6 +597,7 @@ if (!checkoutFormElement) {
     // ========================================================
     function handleSearchSubmit(event) {
         event.preventDefault();
+        event.stopPropagation(); // Add this for extra safety
         console.log('[CustomerSearch] Search form submitted');
         
         try {
