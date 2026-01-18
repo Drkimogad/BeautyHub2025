@@ -163,34 +163,51 @@ const firestoreProduct = {
         }
     }
     
-    async function updateProductInFirestore(productId, updateData) {
-        try {
-            console.log('[ProductsManager] Attempting to update product in Firestore:', productId);
-            
-            if (!CONFIG.FIREBASE_READY() || !CONFIG.USE_FIRESTORE) {
-                console.log('[ProductsManager] Firestore disabled or not ready');
-                return false;
-            }
-            
-            const db = firebase.firestore();
-            const productRef = db.collection(CONFIG.FIRESTORE_COLLECTION).doc(productId);
-            
-            const updatePayload = {
-                ...updateData,
-                updatedAt: new Date().toISOString()
-            };
-            
-            console.log('[ProductsManager] Updating Firestore document with:', updatePayload);
-            await productRef.update(updatePayload);
-            
-            console.log(`[ProductsManager] Updated in Firestore: ${productId}`);
-            return true;
-            
-        } catch (error) {
-            console.error('[ProductsManager] Firestore update error:', error);
+async function updateProductInFirestore(productId, updateData) {
+    try {
+        console.log('[ProductsManager] Attempting to update product in Firestore:', productId);
+        
+        if (!CONFIG.FIREBASE_READY() || !CONFIG.USE_FIRESTORE) {
+            console.log('[ProductsManager] Firestore disabled or not ready');
             return false;
         }
+        
+        const db = firebase.firestore();
+        const productRef = db.collection(CONFIG.FIRESTORE_COLLECTION).doc(productId);
+        
+        const updatePayload = {
+            ...updateData,
+            updatedAt: new Date().toISOString()
+        };
+        
+        console.log('[ProductsManager] Updating Firestore document with:', updatePayload);
+        await productRef.update(updatePayload);
+        
+        console.log(`[ProductsManager] Updated in Firestore: ${productId}`);
+        
+        // Show success message if dashboard is open
+        if (typeof window.showDashboardNotification === 'function') {
+            window.showDashboardNotification('Product updated successfully!', 'success');
+        }
+        
+        // Refresh dashboard
+        if (typeof window.refreshDashboardOrders === 'function') {
+            window.refreshDashboardOrders();
+        }
+        
+        return true;
+        
+    } catch (error) {
+        console.error('[ProductsManager] Firestore update error:', error);
+        
+        // Show error message if dashboard is open
+        if (typeof window.showDashboardNotification === 'function') {
+            window.showDashboardNotification('Failed to update product. Please try again.', 'error');
+        }
+        
+        return false;
     }
+}
     
     async function permanentlyDeleteFromFirestore(productId) {
         try {
