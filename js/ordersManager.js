@@ -570,6 +570,20 @@ function updateOrderStatus(orderId, newStatus, shippingDate = '') {
         updateAdminBadge();
         
         console.log(`[OrdersManager] Order ${orderId} status updated successfully`);
+                // ========== ADD THIS BLOCK ==========
+        // Refresh dashboard if it's open
+        if (typeof window.refreshDashboardOrders !== 'undefined') {
+            console.log('[OrdersManager] Refreshing dashboard...');
+            window.refreshDashboardOrders();
+        }
+        
+        // Also refresh admin badge via AdminManager if available
+        if (typeof AdminManager !== 'undefined' && 
+            typeof AdminManager.updateAdminButtonVisibility === 'function') {
+            AdminManager.updateAdminButtonVisibility();
+        }
+        // ========== END ADDITION ==========
+
         return true;
         
     } catch (error) {
