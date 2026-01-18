@@ -10,6 +10,8 @@
 // 5. Analytics tools with inventory tracking
 // 6. Real-time order updates across tabs
 // 7. Responsive admin modals
+// 8. function showDashboardNotification(message, type = 'info') { for success and error handling ******************
+
 // ========================================================
 
 const AdminManager = (function() {
@@ -1640,7 +1642,7 @@ function refreshDashboardOrders() {
         if (dashboardModal && dashboardModal.style.display === 'flex') {
             console.log('[Admin] Dashboard is open, refreshing data...');
             
-            // Update order counts
+            // Update order countssuccessNotification
             updateOrderCounts();
             
             // Refresh the currently active view
@@ -1716,7 +1718,71 @@ window.refreshDashboardOrders = refreshDashboardOrders;
             console.error('[Products] Failed to load products tab:', error);
         }
     }
+//===========================================
+    // success notification
+//=====================================
+    function showDashboardNotification(message, type = 'info') {
+    try {
+        // Check if dashboard is open
+        if (!isDashboardOpen()) return;
+        
+        // Create notification
+        const notification = document.createElement('div');
+        notification.className = `dashboard-notification ${type}`;
+        notification.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            ${message}
+        `;
+        
+        // Style it
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#4CAF50' : '#f44336'};
+            color: white;
+            padding: 12px 20px;
+            border-radius: 4px;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        `;
+        
+        // Add to body
+        document.body.appendChild(notification);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, 3000);
+        
+    } catch (error) {
+        console.error('[Dashboard] Notification error:', error);
+    }
+}
 
+// Add CSS animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+
+// Make it globally available
+window.showDashboardNotification = showDashboardNotification;
+    
     // ========================================================
     // PUBLIC API
     // ========================================================
