@@ -555,6 +555,7 @@ if (typeof window.refreshDashboardOrders === 'function') {
 }
 // ========== END ADDITIONS ==========
             return true;
+            
         } catch (error) {
             console.error('[ProductsManager] Error updating product:', error);
             if (typeof window.showDashboardNotification === 'function') {
@@ -704,32 +705,42 @@ if (typeof window.refreshDashboardOrders === 'function') {
             return `PROD-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
         }
     }
-    
-    function calculateDiscountedPrice(retailPrice, discountPercent) {
-        try {
-            console.log('[ProductsManager] Calculating discounted price:', { retailPrice, discountPercent });
-            
-            if (!retailPrice || retailPrice <= 0) {
-                console.log('[ProductsManager] Invalid retail price, returning 0');
-                return 0;
-            }
-            
-            const discount = retailPrice * (discountPercent / 100);
-            const finalPrice = Math.max(0, retailPrice - discount);
-            
-            console.log('[ProductsManager] Discount calculation:', {
-                retailPrice,
-                discountPercent,
-                discountAmount: discount,
-                finalPrice
-            });
-            
-            return parseFloat(finalPrice.toFixed(2));
-        } catch (error) {
-            console.error('[ProductsManager] Error calculating discounted price:', error);
+//=========================================================
+    // CALCULATE DISCOUNTEDPRICE
+//===============================================================
+function calculateDiscountedPrice(retailPrice, discountPercent) {
+    try {
+        console.log('[ProductsManager] Calculating discounted price:', { retailPrice, discountPercent });
+        
+        if (retailPrice === undefined || retailPrice === null || isNaN(retailPrice)) {
+            console.log('[ProductsManager] Invalid retail price, returning input value');
             return retailPrice || 0;
         }
+        
+        const retail = parseFloat(retailPrice);
+        const discount = parseFloat(discountPercent) || 0;
+        
+        if (retail <= 0) {
+            console.log('[ProductsManager] Retail price is 0 or negative, returning 0');
+            return 0;
+        }
+        
+        const discountAmount = retail * (discount / 100);
+        const finalPrice = Math.max(0, retail - discountAmount);
+        
+        console.log('[ProductsManager] Discount calculation:', {
+            retailPrice: retail,
+            discountPercent: discount,
+            discountAmount: discountAmount,
+            finalPrice: finalPrice
+        });
+        
+        return parseFloat(finalPrice.toFixed(2));
+    } catch (error) {
+        console.error('[ProductsManager] Error calculating discounted price:', error);
+        return retailPrice || 0;
     }
+}
     
     // ============================================
     // UI FUNCTIONS
