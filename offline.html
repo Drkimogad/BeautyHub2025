@@ -424,18 +424,22 @@
 
 <script>
     // Auto-redirect when connection is restored
-    window.addEventListener('online', () => {
-        const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
-        const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
-        window.location.replace(homePage);
-    });
+    // In offline.html script
+window.addEventListener('online', () => {
+    const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
+    const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
+    
+    // Force bypass cache
+    window.location.replace(homePage + '?t=' + Date.now());
+});
+
     
     // Manual check button
     function checkConnection() {
-        if (navigator.onLine) {
-            const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
-            const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
-            window.location.replace(homePage);
+if (navigator.onLine) {
+    const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
+    const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
+    window.location.replace(homePage + '?nocache=' + Date.now());
         } else {
             alert('Still offline. Please check your internet connection.');
         }
