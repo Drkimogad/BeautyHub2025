@@ -1,105 +1,25 @@
-// main.js - Simplified coordinator
-
+// main.js - KEEP ONLY THIS at the top
 console.log('[Main] Starting BeautyHub2025...');
 
-// ===== OFFLINE DETECTION =====
-function checkConnectionAndRedirect() {
-    if (!navigator.onLine) {
-        console.log('[Main] Offline detected on load');
-        const currentPath = window.location.pathname;
-        
-        // Skip if already on offline page
-        if (currentPath.includes('offline.html')) return true;
-        
-        // Detect environment
-        const isGitHubPages = currentPath.includes('/BeautyHub2025/');
-        const offlinePath = isGitHubPages ? '/BeautyHub2025/offline.html' : '/offline.html';
-        
-        console.log(`[Main] Redirecting to offline page: ${offlinePath}`);
-        window.location.href = offlinePath;
-        return true;
-    }
-    return false;
+// main.js at the top
+// Initial offline check
+if (!navigator.onLine && !window.location.pathname.includes('offline.html')) {
+    const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
+    const offlinePath = isGitHub ? '/BeautyHub2025/offline.html' : '/offline.html';
+    window.location.href = offlinePath;
 }
 
-// Also update the offline alert button:
-window.showOfflineAlert = function() {
-    // Detect environment for the button
-    const currentPath = window.location.pathname;
-    const isGitHubPages = currentPath.includes('/BeautyHub2025/');
-    const offlinePath = isGitHubPages ? '/BeautyHub2025/offline.html' : '/offline.html';
-    
-    const alertDiv = document.createElement('div');
-    alertDiv.id = 'offline-alert';
-    alertDiv.innerHTML = `
-        <div style="
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: #ff4444;
-            color: white;
-            padding: 10px;
-            text-align: center;
-            z-index: 9999;
-            font-weight: bold;
-            animation: slideDown 0.3s ease;
-        ">
-            ⚠️ You are offline. Some features may not work.
-            <button onclick="location.href='offline.html'" style="
-                margin-left: 15px;
-                background: white;
-                color: #ff4444;
-                border: none;
-                padding: 5px 15px;
-                border-radius: 3px;
-                cursor: pointer;
-                font-weight: bold;
-            ">
-                View Offline Page
-            </button>
-        </div>
-    `;
-    document.body.appendChild(alertDiv);
-    
-    // Add CSS animation
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideDown {
-            from { transform: translateY(-100%); }
-            to { transform: translateY(0); }
-        }
-    `;
-    document.head.appendChild(style);
-    
-    setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.style.animation = 'slideDown 0.3s ease reverse';
-            setTimeout(() => alertDiv.remove(), 300);
-        }
-    }, 10000);
-};
-// ===== END OFFLINE ALERT =====
-
-// Add offline event listener
+// Listen for going offline during session
 window.addEventListener('offline', () => {
-    console.log('[Main] Went offline during session');
-    if (typeof window.showOfflineAlert === 'function') {
-        window.showOfflineAlert();
+    console.log('[Main] Connection lost, redirecting to offline page');
+    
+    // Only redirect if not already on offline page
+    if (!window.location.pathname.includes('offline.html')) {
+        const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
+        const offlinePath = isGitHub ? '/BeautyHub2025/offline.html' : '/offline.html';
+        window.location.href = offlinePath;
     }
 });
-
-// Add online event listener to remove alert
-window.addEventListener('online', () => {
-    console.log('[Main] Back online');
-    const alertDiv = document.getElementById('offline-alert');
-    if (alertDiv) {
-        alertDiv.style.background = '#4CAF50';
-        alertDiv.querySelector('div').innerHTML = '✅ Back online!';
-        setTimeout(() => alertDiv.remove(), 2000);
-    }
-});
-
 
 const AppManager = (function() {
     
@@ -160,19 +80,13 @@ if (typeof CustomerSearchManager !== 'undefined' && CustomerSearchManager.init) 
             setupSmoothScrolling();
             initializeShippingSection();
             initializePrivacySection();
-            setupNavigationHandlers();
-            
+            setupNavigationHandlers();            
             // Connect cart button
-            connectCartButton();
-            
+            connectCartButton();           
             //  admin button
-            connectAdminButton();
-            
+            connectAdminButton();       
             // Connect checkout button
             connectCheckoutButton();
-            
-            // Setup PWA features
-            setupPWA();
             
             console.log('[AppManager] BeautyHub2025 PWA Initialized Successfully');
             
@@ -370,70 +284,6 @@ if (typeof CustomerSearchManager !== 'undefined' && CustomerSearchManager.init) 
             console.log('[AppManager] Checkout system ready via customerorder.js');
         } catch (error) {
             console.error('[AppManager] Failed to connect checkout button:', error);
-        }
-    }
-    
-    // ===== PWA SETUP =====
-    function setupPWA() {
-        try {
-            // Service Worker Registration
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('./sw.js').then(function(registration) {
-                        console.log('[AppManager] ServiceWorker registered:', registration.scope);
-                    }, function(err) {
-                        console.error('[AppManager] ServiceWorker registration failed:', err);
-                    });
-                });
-            }
-            
-            // PWA Install Prompt
-            let deferredPrompt;
-            const addBtn = document.createElement('button');
-            addBtn.id = 'install-pwa-btn';
-            addBtn.setAttribute('aria-label', 'Install BeautyHub App');
-            
-            addBtn.style.cssText = `
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                background: #667eea;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 20px;
-                cursor: pointer;
-                z-index: 1000;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-                transition: transform 0.2s, opacity 0.2s;
-            `;
-            addBtn.innerHTML = '<i class="fas fa-download"></i> Install App';
-            addBtn.style.display = 'none';
-            
-            document.body.appendChild(addBtn);
-            
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                addBtn.style.display = 'flex';
-                
-                addBtn.addEventListener('click', () => {
-                    addBtn.style.display = 'none';
-                    deferredPrompt.prompt();
-                    deferredPrompt.userChoice.then((choiceResult) => {
-                        if (choiceResult.outcome === 'accepted') {
-                            console.log('[AppManager] User accepted PWA install');
-                        }
-                        deferredPrompt = null;
-                    });
-                });
-            });
-            
-        } catch (error) {
-            console.error('[AppManager] Failed to setup PWA:', error);
         }
     }
     
