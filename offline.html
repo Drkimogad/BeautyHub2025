@@ -449,15 +449,16 @@ window.addEventListener('beforeunload', () => {
     }
 });
     // Function to go to main app
-    function goToMainApp() {
-        const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
-        const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
-        
-        // Use replaceState first to keep same URL for event listeners
-        window.history.replaceState(null, '', homePage);
-        // Then reload with cache bypass
-        window.location.href = homePage + '?t=' + Date.now();
-    }
+ function goToMainApp() {
+    console.log('Returning to main app...');
+    
+    // SIMPLE RELATIVE PATH BACK
+    const homePage = 'index.html';
+    const redirectUrl = homePage + '?online=' + Date.now();
+    
+    console.log('Redirecting to:', redirectUrl);
+    window.location.replace(redirectUrl);
+}
     
     // Check immediately on load
     if (navigator.onLine) {
