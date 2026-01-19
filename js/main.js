@@ -1,56 +1,41 @@
 // main.js - KEEP ONLY THIS at the top
 console.log('[Main] Starting BeautyHub2025...');
 
-// Add unique parameter to prevent cached redirects
-if (!navigator.onLine && !window.location.pathname.includes('offline.html')) {
-    const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
-    const offlinePath = isGitHub ? '/BeautyHub2025/offline.html' : '/offline.html';
-    window.location.href = offlinePath + '?offline=' + Date.now();
-}
-
-// Add a small delay to ensure we're really offline
-if (!navigator.onLine && !window.location.pathname.includes('offline.html')) {
-    setTimeout(() => {
-        // Check again after delay
-        if (!navigator.onLine && !window.location.pathname.includes('offline.html')) {
-            const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
-            const offlinePath = isGitHub ? '/BeautyHub2025/offline.html' : '/offline.html';
-            window.location.href = offlinePath + '?t=' + Date.now();
-        }
-    }, 500); // 0.5 second delay
-}
+// Only handle online->offline transitions during session
+// Initial offline detection is handled in index.html head
 
 // Listen for going offline during session
 window.addEventListener('offline', () => {
-    console.log('[Main] Connection lost, redirecting to offline page');
+    console.log('[Main] Connection lost during session, redirecting to offline page');
     
-    // Only redirect if not already on offline page
     if (!window.location.pathname.includes('offline.html')) {
         const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
         const offlinePath = isGitHub ? '/BeautyHub2025/offline.html' : '/offline.html';
-        window.location.href = offlinePath;
+        window.location.href = offlinePath + '?from=session&t=' + Date.now();
     }
 });
 
-// If somehow we're on offline.html but online, redirect to main app
+// Handle coming back online (if on offline page)
 window.addEventListener('online', () => {
+    console.log('[Main] Back online event detected');
+    
     if (window.location.pathname.includes('offline.html')) {
-        console.log('[Main] Back online but on offline page - redirecting');
-        const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
-        const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
-        window.location.replace(homePage);
+        // Small delay to ensure stable connection
+        setTimeout(() => {
+            if (navigator.onLine) {
+                console.log('[Main] Redirecting back to main app');
+                const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
+                const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
+                window.location.replace(homePage + '?online=' + Date.now());
+            }
+        }, 1000);
     }
 });
 
-// Periodic check as backup
-setInterval(() => {
-    if (navigator.onLine && window.location.pathname.includes('offline.html')) {
-        console.log('[Main] Periodic check: online but on offline page');
-        const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
-        const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
-        window.location.replace(homePage);
-    }
-}, 5000);
+// Remove the duplicate checks at the top of main.js
+// Remove these lines:
+// if (!navigator.onLine && !window.location.pathname.includes('offline.html')) { ... }
+// if (!navigator.onLine && !window.location.pathname.includes('offline.html')) { ... }
 
 //=========================Code starts here=========================
 const AppManager = (function() {
@@ -351,8 +336,6 @@ try {
 // ===== DELAYED SETUP =====
 window.addEventListener('load', () => {
     console.log('[Main] Window Loaded - App fully loaded');
-       // Add it here:
-    if (navigator.onLine && !window.location.pathname.includes('offline.html')) {
-        window.history.replaceState(null, '', window.location.href);
-    }
 });
+
+
