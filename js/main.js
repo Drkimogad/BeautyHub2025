@@ -1,4 +1,5 @@
 // main.js - KEEP ONLY THIS at the top
+
 console.log('[Main] Starting BeautyHub2025...');
 
 // main.js at the top
@@ -8,7 +9,6 @@ if (!navigator.onLine && !window.location.pathname.includes('offline.html')) {
     const offlinePath = isGitHub ? '/BeautyHub2025/offline.html' : '/offline.html';
     window.location.href = offlinePath;
 }
-
 // Listen for going offline during session
 window.addEventListener('offline', () => {
     console.log('[Main] Connection lost, redirecting to offline page');
@@ -21,6 +21,7 @@ window.addEventListener('offline', () => {
     }
 });
 
+//=========================Code starts here=========================
 const AppManager = (function() {
     
     // ===== MAIN INITIALIZATION =====
