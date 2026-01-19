@@ -142,10 +142,14 @@ const InventoryManager = (function() {
                     });
                     
                     // Update product stock using consistent property names
-                    const success = ProductsManager.updateProduct(product.id, { 
-                        stock: newStock,
-                        updatedAt: new Date().toISOString()
-                    });
+const success = ProductsManager.updateProduct(product.id, { 
+    stock: newStock,
+    retailPrice: product.retailPrice || product.retailprice || 0,
+    discountPercent: product.discountPercent || product.discountedPercent || 0,
+    currentPrice: product.currentPrice || product.currentprice || 0,
+    wholesalePrice: product.wholesalePrice || product.wholesaleprice || 0,
+    updatedAt: new Date().toISOString()
+});
                     
                     if (!success) {
                         console.error(`[InventoryManager] Failed to update stock for ${product.name}`);
@@ -174,6 +178,17 @@ const InventoryManager = (function() {
                 });
                 
                 console.log(`[InventoryManager] Stock successfully deducted for order: ${order.id}`);
+                    // ========== ADD SUCCESS NOTIFICATION ==========
+    if (typeof window.showDashboardNotification === 'function') {
+        window.showDashboardNotification('Stock updated successfully!', 'success');
+    }
+    
+    // ========== REFRESH DASHBOARD ==========
+    if (typeof window.refreshDashboardOrders === 'function') {
+        window.refreshDashboardOrders();
+    }
+    // ========== END ADDITIONS ==========
+
                 return true;
             }
             
@@ -369,12 +384,21 @@ const InventoryManager = (function() {
             }
             
             const success = ProductsManager.updateProduct(productId, { 
-                stock: newStock,
-                updatedAt: new Date().toISOString()
-            });
+    stock: newStock,
+    retailPrice: product.retailPrice || product.retailprice || 0,
+    discountPercent: product.discountPercent || product.discountedPercent || 0,
+    currentPrice: product.currentPrice || product.currentprice || 0,
+    wholesalePrice: product.wholesalePrice || product.wholesaleprice || 0,
+    updatedAt: new Date().toISOString()
+});
             
             if (!success) {
                 console.error(`[InventoryManager] Failed to update product ${productId}`);
+                // ========== ADD ERROR NOTIFICATION ==========
+    if (typeof window.showDashboardNotification === 'function') {
+        window.showDashboardNotification('Failed to update stock. Please try again.', 'error');
+    }
+    // ========== END ADDITION ==========
                 return false;
             }
             
@@ -396,6 +420,16 @@ const InventoryManager = (function() {
             });
             
             console.log(`[InventoryManager] Manual stock update: ${product.name} ${adjustment > 0 ? '+' : ''}${adjustment} = ${newStock}`);
+            // ========== ADD SUCCESS NOTIFICATION ==========
+if (typeof window.showDashboardNotification === 'function') {
+    window.showDashboardNotification('Stock updated successfully!', 'success');
+}
+
+// ========== REFRESH DASHBOARD ==========
+if (typeof window.refreshDashboardOrders === 'function') {
+    window.refreshDashboardOrders();
+}
+// ========== END ADDITIONS ==========
             
             return true;
             
