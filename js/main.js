@@ -7,23 +7,27 @@ function checkConnectionAndRedirect() {
     if (!navigator.onLine) {
         console.log('[Main] Offline detected on load');
         const currentPath = window.location.pathname;
-        if (!currentPath.includes('offline.html')) {
-            window.location.href = 'offline.html';
-            return true;
-        }
+        
+        // Skip if already on offline page
+        if (currentPath.includes('offline.html')) return true;
+        
+        // Detect environment
+        const isGitHubPages = currentPath.includes('/BeautyHub2025/');
+        const offlinePath = isGitHubPages ? '/BeautyHub2025/offline.html' : '/offline.html';
+        
+        console.log(`[Main] Redirecting to offline page: ${offlinePath}`);
+        window.location.href = offlinePath;
+        return true;
     }
     return false;
 }
 
-// Check immediately
-if (checkConnectionAndRedirect()) {
-    throw new Error('Offline - redirecting to offline page');
-}
-
-// ===== OFFLINE ALERT FUNCTION =====
+// Also update the offline alert button:
 window.showOfflineAlert = function() {
-    // Check if alert already exists
-    if (document.getElementById('offline-alert')) return;
+    // Detect environment for the button
+    const currentPath = window.location.pathname;
+    const isGitHubPages = currentPath.includes('/BeautyHub2025/');
+    const offlinePath = isGitHubPages ? '/BeautyHub2025/offline.html' : '/offline.html';
     
     const alertDiv = document.createElement('div');
     alertDiv.id = 'offline-alert';
