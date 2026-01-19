@@ -5889,7 +5889,7 @@ header {
     background: white;
     border-radius: 8px;
     border: 1px solid #e0e0e0;
-    overflow: hidden;
+  /*  overflow: hidden;*/
     position: relative;
     transition: transform 0.2s, box-shadow 0.2s;
 }
