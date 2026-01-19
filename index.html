@@ -11,18 +11,6 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
-<script>
-    // Kill any existing service workers
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(registrations => {
-            registrations.forEach(registration => registration.unregister());
-        });
-        caches.keys().then(cacheNames => {
-            cacheNames.forEach(cacheName => caches.delete(cacheName));
-        });
-    }
-</script>
-
 <!-- CRITICAL: IMMEDIATE OFFLINE DETECTION -->
 <script>
     // RUNS IMMEDIATELY AS PAGE STARTS LOADING
