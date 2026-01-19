@@ -423,27 +423,55 @@
     </div>
 
 <script>
-    // Auto-redirect when connection is restored
-    // In offline.html script
-window.addEventListener('online', () => {
-    const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
-    const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
+    // Function to go to main app
+    function goToMainApp() {
+        const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
+        const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
+        
+        // Use replaceState first to keep same URL for event listeners
+        window.history.replaceState(null, '', homePage);
+        // Then reload with cache bypass
+        window.location.href = homePage + '?t=' + Date.now();
+    }
     
-    // Force bypass cache
-    window.location.replace(homePage + '?t=' + Date.now());
-});
-
+    // Check immediately on load
+    if (navigator.onLine) {
+        goToMainApp();
+    }
+    
+    // Auto-redirect when connection restored
+    window.addEventListener('online', () => {
+        console.log('offline.html: Online event detected');
+        
+        const statusDot = document.querySelector('.status-dot');
+        const statusText = document.querySelector('.status span');
+        
+        if (statusDot) {
+            statusDot.style.background = '#4CAF50';
+            statusDot.style.animation = 'none';
+            statusText.textContent = 'Connection restored! Redirecting...';
+        }
+        
+        setTimeout(goToMainApp, 1500);
+    });
     
     // Manual check button
     function checkConnection() {
-if (navigator.onLine) {
-    const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
-    const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
-    window.location.replace(homePage + '?nocache=' + Date.now());
+        if (navigator.onLine) {
+            goToMainApp();
         } else {
             alert('Still offline. Please check your internet connection.');
         }
     }
+    
+    // Periodic check (backup)
+    let onlineCheckInterval = setInterval(() => {
+        if (navigator.onLine) {
+            console.log('offline.html: Periodic check - online, redirecting');
+            clearInterval(onlineCheckInterval);
+            goToMainApp();
+        }
+    }, 3000);
 </script>
 </body>
 </html>
