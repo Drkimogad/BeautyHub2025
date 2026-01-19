@@ -3,6 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+    // NO SERVICE WORKER - PURE JAVASCRIPT SOLUTION
+    (function() {
+        if (window.location.pathname.includes('offline.html')) return;
+        
+        // Check immediately
+        if (!navigator.onLine) {
+            console.log('🟡 OFFLINE - Redirecting to offline.html');
+            // Use replace() to prevent back button issues
+            window.location.replace('offline.html?from=js');
+            return;
+        }
+        
+        // Listen for going offline
+        window.addEventListener('offline', () => {
+            console.log('📶 Connection lost');
+            if (!window.location.pathname.includes('offline.html')) {
+                window.location.replace('offline.html?from=event');
+            }
+        });
+        
+        // Backup check after load
+        window.addEventListener('load', () => {
+            if (!navigator.onLine && !window.location.pathname.includes('offline.html')) {
+                console.log('🟡 Loaded but offline');
+                window.location.replace('offline.html?from=load');
+            }
+        });
+    })();
+</script>
     <meta name="description" content="Luxury beauty products including perfumes, lashes, skincare, and wigs">
     <title>BeautyHub2025 | Luxury Beauty Products</title>
     
@@ -206,37 +236,6 @@
         // Simple current year injection
         document.getElementById('current-year').textContent = new Date().getFullYear();
     </script>
-
-<script>
-    // NO SERVICE WORKER - PURE JAVASCRIPT SOLUTION
-    (function() {
-        if (window.location.pathname.includes('offline.html')) return;
-        
-        // Check immediately
-        if (!navigator.onLine) {
-            console.log('🟡 OFFLINE - Redirecting to offline.html');
-            // Use replace() to prevent back button issues
-            window.location.replace('offline.html?from=js');
-            return;
-        }
-        
-        // Listen for going offline
-        window.addEventListener('offline', () => {
-            console.log('📶 Connection lost');
-            if (!window.location.pathname.includes('offline.html')) {
-                window.location.replace('offline.html?from=event');
-            }
-        });
-        
-        // Backup check after load
-        window.addEventListener('load', () => {
-            if (!navigator.onLine && !window.location.pathname.includes('offline.html')) {
-                console.log('🟡 Loaded but offline');
-                window.location.replace('offline.html?from=load');
-            }
-        });
-    })();
-</script>
 
 </body>
 </html>
