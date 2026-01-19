@@ -21,6 +21,25 @@ window.addEventListener('offline', () => {
     }
 });
 
+// If somehow we're on offline.html but online, redirect to main app
+window.addEventListener('online', () => {
+    if (window.location.pathname.includes('offline.html')) {
+        console.log('[Main] Back online but on offline page - redirecting');
+        const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
+        const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
+        window.location.replace(homePage);
+    }
+});
+
+// Periodic check as backup
+setInterval(() => {
+    if (navigator.onLine && window.location.pathname.includes('offline.html')) {
+        console.log('[Main] Periodic check: online but on offline page');
+        const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
+        const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
+        window.location.replace(homePage);
+    }
+}, 5000);
 //=========================Code starts here=========================
 const AppManager = (function() {
     
@@ -287,7 +306,10 @@ if (typeof CustomerSearchManager !== 'undefined' && CustomerSearchManager.init) 
             console.error('[AppManager] Failed to connect checkout button:', error);
         }
     }
-    
+
+    if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw-minimal.js', { scope: './' });
+}
     // ===== PUBLIC API =====
     return {
         init,
@@ -320,4 +342,8 @@ try {
 // ===== DELAYED SETUP =====
 window.addEventListener('load', () => {
     console.log('[Main] Window Loaded - App fully loaded');
+       // Add it here:
+    if (navigator.onLine && !window.location.pathname.includes('offline.html')) {
+        window.history.replaceState(null, '', window.location.href);
+    }
 });
