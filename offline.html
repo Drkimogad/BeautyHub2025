@@ -422,46 +422,24 @@
         </div>
     </div>
 
-    <script>
-      function checkConnection() {
-    if (navigator.onLine) {
-        // Don't use reload() - redirect to main app
+<script>
+    // Auto-redirect when connection is restored
+    window.addEventListener('online', () => {
         const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
         const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
         window.location.replace(homePage);
-    } else {
-        alert('Still offline. Please check your internet connection and try again.');
-    }
-}
-
-        // Auto-retry when connection is restored
-       window.addEventListener('online', () => {
-    const statusDot = document.querySelector('.status-dot');
-    const statusText = document.querySelector('.status span');
+    });
     
-    statusDot.style.background = '#4CAF50';
-    statusDot.style.animation = 'none';
-    statusText.textContent = 'Connection restored! Redirecting...';
-    
-    setTimeout(() => {
-        // Force redirect to index.html, bypass cache
-        const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
-        const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
-        
-        // Use location.replace() to prevent back button issues
-        window.location.replace(homePage);
-    }, 1500);
-});
-
-// Force bypass cache when going back online
-setInterval(() => {
-    if (navigator.onLine && window.location.pathname.includes('offline.html')) {
-        console.log('Still on offline page but online - forcing redirect');
-        const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
-        const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
-        window.location.replace(homePage);
+    // Manual check button
+    function checkConnection() {
+        if (navigator.onLine) {
+            const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
+            const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
+            window.location.replace(homePage);
+        } else {
+            alert('Still offline. Please check your internet connection.');
+        }
     }
-}, 5000);
-    </script>
+</script>
 </body>
 </html>
