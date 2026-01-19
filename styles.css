@@ -6462,3 +6462,21 @@ header {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* Target the product card's container in products management */
+.product-card, 
+[class*="product-card"],
+.product-item-container {
+    overflow: visible !important;
+    position: relative;
+}
+
+/* Target the grey admin panel */
+.admin-panel,
+.actions-panel,
+.product-actions,
+[class*="actions"] {
+    position: relative !important;
+    z-index: 10;
+    margin-top: 10px; /* Add spacing if needed */
+}
