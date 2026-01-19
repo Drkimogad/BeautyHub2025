@@ -6464,20 +6464,24 @@ header {
 }
 
 /* Target the product card's container in products management */
-/* Target ONLY admin products management */
+/* Keep container scrollable but fix clipping */
+#products-grid {
+    overflow-y: auto !important; /* Keep vertical scroll */
+    overflow-x: visible !important;
+}
+
+/* Fix individual cards */
 #products-tab-content .product-admin-card {
     overflow: visible !important;
     position: relative;
+    margin-bottom: 20px; /* Add spacing between cards */
 }
 
-/* Target ONLY the grey actions panel in admin */
+/* Fix grey panel */
 #products-tab-content .product-card-actions {
     position: relative !important;
     z-index: 10;
     margin-top: 10px;
-}
-
-/* Optional: Ensure the container doesn't clip */
-#products-grid {
-    overflow: visible !important;
+    /* Ensure it doesn't cause overflow issues */
+    max-height: none;
 }
