@@ -6464,19 +6464,20 @@ header {
 }
 
 /* Target the product card's container in products management */
-.product-card, 
-[class*="product-card"],
-.product-item-container {
+/* Target ONLY admin products management */
+#products-tab-content .product-admin-card {
     overflow: visible !important;
     position: relative;
 }
 
-/* Target the grey admin panel */
-.admin-panel,
-.actions-panel,
-.product-actions,
-[class*="actions"] {
+/* Target ONLY the grey actions panel in admin */
+#products-tab-content .product-card-actions {
     position: relative !important;
     z-index: 10;
-    margin-top: 10px; /* Add spacing if needed */
+    margin-top: 10px;
+}
+
+/* Optional: Ensure the container doesn't clip */
+#products-grid {
+    overflow: visible !important;
 }
