@@ -206,8 +206,7 @@
         // Simple current year injection
         document.getElementById('current-year').textContent = new Date().getFullYear();
     </script>
-
-<script>
+    <script>
     // UNIVERSAL SERVICE WORKER REGISTRATION
     // Works on GitHub Pages AND Firebase Hosting
     if ('serviceWorker' in navigator) {
@@ -251,7 +250,61 @@
             window.location.href = 'offline.html?from=no_sw';
         }
     }
+    
+    // UNIVERSAL OFFLINE DETECTION (runs regardless of SW)
+    // This is the improved version that prevents browser's offline page
+    (function() {
+        // Don't run if already on offline page
+        if (window.location.pathname.includes('offline.html')) return;
+        
+        // Immediate check
+        if (!navigator.onLine) {
+            console.log('Immediate offline detection');
+            window.location.replace('offline.html?from=immediate');
+            return;
+        }
+        
+        // Listen for resource failures
+        window.addEventListener('error', function(e) {
+            if (e.target && 
+                (e.target.tagName === 'LINK' || 
+                 e.target.tagName === 'SCRIPT' || 
+                 e.target.tagName === 'IMG')) {
+                
+                // Check if it's a critical resource failure
+                const criticalResources = [
+                    'firebase-app-compat.js',
+                    'firebase-auth-compat.js',
+                    'firebase-firestore-compat.js',
+                    'styles.css'
+                ];
+                
+                const resourceUrl = e.target.src || e.target.href;
+                const isCritical = criticalResources.some(resource => 
+                    resourceUrl && resourceUrl.includes(resource)
+                );
+                
+                if (isCritical && !navigator.onLine) {
+                    console.log('Critical resource failed:', resourceUrl);
+                    window.location.replace('offline.html?error=' + 
+                        encodeURIComponent(e.target.tagName));
+                }
+            }
+        }, true);
+        
+        // Final check after page loads
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                if (!navigator.onLine && !window.location.pathname.includes('offline.html')) {
+                    console.log('Post-load offline detection');
+                    window.location.replace('offline.html?from=postload');
+                }
+            }, 500);
+        });
+        
+    })();
 </script>
+
 
 </body>
 </html>
