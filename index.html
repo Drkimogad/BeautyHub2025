@@ -207,15 +207,19 @@
         document.getElementById('current-year').textContent = new Date().getFullYear();
     </script>
 
-    <script>
-    console.log('=== PATH DEBUG ===');
-    console.log('Current folder:', window.location.pathname.split('/').slice(0, -1).join('/') || 'root');
-    console.log('Testing offline.html access:');
-    
-    // Test if we can find offline.html
-    fetch('offline.html')
-        .then(r => console.log('offline.html found:', r.status))
-        .catch(e => console.log('offline.html NOT found:', e.message));
+<script>
+    // SERVICE WORKER REGISTRATION
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(registration => {
+                    console.log('SW registered:', registration);
+                })
+                .catch(error => {
+                    console.log('SW registration failed:', error);
+                });
+        });
+    }
 </script>
 
 </body>
