@@ -206,5 +206,17 @@
         // Simple current year injection
         document.getElementById('current-year').textContent = new Date().getFullYear();
     </script>
+
+    <script>
+    console.log('=== PATH DEBUG ===');
+    console.log('Current folder:', window.location.pathname.split('/').slice(0, -1).join('/') || 'root');
+    console.log('Testing offline.html access:');
+    
+    // Test if we can find offline.html
+    fetch('offline.html')
+        .then(r => console.log('offline.html found:', r.status))
+        .catch(e => console.log('offline.html NOT found:', e.message));
+</script>
+
 </body>
 </html>
