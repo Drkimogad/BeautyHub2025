@@ -6,15 +6,14 @@
      <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <!-- ADD THIS TO PREVENT BROWSER CACHING OF REDIRECT -->
     <script>
-        // Clear any redirect loops
-        if (window.location.search.includes('from=index')) {
-            // We came from index.html redirect, clear the parameter
-            const cleanUrl = window.location.origin + window.location.pathname;
-            window.history.replaceState(null, '', cleanUrl);
-        }
-    </script>  
+    // Clear redirect parameters to prevent loops
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('from') || params.has('t')) {
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState(null, '', cleanUrl);
+    }
+    </script>
     <title>BeautyHub2025 - Offline</title>
     <style>
         /* ===== GLOBAL STYLES ===== */
