@@ -102,7 +102,7 @@ self.addEventListener('install', event => {
     );
 });
 
-// Fetch event - Smart caching strategy
+// Fetch event - Show offline.html immediately when offline
 self.addEventListener('fetch', event => {
     const request = event.request;
     const url = new URL(request.url);
@@ -110,69 +110,43 @@ self.addEventListener('fetch', event => {
     // Skip non-GET requests
     if (request.method !== 'GET') return;
     
-    // Handle different types of requests
-    event.respondWith(
-        (async () => {
-            // Try cache first for HTML navigation
-            if (request.mode === 'navigate') {
+    // Handle navigation requests (HTML pages)
+    if (request.mode === 'navigate') {
+        event.respondWith(
+            (async () => {
                 try {
-                    const cachedResponse = await caches.match(request);
-                    if (cachedResponse) {
-                        console.log('🏠 Serving from cache:', url.pathname);
-                        return cachedResponse;
-                    }
-                    
-                    // Try network for HTML
+                    // Try network first
                     const networkResponse = await fetch(request);
-                    if (networkResponse.ok) {
-                        // Cache the new page
-                        const cache = await caches.open(CACHE_NAME);
-                        cache.put(request, networkResponse.clone());
-                        return networkResponse;
-                    }
-                } catch (error) {
-                    console.log('📵 Offline - serving offline page');
-                    const offlinePage = await caches.match(getEnvPath(OFFLINE_PAGE));
-                    return offlinePage || new Response('Offline - please check your connection');
-                }
-            }
-            
-            // For other assets (JS, CSS, images)
-            try {
-                // Try cache first
-                const cachedResponse = await caches.match(request);
-                if (cachedResponse) {
-                    return cachedResponse;
-                }
-                
-                // Try network
-                const networkResponse = await fetch(request);
-                
-                // Cache successful responses (except external analytics, etc.)
-                if (networkResponse.ok && url.origin === self.location.origin) {
+                    
+                    // If online, cache and return the fresh page
                     const cache = await caches.open(CACHE_NAME);
                     cache.put(request, networkResponse.clone());
+                    return networkResponse;
+                    
+                } catch (networkError) {
+                    console.log('📵 OFFLINE - Serving offline page');
+                    
+                    // ALWAYS show offline.html when offline, even if index.html is cached
+                    const offlinePage = await caches.match(getEnvPath(OFFLINE_PAGE));
+                    if (offlinePage) {
+                        return offlinePage;
+                    }
+                    
+                    // Fallback if offline.html not cached
+                    return new Response(
+                        '<h1>Offline</h1><p>Please check your internet connection</p>',
+                        { headers: { 'Content-Type': 'text/html' } }
+                    );
                 }
-                
-                return networkResponse;
-            } catch (error) {
-                console.log('⚠️ Network failed, checking cache:', url.pathname);
-                
-                // For CSS/JS/Image requests, return cache if available
-                const cachedResponse = await caches.match(request);
-                if (cachedResponse) {
-                    return cachedResponse;
-                }
-                
-                // For missing images, return placeholder
-                if (url.pathname.match(/\.(jpg|jpeg|png|gif)$/)) {
-                    return caches.match(getEnvPath('gallery/placeholder.jpg'));
-                }
-                
-                // Otherwise, throw the error
-                throw error;
-            }
-        })()
+            })()
+        );
+        return; // Skip other handlers for navigation
+    }
+    
+    // For other assets (JS, CSS, images) - use cache first
+    event.respondWith(
+        caches.match(request)
+            .then(response => response || fetch(request))
     );
 });
 
