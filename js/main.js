@@ -1,4 +1,102 @@
 // main.js - Simplified coordinator
+
+console.log('[Main] Starting BeautyHub2025...');
+
+// ===== OFFLINE DETECTION =====
+function checkConnectionAndRedirect() {
+    if (!navigator.onLine) {
+        console.log('[Main] Offline detected on load');
+        const currentPath = window.location.pathname;
+        if (!currentPath.includes('offline.html')) {
+            window.location.href = 'offline.html';
+            return true;
+        }
+    }
+    return false;
+}
+
+// Check immediately
+if (checkConnectionAndRedirect()) {
+    throw new Error('Offline - redirecting to offline page');
+}
+
+// ===== OFFLINE ALERT FUNCTION =====
+window.showOfflineAlert = function() {
+    // Check if alert already exists
+    if (document.getElementById('offline-alert')) return;
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.id = 'offline-alert';
+    alertDiv.innerHTML = `
+        <div style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #ff4444;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            z-index: 9999;
+            font-weight: bold;
+            animation: slideDown 0.3s ease;
+        ">
+            ⚠️ You are offline. Some features may not work.
+            <button onclick="location.href='offline.html'" style="
+                margin-left: 15px;
+                background: white;
+                color: #ff4444;
+                border: none;
+                padding: 5px 15px;
+                border-radius: 3px;
+                cursor: pointer;
+                font-weight: bold;
+            ">
+                View Offline Page
+            </button>
+        </div>
+    `;
+    document.body.appendChild(alertDiv);
+    
+    // Add CSS animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.style.animation = 'slideDown 0.3s ease reverse';
+            setTimeout(() => alertDiv.remove(), 300);
+        }
+    }, 10000);
+};
+// ===== END OFFLINE ALERT =====
+
+// Add offline event listener
+window.addEventListener('offline', () => {
+    console.log('[Main] Went offline during session');
+    if (typeof window.showOfflineAlert === 'function') {
+        window.showOfflineAlert();
+    }
+});
+
+// Add online event listener to remove alert
+window.addEventListener('online', () => {
+    console.log('[Main] Back online');
+    const alertDiv = document.getElementById('offline-alert');
+    if (alertDiv) {
+        alertDiv.style.background = '#4CAF50';
+        alertDiv.querySelector('div').innerHTML = '✅ Back online!';
+        setTimeout(() => alertDiv.remove(), 2000);
+    }
+});
+
+
 const AppManager = (function() {
     
     // ===== MAIN INITIALIZATION =====
