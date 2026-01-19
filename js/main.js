@@ -319,9 +319,6 @@ if (typeof CustomerSearchManager !== 'undefined' && CustomerSearchManager.init) 
         }
     }
 
-    if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw-minimal.js', { scope: './' });
-}
     // ===== PUBLIC API =====
     return {
         init,
