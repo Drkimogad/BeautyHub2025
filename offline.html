@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeautyHub2025 - Offline</title>
+    <style>
+        /* ===== GLOBAL STYLES ===== */
+        :root {
+            --purple: #9c27b0;
+            --pink: #e91e63;
+            --light-pink: #f8bbd0;
+            --white: #fff;
+            --gold: #ffd700;
+            --dark-text: #333;
+            --light-text: #f5f5f5;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--pink) 100%);
+            color: var(--white);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            padding: 40px 30px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Perfume Bottle with Broken Wifi Icon */
+        .perfume-wifi-icon {
+            width: 180px;
+            height: 220px;
+            margin: 0 auto 40px;
+            position: relative;
+        }
+
+        .perfume-bottle {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        /* Bottle body */
+        .bottle-body {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 160px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border-radius: 40px 40px 10px 10px;
+            overflow: hidden;
+            box-shadow: 
+                inset 0 -10px 20px rgba(255, 255, 255, 0.3),
+                0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Bottle content */
+        .bottle-liquid {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 80%;
+            background: linear-gradient(180deg, var(--pink) 0%, var(--purple) 100%);
+            border-radius: 40px 40px 0 0;
+            animation: liquidShimmer 4s ease-in-out infinite;
+        }
+
+        @keyframes liquidShimmer {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 1; }
+        }
+
+        /* Bottle neck */
+        .bottle-neck {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border-radius: 10px 10px 0 0;
+        }
+
+        /* Atomizer */
+        .atomizer {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: var(--gold);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--gold);
+        }
+
+        /* Broken Wifi Signal */
+        .wifi-signal {
+            position: absolute;
+            top: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 60px;
+        }
+
+        .wifi-circle {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 3px solid #ff4444;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: wifiError 2s ease-in-out infinite;
+        }
+
+        .wifi-circle:nth-child(1) {
+            width: 80px;
+            height: 20px;
+            top: 10px;
+            animation-delay: 0s;
+        }
+
+        .wifi-circle:nth-child(2) {
+            width: 60px;
+            height: 20px;
+            top: 20px;
+            animation-delay: 0.2s;
+        }
+
+        .wifi-circle:nth-child(3) {
+            width: 40px;
+            height: 20px;
+            top: 30px;
+            animation-delay: 0.4s;
+        }
+
+        @keyframes wifiError {
+            0%, 100% { 
+                opacity: 0.3;
+                transform: translateX(-50%) scale(1);
+            }
+            50% { 
+                opacity: 1;
+                transform: translateX(-50%) scale(1.1);
+            }
+        }
+
+        /* Crack lines on bottle */
+        .crack-line {
+            position: absolute;
+            background: #ff4444;
+            border-radius: 2px;
+            z-index: 2;
+        }
+
+        .crack-1 {
+            width: 40px;
+            height: 3px;
+            top: 40%;
+            left: 20%;
+            transform: rotate(45deg);
+        }
+
+        .crack-2 {
+            width: 30px;
+            height: 3px;
+            top: 50%;
+            right: 25%;
+            transform: rotate(-30deg);
+        }
+
+        /* Content */
+        h1 {
+            font-size: 2.5rem;
+            color: var(--purple);
+            margin-bottom: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--pink);
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .message {
+            font-size: 1.1rem;
+            color: var(--dark-text);
+            line-height: 1.6;
+            margin-bottom: 40px;
+            padding: 0 20px;
+        }
+
+        .highlight {
+            color: var(--purple);
+            font-weight: 600;
+        }
+
+        /* Action buttons */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--purple) 0%, var(--pink) 100%);
+            color: var(--white);
+            box-shadow: 0 8px 20px rgba(156, 39, 176, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(156, 39, 176, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--purple);
+            border: 2px solid var(--purple);
+        }
+
+        .btn-secondary:hover {
+            background: var(--purple);
+            color: var(--white);
+            transform: translateY(-3px);
+        }
+
+        /* Status indicator */
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 68, 68, 0.1);
+            border-radius: 20px;
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #ff4444;
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Tips section */
+        .tips {
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(248, 187, 208, 0.2);
+            border-radius: 15px;
+            text-align: left;
+        }
+
+        .tips h3 {
+            color: var(--purple);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .tips ul {
+            list-style: none;
+            padding-left: 20px;
+        }
+
+        .tips li {
+            margin-bottom: 10px;
+            color: var(--dark-text);
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .tips li:before {
+            content: "💄";
+            position: absolute;
+            left: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .perfume-wifi-icon {
+                width: 150px;
+                height: 180px;
+                margin-bottom: 30px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Perfume Bottle with Broken Wifi Icon -->
+        <div class="perfume-wifi-icon">
+            <div class="perfume-bottle">
+                <div class="bottle-body">
+                    <div class="bottle-liquid"></div>
+                    <div class="crack-line crack-1"></div>
+                    <div class="crack-line crack-2"></div>
+                </div>
+                <div class="bottle-neck"></div>
+                <div class="atomizer"></div>
+            </div>
+            <div class="wifi-signal">
+                <div class="wifi-circle"></div>
+                <div class="wifi-circle"></div>
+                <div class="wifi-circle"></div>
+            </div>
+        </div>
+
+        <!-- Status Indicator -->
+        <div class="status">
+            <div class="status-dot"></div>
+            <span>You are currently offline</span>
+        </div>
+
+        <!-- Main Content -->
+        <h1>Connection Lost</h1>
+        <div class="subtitle">BeautyHub2025 requires an internet connection</div>
+        
+        <p class="message">
+            It seems you've lost connection to the internet. 
+            <span class="highlight">BeautyHub2025</span> needs to connect to our servers to load products, 
+            process orders, and manage your shopping experience.
+        </p>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="window.location.reload()">
+                <span>🔄</span> Try Again
+            </button>
+            <button class="btn btn-secondary" onclick="checkConnection()">
+                <span>📶</span> Check Connection
+            </button>
+        </div>
+
+        <!-- Tips Section -->
+        <div class="tips">
+            <h3>Quick Tips:</h3>
+            <ul>
+                <li>Check your WiFi or mobile data connection</li>
+                <li>Turn Airplane mode on and off</li>
+                <li>Restart your router if connected to WiFi</li>
+                <li>Move to an area with better signal</li>
+                <li>Some features may be limited until you're back online</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function checkConnection() {
+            if (navigator.onLine) {
+                window.location.reload();
+            } else {
+                alert('Still offline. Please check your internet connection and try again.');
+            }
+        }
+
+        // Auto-retry when connection is restored
+        window.addEventListener('online', () => {
+            const statusDot = document.querySelector('.status-dot');
+            const statusText = document.querySelector('.status span');
+            
+            statusDot.style.background = '#4CAF50';
+            statusDot.style.animation = 'none';
+            statusText.textContent = 'Connection restored! Reloading...';
+            
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        });
+
+        // Monitor connection status
+        setInterval(() => {
+            if (navigator.onLine) {
+                document.title = "BeautyHub2025 - Back Online!";
+            } else {
+                document.title = "BeautyHub2025 - Offline";
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
