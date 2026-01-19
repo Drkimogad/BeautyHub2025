@@ -11,7 +11,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
-    <script>
+<script>
     // Kill any existing service workers
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(registrations => {
@@ -21,24 +21,34 @@
             cacheNames.forEach(cacheName => caches.delete(cacheName));
         });
     }
-    </script>
-    <!-- ADD THIS OFFLINE DETECTION IMMEDIATELY -->
+</script>
+
+<!-- CRITICAL: IMMEDIATE OFFLINE DETECTION -->
 <script>
-    // IMMEDIATE OFFLINE DETECTION - RUNS BEFORE PAGE LOADS
-    (function() {
-        console.log('Index.html initial offline check:', navigator.onLine);
+    // RUNS IMMEDIATELY AS PAGE STARTS LOADING
+    console.log('🔍 Immediate offline check on index.html load');
+    
+    if (!navigator.onLine) {
+        console.log('🚫 OFFLINE DETECTED - Redirecting immediately');
         
-        if (!navigator.onLine) {
-            console.log('OFFLINE DETECTED ON LOAD - Redirecting to offline.html');
-            const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
-            const offlinePath = isGitHub ? '/BeautyHub2025/offline.html' : '/offline.html';
-            
-            // Force redirect immediately
-            window.stop(); // Stop loading the rest of the page
-            window.location.href = offlinePath + '?from=index&t=' + Date.now();
+        // Determine environment
+        const path = window.location.pathname;
+        const isGitHub = path.includes('/BeautyHub2025/');
+        const offlinePath = isGitHub ? '/BeautyHub2025/offline.html' : '/offline.html';
+        
+        // Add timestamp to prevent caching issues
+        const redirectUrl = offlinePath + '?from=index&t=' + Date.now();
+        
+        console.log('Redirecting to:', redirectUrl);
+        
+        // Stop loading current page and redirect
+        if (document.readyState === 'loading') {
+            window.stop(); // Stop loading rest of index.html
         }
-    })();
-</script>  
+        window.location.replace(redirectUrl);
+    }
+</script>
+    
     <!-- Your Firebase Config -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
