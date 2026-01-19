@@ -4,26 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
 <script>
-    // Clear any redirect parameters
-    if (window.location.search.includes('from=')) {
-        const cleanUrl = window.location.origin + window.location.pathname;
-        window.history.replaceState(null, '', cleanUrl);
+    // Clear redirect parameters
+    if (window.location.search) {
+        window.history.replaceState({}, '', window.location.pathname);
     }
     
-    // Function to go to main app
-    function goToMainApp() {
-        // Use replace to prevent back button issues
-        window.location.replace('index.html');
+    // Simple redirect back
+    function goToMain() {
+        console.log('Going back to main app...');
+        window.location.replace('index.html?online=' + Date.now());
     }
     
-    // Check connection on load
+    // Check immediately
     if (navigator.onLine) {
-        goToMainApp();
+        console.log('Already online, redirecting back');
+        goToMain();
     }
     
-    // Listen for online event
+    // Listen for online
     window.addEventListener('online', () => {
-        setTimeout(goToMainApp, 1000);
+        console.log('Back online!');
+        setTimeout(goToMain, 1000);
     });
 </script>
     <title>BeautyHub2025 - Offline</title>
