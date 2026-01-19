@@ -1,43 +1,4 @@
-// main.js - KEEP ONLY THIS at the top
-console.log('[Main] Starting BeautyHub2025...');
-
-// Only handle online->offline transitions during session
-// Initial offline detection is handled in index.html head
-
-// Listen for going offline during session
-window.addEventListener('offline', () => {
-    console.log('[Main] Connection lost during session, redirecting to offline page');
-    
-    if (!window.location.pathname.includes('offline.html')) {
-        // SIMPLE RELATIVE PATH - works everywhere
-        const offlinePath = 'offline.html';
-        window.location.href = offlinePath + '?from=session&t=' + Date.now();
-    }
-});
-
-// Handle coming back online (if on offline page)
-window.addEventListener('online', () => {
-    console.log('[Main] Back online event detected');
-    
-    if (window.location.pathname.includes('offline.html')) {
-        // Small delay to ensure stable connection
-        setTimeout(() => {
-            if (navigator.onLine) {
-                console.log('[Main] Redirecting back to main app');
-                // SIMPLE RELATIVE PATH BACK - works everywhere
-                const homePage = 'index.html';
-                window.location.replace(homePage + '?online=' + Date.now());
-            }
-        }, 1000);
-    }
-});
-
-// Remove the duplicate checks at the top of main.js
-// Remove these lines:
-// if (!navigator.onLine && !window.location.pathname.includes('offline.html')) { ... }
-// if (!navigator.onLine && !window.location.pathname.includes('offline.html')) { ... }
-
-//=========================Code starts here=========================
+// main.js - clean version
 const AppManager = (function() {
     
     // ===== MAIN INITIALIZATION =====
@@ -336,6 +297,6 @@ try {
 // ===== DELAYED SETUP =====
 window.addEventListener('load', () => {
     console.log('[Main] Window Loaded - App fully loaded');
-});
+ });
 
 
