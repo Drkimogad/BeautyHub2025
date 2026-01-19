@@ -11,6 +11,43 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
+    <script>
+    console.log('=== OFFLINE PATH DEBUG ===');
+    console.log('1. Current path:', window.location.pathname);
+    console.log('2. Full URL:', window.location.href);
+    console.log('3. navigator.onLine:', navigator.onLine);
+    
+    // Test offline.html path
+    const testPaths = [
+        '/BeautyHub2025/offline.html',
+        '/offline.html',
+        'offline.html',
+        './offline.html'
+    ];
+    
+    console.log('4. Testing paths:');
+    testPaths.forEach(path => {
+        const fullUrl = new URL(path, window.location.origin);
+        console.log(`   - ${path} -> ${fullUrl.href}`);
+    });
+    
+    // Force test redirect
+    if (!navigator.onLine) {
+        console.log('5. OFFLINE - Testing redirect...');
+        
+        // Try each path until one works
+        for (let path of testPaths) {
+            console.log(`   Trying: ${path}`);
+            const testUrl = new URL(path, window.location.origin).href;
+            
+            // Test if file exists (in a simple way)
+            const testLink = document.createElement('a');
+            testLink.href = testUrl;
+            console.log(`   Constructed URL: ${testLink.href}`);
+        }
+    }
+    console.log('=== END DEBUG ===');
+</script>
 <!-- CRITICAL: IMMEDIATE OFFLINE DETECTION -->
 <script>
     // RUNS IMMEDIATELY AS PAGE STARTS LOADING
