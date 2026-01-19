@@ -426,6 +426,20 @@
     </div>
 
 <script>
+    // In offline.html script, add at the top:
+console.log('offline.html loaded at:', new Date().toISOString());
+console.log('navigator.onLine:', navigator.onLine);
+console.log('Referrer:', document.referrer);
+
+// Log if we immediately bounce
+let loadTime = Date.now();
+window.addEventListener('beforeunload', () => {
+    const timeOnPage = Date.now() - loadTime;
+    console.log('Leaving offline.html after', timeOnPage, 'ms');
+    if (timeOnPage < 1000) {
+        console.warn('QUICK BOUNCE DETECTED - Possible cached redirect');
+    }
+});
     // Function to go to main app
     function goToMainApp() {
         const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
