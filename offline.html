@@ -475,6 +475,16 @@
             goToMainApp();
         }
     }, 3000);
+    // At the end of your script, add:
+// Final safety net - if still on offline.html after 10 seconds when online
+setTimeout(() => {
+    if (navigator.onLine && window.location.pathname.includes('offline.html')) {
+        console.log('Safety net: Force redirect after timeout');
+        const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
+        const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
+        window.location.href = homePage;
+    }
+}, 10000);
 </script>
 </body>
 </html>
