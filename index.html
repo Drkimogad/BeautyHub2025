@@ -22,6 +22,23 @@
         });
     }
     </script>
+    <!-- ADD THIS OFFLINE DETECTION IMMEDIATELY -->
+<script>
+    // IMMEDIATE OFFLINE DETECTION - RUNS BEFORE PAGE LOADS
+    (function() {
+        console.log('Index.html initial offline check:', navigator.onLine);
+        
+        if (!navigator.onLine) {
+            console.log('OFFLINE DETECTED ON LOAD - Redirecting to offline.html');
+            const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
+            const offlinePath = isGitHub ? '/BeautyHub2025/offline.html' : '/offline.html';
+            
+            // Force redirect immediately
+            window.stop(); // Stop loading the rest of the page
+            window.location.href = offlinePath + '?from=index&t=' + Date.now();
+        }
+    })();
+</script>
     
     <!-- Your Firebase Config -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
