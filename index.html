@@ -208,17 +208,48 @@
     </script>
 
 <script>
-    // SERVICE WORKER REGISTRATION
+    // UNIVERSAL SERVICE WORKER REGISTRATION
+    // Works on GitHub Pages AND Firebase Hosting
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js')
-                .then(registration => {
-                    console.log('SW registered:', registration);
+        window.addEventListener('load', function() {
+            // Get the correct scope for current environment
+            const path = window.location.pathname;
+            let scope = '/';
+            
+            // If on GitHub Pages with project path
+            if (path.includes('/BeautyHub2025/')) {
+                scope = '/BeautyHub2025/';
+            }
+            
+            console.log('Registering SW with scope:', scope);
+            
+            navigator.serviceWorker.register('sw.js', { scope: scope })
+                .then(function(registration) {
+                    console.log('SW registered successfully:', registration.scope);
+                    
+                    // Check for updates
+                    registration.update();
+                    
+                    // Force activation
+                    if (registration.waiting) {
+                        registration.waiting.postMessage({type: 'SKIP_WAITING'});
+                    }
                 })
-                .catch(error => {
+                .catch(function(error) {
                     console.log('SW registration failed:', error);
+                    
+                    // Fallback to JavaScript offline detection
+                    if (!navigator.onLine) {
+                        window.location.href = 'offline.html?from=sw_failed';
+                    }
                 });
         });
+    } else {
+        console.log('Service Worker not supported, using fallback');
+        // Fallback for browsers without SW support
+        if (!navigator.onLine && !window.location.pathname.includes('offline.html')) {
+            window.location.href = 'offline.html?from=no_sw';
+        }
     }
 </script>
 
