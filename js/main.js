@@ -9,8 +9,8 @@ window.addEventListener('offline', () => {
     console.log('[Main] Connection lost during session, redirecting to offline page');
     
     if (!window.location.pathname.includes('offline.html')) {
-        const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
-        const offlinePath = isGitHub ? '/BeautyHub2025/offline.html' : '/offline.html';
+        // SIMPLE RELATIVE PATH - works everywhere
+        const offlinePath = 'offline.html';
         window.location.href = offlinePath + '?from=session&t=' + Date.now();
     }
 });
@@ -24,8 +24,8 @@ window.addEventListener('online', () => {
         setTimeout(() => {
             if (navigator.onLine) {
                 console.log('[Main] Redirecting back to main app');
-                const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
-                const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
+                // SIMPLE RELATIVE PATH BACK - works everywhere
+                const homePage = 'index.html';
                 window.location.replace(homePage + '?online=' + Date.now());
             }
         }, 1000);
