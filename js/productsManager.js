@@ -478,7 +478,9 @@ const calculatedPrice = discountPercent > 0
             return null;
         }
     }
-    
+//===============================================
+    //UPDATE PRODUCTS
+//==========================================
     async function updateProduct(productId, updateData) {
         try {
             console.log('[ProductsManager] Updating product:', productId, updateData);
@@ -542,10 +544,22 @@ const calculatedPrice = discountPercent > 0
                 firestore: firestoreSuccess ? 'success' : 'failed',
                 local: 'success'
             });
-            
+            // ========== ADD SUCCESS NOTIFICATION ==========
+if (typeof window.showDashboardNotification === 'function') {
+    window.showDashboardNotification('Product updated successfully!', 'success');
+}
+
+// ========== REFRESH DASHBOARD ==========
+if (typeof window.refreshDashboardOrders === 'function') {
+    window.refreshDashboardOrders();
+}
+// ========== END ADDITIONS ==========
             return true;
         } catch (error) {
             console.error('[ProductsManager] Error updating product:', error);
+            if (typeof window.showDashboardNotification === 'function') {
+    window.showDashboardNotification('Product updatng failed!', 'error');
+}
             return false;
         }
     }
