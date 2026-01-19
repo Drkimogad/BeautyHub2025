@@ -1,14 +1,25 @@
 // main.js - KEEP ONLY THIS at the top
-
 console.log('[Main] Starting BeautyHub2025...');
 
-// main.js at the top
-// Initial offline check
+// Add unique parameter to prevent cached redirects
 if (!navigator.onLine && !window.location.pathname.includes('offline.html')) {
     const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
     const offlinePath = isGitHub ? '/BeautyHub2025/offline.html' : '/offline.html';
-    window.location.href = offlinePath;
+    window.location.href = offlinePath + '?offline=' + Date.now();
 }
+
+// Add a small delay to ensure we're really offline
+if (!navigator.onLine && !window.location.pathname.includes('offline.html')) {
+    setTimeout(() => {
+        // Check again after delay
+        if (!navigator.onLine && !window.location.pathname.includes('offline.html')) {
+            const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
+            const offlinePath = isGitHub ? '/BeautyHub2025/offline.html' : '/offline.html';
+            window.location.href = offlinePath + '?t=' + Date.now();
+        }
+    }, 500); // 0.5 second delay
+}
+
 // Listen for going offline during session
 window.addEventListener('offline', () => {
     console.log('[Main] Connection lost, redirecting to offline page');
@@ -40,6 +51,7 @@ setInterval(() => {
         window.location.replace(homePage);
     }
 }, 5000);
+
 //=========================Code starts here=========================
 const AppManager = (function() {
     
