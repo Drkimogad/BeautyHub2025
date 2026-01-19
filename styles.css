@@ -2019,6 +2019,8 @@ header {
 /* Product Admin Card */
 .product-admin-card {
     background: white;
+    height: auto !important; /* Remove fixed height */
+    min-height: auto !important; /* Or set to min-content */
     border: 2px solid #f0f0f0;
     border-radius: 12px;
     padding: 1rem;
@@ -5887,9 +5889,10 @@ header {
 
 .product-admin-card {
     background: white;
+    height: auto !important; /* Remove fixed height */
+    min-height: auto !important; /* Or set to min-content */
     border-radius: 8px;
     border: 1px solid #e0e0e0;
-  /*  overflow: hidden;*/
     position: relative;
     transition: transform 0.2s, box-shadow 0.2s;
 }
