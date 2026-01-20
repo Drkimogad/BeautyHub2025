@@ -1,4 +1,11 @@
 // main.js - clean version
+// Listen for going offline DURING SESSION
+window.addEventListener('offline', () => {
+    if (!window.location.pathname.includes('offline.html')) {
+        window.location.href = 'offline.html?from=session';
+    }
+});
+//===============================================
 const AppManager = (function() {
     
     // ===== MAIN INITIALIZATION =====
