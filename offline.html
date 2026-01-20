@@ -431,10 +431,9 @@
         }
         
         // Function to go back
-        function goToMain() {
-    // ALWAYS use relative path - works for both GitHub and Firebase
-    const mainPath = 'index.html';
-    window.location.replace(mainPath + '?online=' + Date.now());
+   function goToMain() {
+    // Add timestamp to bypass cache
+    window.location.href = 'index.html?online=' + Date.now();
 }
         
         // Simple button function
