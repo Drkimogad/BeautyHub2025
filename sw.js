@@ -1,5 +1,5 @@
 // sw.js - Service Worker for BeautyHub2025
-const CACHE_NAME = 'beautyhub-v2.5';
+const CACHE_NAME = 'beautyhub-v2.6';
 const OFFLINE_PAGE = 'offline.html';
 // Auto-detect environment based on current URL
 function detectEnvironment() {
@@ -101,93 +101,45 @@ self.addEventListener('install', event => {
     );
 });
 
-// Fetch event - Smart caching strategy
+// Fetch event - SIMPLE FIXED VERSION
 self.addEventListener('fetch', event => {
     const request = event.request;
     const url = new URL(request.url);
     
-    // FIX: Let offline.html requests pass through - DON'T intercept them
-    if (url.pathname.includes('offline.html')) {
-         // Serve offline.html FROM CACHE, don't try to fetch it
-       event.respondWith(caches.match(OFFLINE_PAGE));
-        return; // Let browser handle offline.html normally
-    }
+    // Only handle navigation requests
+    if (request.mode !== 'navigate') return;
     
-    // Skip non-GET requests
-    if (request.method !== 'GET') return;
+    // Don't intercept offline.html
+    if (url.pathname.includes('offline.html')) return;
     
-    // Handle different types of requests
     event.respondWith(
         (async () => {
-            // Try cache first for HTML navigation
-            if (request.mode === 'navigate') {
-                try {
-                    const cachedResponse = await caches.match(request);
-                    if (cachedResponse) {
-                        console.log('🏠 Serving from cache:', url.pathname);
-                        return cachedResponse;
-                    }
-                    
-                    // Try network for HTML
-                    const networkResponse = await fetch(request);
-                    if (networkResponse.ok) {
-                        // Cache the new page
-                        const cache = await caches.open(CACHE_NAME);
-                        cache.put(request, networkResponse.clone());
-                        return networkResponse;
-                    }
-                } catch (error) {
-                    console.log('📵 Offline - serving offline page');
-                    const offlinePage = await caches.match(getEnvPath(OFFLINE_PAGE));
-if (offlinePage) {
-    return offlinePage;
-} else {
-    return new Response(
-        '<h1>Offline</h1><p>Please check your internet connection.</p>',
-        { headers: { 'Content-Type': 'text/html' } }
-    );
-}                }
-            }
-            
-            // For other assets (JS, CSS, images)
             try {
-                // Try cache first
-                const cachedResponse = await caches.match(request);
-                if (cachedResponse) {
-                    return cachedResponse;
+                // Try to fetch from network
+                const response = await fetch(request);
+                
+                // Cache successful responses
+                if (response.ok) {
+                    const cache = await caches.open(CACHE_NAME);
+                    cache.put(request, response.clone());
                 }
                 
-                // Try network
-               // Try network for HTML with timeout
-try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
-    const networkResponse = await fetch(request, {
-        signal: controller.signal
-    });
-    
-    clearTimeout(timeoutId);
-    
-    if (networkResponse.ok) {
-        const cache = await caches.open(CACHE_NAME);
-        cache.put(request, networkResponse.clone());
-        return networkResponse;
-    }
-} catch (error) {
-    console.log('📵 Network failed, serving offline page');
-    // Serve offline.html immediately
-    const offlinePage = await caches.match(OFFLINE_PAGE);
-    if (offlinePage) return offlinePage;
-}
+                return response;
+            } catch (error) {
+                // Network failed - serve offline.html
+                console.log('SW: Offline, serving offline.html');
                 
-                // For missing images, return placeholder
-                if (url.pathname.match(/\.(jpg|jpeg|png|gif)$/)) {
-                    return caches.match(getEnvPath('gallery/placeholder.jpg'));
+                // Try to get offline.html from cache
+                const offlinePage = await caches.match(OFFLINE_PAGE);
+                if (offlinePage) {
+                    return offlinePage;
                 }
                 
-                // Otherwise, throw the error
-                throw error;
+                // Last resort: create offline page
+                return new Response(
+                    '<h1>Offline</h1><p>Please check your internet connection.</p>',
+                    { headers: { 'Content-Type': 'text/html' } }
+                );
             }
         })()
     );
