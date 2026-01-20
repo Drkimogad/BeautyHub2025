@@ -38,7 +38,7 @@ window.showOfflineAlert = function() {
             align-items: center;
         ">
             ⚠️ You are offline. Some features may not work.
-            <button onclick="goToOfflinePage()" style="            
+            <button onclick="showOfflinePage()" style="            
                 margin-left: 15px;
                 background: white;
                 color: #ff4444;
@@ -73,9 +73,27 @@ window.hideOfflineAlert = function() {
         }, 500);
     }
 };
-// Add this function:
-window.goToOfflinePage = function() {
-    window.location.href = 'offline.html?from=' + Date.now();
+
+// Add this function to show the offlin.html when the button is clicked
+window.showOfflinePage = function() {
+    // Get offline.html from cache and display it
+    caches.match('/BeautyHub2025/offline.html') // try offline.html 
+        .then(response => {
+            if (response) {
+                return response.text();
+            }
+            throw new Error('Offline page not in cache');
+        })
+        .then(html => {
+            // Replace entire page with offline.html
+            document.open();
+            document.write(html);
+            document.close();
+        })
+        .catch(err => {
+            console.error('Failed to show offline page:', err);
+            alert('Offline page not available');
+        });
 };
 
 //===============================================
