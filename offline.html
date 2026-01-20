@@ -2,31 +2,55 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-<script>
-    // Clear redirect parameters
-    if (window.location.search) {
-        window.history.replaceState({}, '', window.location.pathname);
-    }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    // Simple redirect back
-    function goToMain() {
-        console.log('Going back to main app...');
-        window.location.replace('index.html?online=' + Date.now());
-    }
-    
-    // Check immediately
-    if (navigator.onLine) {
-        console.log('Already online, redirecting back');
-        goToMain();
-    }
-    
-    // Listen for online
-    window.addEventListener('online', () => {
-        console.log('Back online!');
-        setTimeout(goToMain, 1000);
-    });
-</script>
+    <script>
+        // OFFLINE.HTML - CLEANED UP SCRIPT
+        (function() {
+            // Clear redirect parameters to prevent loops
+            if (window.location.search) {
+                window.history.replaceState({}, '', window.location.pathname);
+            }
+            
+            // Function to go back to main app
+            function goToMain() {
+                console.log('Going back to main app...');
+                
+                // Determine correct path based on current location
+                let mainPath = 'index.html';
+                if (window.location.pathname.includes('/BeautyHub2025/')) {
+                    mainPath = '/BeautyHub2025/index.html';
+                }
+                
+                window.location.replace(mainPath + '?online=' + Date.now());
+            }
+            
+            // Function for manual connection check (used by buttons)
+            function checkConnection() {
+                if (navigator.onLine) {
+                    goToMain();
+                } else {
+                    alert('Still offline. Please check your internet connection.');
+                }
+            }
+            
+            // Make checkConnection available globally for button onclick
+            window.checkConnection = checkConnection;
+            
+            // Check immediately on load
+            if (navigator.onLine) {
+                console.log('Already online, redirecting back');
+                goToMain();
+            }
+            
+            // Listen for coming back online
+            window.addEventListener('online', () => {
+                console.log('Back online!');
+                setTimeout(goToMain, 1000);
+            });
+            
+        })();
+    </script>
     <title>BeautyHub2025 - Offline</title>
     <style>
         /* ===== GLOBAL STYLES ===== */
