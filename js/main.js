@@ -75,13 +75,7 @@ window.hideOfflineAlert = function() {
 };
 // Add this function:
 window.goToOfflinePage = function() {
-    console.log('Going to offline page...');
-    
-    // ALWAYS use relative path - works for both GitHub and Firebase
-    const offlinePath = 'offline.html';
-    
-    // Use replace() to prevent back button issues
-    window.location.replace(offlinePath + '?from=banner&t=' + Date.now());
+    window.location.href = 'offline.html?from=' + Date.now();
 };
 
 //===============================================
