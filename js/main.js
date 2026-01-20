@@ -5,6 +5,75 @@ window.addEventListener('offline', () => {
         window.location.href = 'offline.html?from=session';
     }
 });
+// ===== OFFLINE DETECTION =====
+function checkConnectionAndRedirect() {
+    if (!navigator.onLine) {
+        console.log('[AppManager] Offline detected on load');
+        // Check if we're already on offline page
+        if (window.location.pathname !== '/offline.html' && 
+            window.location.pathname !== '/BeautyHub2025/offline.html') {
+            // Redirect to offline page
+            window.location.href = 'offline.html';
+            return true; // Stop further execution
+        }
+    }
+    return false;
+}
+
+// Check immediately when page loads
+if (checkConnectionAndRedirect()) {
+    // Stop all other initialization
+    throw new Error('Offline - redirecting');
+}
+
+// Also listen for going offline while the app is running
+window.addEventListener('offline', () => {
+    console.log('[AppManager] Went offline during session');
+    // Show a notification or modal instead of redirect
+    if (typeof window.showOfflineAlert === 'function') {
+        window.showOfflineAlert();
+    }
+});
+// Show offline alert banner
+window.showOfflineAlert = function() {
+    const alertDiv = document.createElement('div');
+    alertDiv.id = 'offline-alert';
+    alertDiv.innerHTML = `
+        <div style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #ff4444;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            z-index: 9999;
+            font-weight: bold;
+        ">
+            ⚠️ You are offline. Some features may not work.
+            <button onclick="location.href='offline.html'" style="
+                margin-left: 15px;
+                background: white;
+                color: #ff4444;
+                border: none;
+                padding: 5px 15px;
+                border-radius: 3px;
+                cursor: pointer;
+            ">
+                View Offline Page
+            </button>
+        </div>
+    `;
+    document.body.appendChild(alertDiv);
+    
+    // Auto-hide after 10 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 10000);
+};
 //===============================================
 const AppManager = (function() {
     
