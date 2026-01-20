@@ -422,8 +422,8 @@
         </div>
     </div>
     
-    <script>
-    // SINGLE CLEAN SCRIPT FOR OFFLINE.HTML
+<script>
+    // OFFLINE.HTML - FIXED FOR SW
     (function() {
         // Clear redirect parameters
         if (window.location.search) {
@@ -433,35 +433,41 @@
         // Function to go back to main app
         function goToMain() {
             console.log('Going back to main app...');
-            let mainPath = 'index.html';
-            if (window.location.pathname.includes('/BeautyHub2025/')) {
-                mainPath = '/BeautyHub2025/index.html';
-            }
-            window.location.replace(mainPath + '?online=' + Date.now());
+            
+            // Force a NETWORK fetch to check real connectivity
+            fetch('https://www.google.com/favicon.ico', { 
+                mode: 'no-cors',
+                cache: 'no-store' 
+            })
+            .then(() => {
+                // REAL internet - redirect
+                let mainPath = 'index.html';
+                if (window.location.pathname.includes('/BeautyHub2025/')) {
+                    mainPath = '/BeautyHub2025/index.html';
+                }
+                window.location.replace(mainPath + '?online=' + Date.now());
+            })
+            .catch(() => {
+                // Still offline - stay here
+                console.log('Still actually offline despite page loading');
+            });
         }
         
         // Function for button clicks
         function checkConnection() {
-            if (navigator.onLine) {
-                goToMain();
-            } else {
-                alert('Still offline. Please check your connection.');
-            }
+            goToMain(); // Use the same reliable check
         }
         
         // Make available for buttons
         window.checkConnection = checkConnection;
         
-        // Auto-redirect if already online
-        if (navigator.onLine) {
-            console.log('Already online, redirecting back');
-            goToMain();
-        }
+        // Don't auto-redirect on load - wait for user or real online event
+        // Remove: if (navigator.onLine) { goToMain(); }
         
-        // Listen for online event
+        // Listen for online event with REAL check
         window.addEventListener('online', () => {
-            console.log('Back online!');
-            setTimeout(goToMain, 1000);
+            console.log('online event - checking real connection...');
+            setTimeout(goToMain, 1000); // Delay to ensure stable connection
         });
         
     })();
