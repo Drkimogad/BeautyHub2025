@@ -1,143 +1,117 @@
-// sw.js - Service Worker for BeautyHub2025
-const CACHE_NAME = 'beautyhub-v2.6';
-const OFFLINE_PAGE = 'offline.html';
-// Auto-detect environment based on current URL
-function detectEnvironment() {
-    const pathname = self.location.pathname;
-    
-    if (pathname.includes('/BeautyHub2025/')) {
-        console.log('🌐 Detected GitHub Pages environment');
-        return {
-            root: '/BeautyHub2025/',
-            isGitHub: true
-        };
-    } else {
-        console.log('🔥 Detected Firebase Hosting environment');
-        return {
-            root: '/',
-            isGitHub: false
-        };
-    }
-}
+// sw.js - Service Worker for BeautyHub2025 (FIXED)
+const CACHE_NAME = 'beautyhub-v2.8';
 
-const ENV = detectEnvironment();
+// Determine environment
+const isGitHub = self.location.pathname.includes('/BeautyHub2025/');
+const ROOT_PATH = isGitHub ? '/BeautyHub2025/' : '/';
 
-// Helper to get correct path for current environment
-function getEnvPath(url) {
-    // For external URLs, use as-is
-    if (url.startsWith('http')) return url;
-    
-    // For GitHub Pages, prepend the root path
-    if (ENV.isGitHub && !url.startsWith(ENV.root)) {
-        // Remove leading slash if present, then add environment root
-        const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
-        return ENV.root + cleanUrl;
-    }
-    
-    // For Firebase or already correct paths
-    return url;
-}
+console.log('🌐 SW Environment:', { isGitHub, root: ROOT_PATH });
 
-// Core assets to cache
+// Core assets with CORRECT ABSOLUTE PATHS for SW
 const CORE_ASSETS = [
-    // HTML
-    'index.html',
-    'offline.html',
+    // HTML - ABSOLUTE paths for SW
+    ROOT_PATH + 'index.html',
+    ROOT_PATH + 'offline.html',
     
-    // Core CSS/JS
-    'styles.css',
-    'js/main.js',
-    'js/cart.js',
-    'js/ordersManager.js',
-    'js/productsManager.js',
-    'js/inventoryManager.js',
-    'js/products.js',
-    'js/customerSearch.js',
-    'js/customerorder.js',
-    'js/admin.js',
+    // Core CSS/JS - ABSOLUTE paths
+    ROOT_PATH + 'styles.css',
+    ROOT_PATH + 'js/main.js',
+    ROOT_PATH + 'js/cart.js',
+    ROOT_PATH + 'js/ordersManager.js',
+    ROOT_PATH + 'js/productsManager.js',
+    ROOT_PATH + 'js/inventoryManager.js',
+    ROOT_PATH + 'js/products.js',
+    ROOT_PATH + 'js/customerSearch.js',
+    ROOT_PATH + 'js/customerorder.js',
+    ROOT_PATH + 'js/admin.js',
     
     // Manifest
-    'manifest.json',
+    ROOT_PATH + 'manifest.json',
     
     // Icons
-    'icons/icon-192x192.png',
-    'icons/icon-512x512.png',
-    'favicon.ico',
+    ROOT_PATH + 'icons/icon-192x192.png',
+    ROOT_PATH + 'icons/icon-512x512.png',
+    ROOT_PATH + 'favicon.ico',
     
     // Gallery images
-    'gallery/lashes.jpg',
-    'gallery/perfumes.jpg',    
-    'gallery/wigs.jpg',
-    'gallery/skincare.jpg',
-    'gallery/herobanner.jpg'
-    
-    // External dependencies (cached for offline use)
-    //'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
+    ROOT_PATH + 'gallery/lashes.jpg',
+    ROOT_PATH + 'gallery/perfumes.jpg',    
+    ROOT_PATH + 'gallery/wigs.jpg',
+    ROOT_PATH + 'gallery/skincare.jpg',
+    ROOT_PATH + 'gallery/herobanner.jpg'
 ];
 
 // Install event - Cache core assets
 self.addEventListener('install', event => {
-    console.log('🚀 Service Worker installing for:', ENV.root);
+    console.log('🚀 SW installing for:', ROOT_PATH);
     
     event.waitUntil(
         (async () => {
             const cache = await caches.open(CACHE_NAME);
             
-            // Cache core assets with error handling
+            // Cache each asset individually (as per your notes)
             for (const url of CORE_ASSETS) {
                 try {
-                    const fullUrl = getEnvPath(url);
-                    await cache.add(new Request(fullUrl, { mode: 'no-cors' }));
-                    console.log('✅ Cached:', fullUrl);
+                    // Use same-origin requests for local assets
+                    const request = new Request(url, {
+                        mode: 'same-origin',
+                        credentials: 'include'
+                    });
+                    
+                    await cache.add(request);
+                    console.log('✅ Cached:', url);
                 } catch (err) {
-                    console.warn('⚠️ Failed to cache:', url, err);
+                    console.warn('⚠️ Failed to cache:', url, err.message);
+                    // Continue caching other files (graceful degradation)
                 }
             }
             
-            // Skip waiting to activate immediately
+            // Force activation
             self.skipWaiting();
-            console.log('✅ Service Worker installed');
+            console.log('✅ SW installed successfully');
         })()
     );
 });
 
-// Fetch event - SIMPLE FIXED VERSION
+// Fetch event - Simple and reliable
 self.addEventListener('fetch', event => {
     const request = event.request;
     const url = new URL(request.url);
     
-    // Only handle navigation requests
+    // Only handle navigation requests (HTML pages)
     if (request.mode !== 'navigate') return;
     
-    // Don't intercept offline.html
+    // Don't handle offline.html - let browser fetch it normally
     if (url.pathname.includes('offline.html')) return;
     
     event.respondWith(
         (async () => {
             try {
-                // Try to fetch from network
-                const response = await fetch(request);
+                // Try network first
+                const networkResponse = await fetch(request);
                 
-                // Cache successful responses
-                if (response.ok) {
+                // Cache successful responses for future offline use
+                if (networkResponse.ok) {
                     const cache = await caches.open(CACHE_NAME);
-                    cache.put(request, response.clone());
+                    cache.put(request, networkResponse.clone());
                 }
                 
-                return response;
+                return networkResponse;
             } catch (error) {
-                // Network failed - serve offline.html
-                console.log('SW: Offline, serving offline.html');
+                // Network failed - we're offline
+                console.log('📵 Offline detected, serving offline page');
                 
-                // Try to get offline.html from cache
-                const offlinePage = await caches.match(OFFLINE_PAGE);
-                if (offlinePage) {
-                    return offlinePage;
+                // Try to serve offline.html from cache
+                const offlineUrl = ROOT_PATH + 'offline.html';
+                const cachedResponse = await caches.match(offlineUrl);
+                
+                if (cachedResponse) {
+                    return cachedResponse;
                 }
                 
-                // Last resort: create offline page
+                // Last resort
                 return new Response(
-                    '<h1>Offline</h1><p>Please check your internet connection.</p>',
+                    '<h1>Offline</h1><p>Please check your connection.</p>',
                     { headers: { 'Content-Type': 'text/html' } }
                 );
             }
@@ -145,9 +119,9 @@ self.addEventListener('fetch', event => {
     );
 });
 
-// Activate event - Cleanup
+// Activate event
 self.addEventListener('activate', event => {
-    console.log('🔄 Service Worker activating...');
+    console.log('🔄 SW activating...');
     
     event.waitUntil(
         (async () => {
@@ -162,16 +136,9 @@ self.addEventListener('activate', event => {
                 })
             );
             
-            // Take control immediately
+            // Take control of all clients
             await self.clients.claim();
-            console.log('✅ Service Worker activated');
+            console.log('✅ SW activated and controlling clients');
         })()
     );
-});
-
-// Handle messages from app
-self.addEventListener('message', event => {
-    if (event.data && event.data.action === 'skipWaiting') {
-        self.skipWaiting();
-    }
 });
