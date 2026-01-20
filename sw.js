@@ -1,5 +1,5 @@
 // sw.js - Service Worker for BeautyHub2025 (FIXED)
-const CACHE_NAME = 'beautyhub-v2.8';
+const CACHE_NAME = 'beautyhub-v2.9';
 
 // Determine environment
 const isGitHub = self.location.pathname.includes('/BeautyHub2025/');
@@ -78,11 +78,15 @@ self.addEventListener('fetch', event => {
     const request = event.request;
     const url = new URL(request.url);
     
-    // Only handle navigation requests (HTML pages)
-    if (request.mode !== 'navigate') return;
+    // Only handle HTML/JS/CSS requests
+    if (!request.url.includes(self.location.origin)) return;
     
     // Don't handle offline.html - let browser fetch it normally
     if (url.pathname.includes('offline.html')) return;
+    
+    // Don't handle admin/data requests
+    if (request.url.includes('/admin.html') || 
+        request.url.includes('/data/')) return;
     
     event.respondWith(
         (async () => {
@@ -90,7 +94,7 @@ self.addEventListener('fetch', event => {
                 // Try network first
                 const networkResponse = await fetch(request);
                 
-                // Cache successful responses for future offline use
+                // Cache successful responses
                 if (networkResponse.ok) {
                     const cache = await caches.open(CACHE_NAME);
                     cache.put(request, networkResponse.clone());
@@ -99,21 +103,32 @@ self.addEventListener('fetch', event => {
                 return networkResponse;
             } catch (error) {
                 // Network failed - we're offline
-                console.log('📵 Offline detected, serving offline page');
+                console.log('📵 Offline detected:', request.url);
                 
-                // Try to serve offline.html from cache
-                const offlineUrl = ROOT_PATH + 'offline.html';
-                const cachedResponse = await caches.match(offlineUrl);
-                
+                // Try cache first for everything
+                const cachedResponse = await caches.match(request);
                 if (cachedResponse) {
+                    console.log('✅ Serving from cache:', request.url);
                     return cachedResponse;
                 }
                 
-                // Last resort
-                return new Response(
-                    '<h1>Offline</h1><p>Please check your connection.</p>',
-                    { headers: { 'Content-Type': 'text/html' } }
-                );
+                // If it's an HTML request, serve offline.html
+                if (request.headers.get('Accept')?.includes('text/html') ||
+                    request.destination === 'document') {
+                    console.log('📄 HTML request, serving offline.html');
+                    const offlineUrl = ROOT_PATH + 'offline.html';
+                    const offlineResponse = await caches.match(offlineUrl);
+                    
+                    if (offlineResponse) {
+                        return offlineResponse;
+                    }
+                }
+                
+                // Last resort for other assets
+                return new Response('Offline', { 
+                    status: 408,
+                    statusText: 'Network Error' 
+                });
             }
         })()
     );
