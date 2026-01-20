@@ -1,5 +1,5 @@
 // sw.js - Service Worker for BeautyHub2025 (FIXED)
-const CACHE_NAME = 'beautyhub-v2.9';
+const CACHE_NAME = 'beautyhub-v3.0';
 
 // Determine environment
 const isGitHub = self.location.pathname.includes('/BeautyHub2025/');
@@ -82,7 +82,10 @@ self.addEventListener('fetch', event => {
     if (!request.url.includes(self.location.origin)) return;
     
     // Don't handle offline.html - let browser fetch it normally
-    if (url.pathname.includes('offline.html')) return;
+   // if (url.pathname.includes('offline.html')) return;
+    // Skip when the REQUEST is for offline.html itself
+    if (request.url.includes('offline.html')) return;
+
     
     // Don't handle admin/data requests
     if (request.url.includes('/admin.html') || 
