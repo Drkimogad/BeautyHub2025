@@ -158,23 +158,28 @@ if (offlinePage) {
                 }
                 
                 // Try network
-                const networkResponse = await fetch(request);
-                
-                // Cache successful responses (except external analytics, etc.)
-                if (networkResponse.ok && url.origin === self.location.origin) {
-                    const cache = await caches.open(CACHE_NAME);
-                    cache.put(request, networkResponse.clone());
-                }
-                
-                return networkResponse;
-            } catch (error) {
-                console.log('⚠️ Network failed, checking cache:', url.pathname);
-                
-                // For CSS/JS/Image requests, return cache if available
-                const cachedResponse = await caches.match(request);
-                if (cachedResponse) {
-                    return cachedResponse;
-                }
+               // Try network for HTML with timeout
+try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
+    const networkResponse = await fetch(request, {
+        signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (networkResponse.ok) {
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(request, networkResponse.clone());
+        return networkResponse;
+    }
+} catch (error) {
+    console.log('📵 Network failed, serving offline page');
+    // Serve offline.html immediately
+    const offlinePage = await caches.match(OFFLINE_PAGE);
+    if (offlinePage) return offlinePage;
+}
                 
                 // For missing images, return placeholder
                 if (url.pathname.match(/\.(jpg|jpeg|png|gif)$/)) {
