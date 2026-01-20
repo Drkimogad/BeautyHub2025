@@ -3,90 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <script>
-        // OFFLINE.HTML - CLEANED UP SCRIPT
-        (function() {
-            // Clear redirect parameters to prevent loops
-            if (window.location.search) {
-                window.history.replaceState({}, '', window.location.pathname);
-            }
-            
-            // Function to go back to main app
-            function goToMain() {
-                console.log('Going back to main app...');
-                
-                // Determine correct path based on current location
-                let mainPath = 'index.html';
-                if (window.location.pathname.includes('/BeautyHub2025/')) {
-                    mainPath = '/BeautyHub2025/index.html';
-                }
-                
-                window.location.replace(mainPath + '?online=' + Date.now());
-            }
-            
-            // Function for manual connection check (used by buttons)
-            function checkConnection() {
-                if (navigator.onLine) {
-                    goToMain();
-                } else {
-                    alert('Still offline. Please check your internet connection.');
-                }
-            }
-            
-            // Make checkConnection available globally for button onclick
-            window.checkConnection = checkConnection;
-            
-            // Check immediately on load
-            if (navigator.onLine) {
-                console.log('Already online, redirecting back');
-                goToMain();
-            }
-            
-            // Listen for coming back online
-            window.addEventListener('online', () => {
-                console.log('Back online!');
-                setTimeout(goToMain, 1000);
-            });     
-        })();
-        <script>
-    function checkConnection() {
-        if (navigator.onLine) {
-            const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
-            const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
-            window.location.replace(homePage);
-        } else {
-            alert('Still offline. Please check your internet connection and try again.');
-        }
-    }
-
-    // Auto-retry when connection is restored
-    window.addEventListener('online', () => {
-        const statusDot = document.querySelector('.status-dot');
-        const statusText = document.querySelector('.status span');
-        
-        statusDot.style.background = '#4CAF50';
-        statusDot.style.animation = 'none';
-        statusText.textContent = 'Connection restored! Redirecting...';
-        
-        setTimeout(() => {
-            const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
-            const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
-            window.location.replace(homePage);
-        }, 1500);
-    });
-
-    // Force redirect if still on offline page when online
-    setInterval(() => {
-        if (navigator.onLine && window.location.pathname.includes('offline.html')) {
-            console.log('Still on offline page but online - forcing redirect');
-            const isGitHub = window.location.pathname.includes('/BeautyHub2025/');
-            const homePage = isGitHub ? '/BeautyHub2025/index.html' : '/index.html';
-            window.location.replace(homePage);
-        }
-    }, 5000);
-</script>
-    </script>
     <title>BeautyHub2025 - Offline</title>
     <style>
         /* ===== GLOBAL STYLES ===== */
@@ -505,6 +421,51 @@
             </ul>
         </div>
     </div>
+    
+    <script>
+    // SINGLE CLEAN SCRIPT FOR OFFLINE.HTML
+    (function() {
+        // Clear redirect parameters
+        if (window.location.search) {
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+        
+        // Function to go back to main app
+        function goToMain() {
+            console.log('Going back to main app...');
+            let mainPath = 'index.html';
+            if (window.location.pathname.includes('/BeautyHub2025/')) {
+                mainPath = '/BeautyHub2025/index.html';
+            }
+            window.location.replace(mainPath + '?online=' + Date.now());
+        }
+        
+        // Function for button clicks
+        function checkConnection() {
+            if (navigator.onLine) {
+                goToMain();
+            } else {
+                alert('Still offline. Please check your connection.');
+            }
+        }
+        
+        // Make available for buttons
+        window.checkConnection = checkConnection;
+        
+        // Auto-redirect if already online
+        if (navigator.onLine) {
+            console.log('Already online, redirecting back');
+            goToMain();
+        }
+        
+        // Listen for online event
+        window.addEventListener('online', () => {
+            console.log('Back online!');
+            setTimeout(goToMain, 1000);
+        });
+        
+    })();
+</script>
 
 </body>
 </html>
