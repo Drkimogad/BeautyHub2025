@@ -38,7 +38,7 @@ window.showOfflineAlert = function() {
             align-items: center;
         ">
             ⚠️ You are offline. Some features may not work.
-            <button onclick="location.href='offline.html'" style="
+            <button onclick="goToOfflinePage()" style="            
                 margin-left: 15px;
                 background: white;
                 color: #ff4444;
@@ -54,9 +54,9 @@ window.showOfflineAlert = function() {
     document.body.appendChild(alertDiv);
     
     // Auto-hide after 10 seconds if still offline
-    setTimeout(() => {
-        hideOfflineAlert();
-    }, 10000);
+  //  setTimeout(() => {
+ //       hideOfflineAlert();
+  //  }
 };
 
 // NEW FUNCTION: Hide the offline alert
@@ -72,6 +72,22 @@ window.hideOfflineAlert = function() {
             }
         }, 500);
     }
+};
+// Add this function:
+window.goToOfflinePage = function() {
+    // Stop the page first
+    if (document.readyState === 'loading') {
+        window.stop();
+    }
+    
+    // Use same logic as initial offline detection
+    let offlinePath = 'offline.html';
+    if (window.location.pathname.includes('/BeautyHub2025/')) {
+        offlinePath = '/BeautyHub2025/offline.html';
+    }
+    
+    // Redirect with timestamp
+    window.location.href = offlinePath + '?from=banner&t=' + Date.now();
 };
 
 //===============================================
