@@ -1,5 +1,5 @@
 // sw.js - Service Worker for BeautyHub2025
-const CACHE_NAME = 'beautyhub-v2.3';
+const CACHE_NAME = 'beautyhub-v2.4';
 const OFFLINE_PAGE = 'offline.html';
 
 // Auto-detect environment based on current URL
@@ -140,8 +140,14 @@ self.addEventListener('fetch', event => {
                 } catch (error) {
                     console.log('📵 Offline - serving offline page');
                     const offlinePage = await caches.match(getEnvPath(OFFLINE_PAGE));
-                    return offlinePage || new Response('Offline - please check your connection');
-                }
+if (offlinePage) {
+    return offlinePage;
+} else {
+    return new Response(
+        '<h1>Offline</h1><p>Please check your internet connection.</p>',
+        { headers: { 'Content-Type': 'text/html' } }
+    );
+}                }
             }
             
             // For other assets (JS, CSS, images)
