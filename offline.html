@@ -449,9 +449,15 @@
         window.checkConnection = checkConnection;
         
         // Auto-redirect if online
+        // Auto-redirect if online (with network verification)
+if (navigator.onLine) {
+    // Wait 2 seconds, then check with a tiny fetch
+    setTimeout(() => {
         if (navigator.onLine) {
-            setTimeout(goToMain, 1000);
+            goToMain();
         }
+    }, 2000);
+}
         
         // Listen for online
         window.addEventListener('online', () => {
