@@ -1,41 +1,24 @@
 // main.js - clean version
 // Listen for going offline DURING SESSION
 window.addEventListener('offline', () => {
-    if (!window.location.pathname.includes('offline.html')) {
-        window.location.href = 'offline.html?from=session';
-    }
-});
-// ===== OFFLINE DETECTION =====
-function checkConnectionAndRedirect() {
-    if (!navigator.onLine) {
-        console.log('[AppManager] Offline detected on load');
-        // Check if we're already on offline page
-        if (window.location.pathname !== '/offline.html' && 
-            window.location.pathname !== '/BeautyHub2025/offline.html') {
-            // Redirect to offline page
-            window.location.href = 'offline.html';
-            return true; // Stop further execution
-        }
-    }
-    return false;
-}
-
-// Check immediately when page loads
-if (checkConnectionAndRedirect()) {
-    // Stop all other initialization
-    throw new Error('Offline - redirecting');
-}
-
-// Also listen for going offline while the app is running
-window.addEventListener('offline', () => {
-    console.log('[AppManager] Went offline during session');
-    // Show a notification or modal instead of redirect
+    console.log('📶 Connection lost during session');
+    // Just show banner, don't redirect
     if (typeof window.showOfflineAlert === 'function') {
-        window.showOfflineAlert();
+        window.showOfflineAlert(); // show the banner 
     }
 });
-// Show offline alert banner
+
+// Listen for coming back online
+window.addEventListener('online', () => {
+    console.log('📶 Connection restored');
+    hideOfflineAlert(); // Add this line
+});
+
+// ===== OFFLINE ALERT BANNER FUNCTIONS =====
 window.showOfflineAlert = function() {
+    // Don't create multiple banners
+    if (document.getElementById('offline-alert')) return;
+    
     const alertDiv = document.createElement('div');
     alertDiv.id = 'offline-alert';
     alertDiv.innerHTML = `
@@ -50,6 +33,9 @@ window.showOfflineAlert = function() {
             text-align: center;
             z-index: 9999;
             font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         ">
             ⚠️ You are offline. Some features may not work.
             <button onclick="location.href='offline.html'" style="
@@ -67,13 +53,27 @@ window.showOfflineAlert = function() {
     `;
     document.body.appendChild(alertDiv);
     
-    // Auto-hide after 10 seconds
+    // Auto-hide after 10 seconds if still offline
     setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.remove();
-        }
+        hideOfflineAlert();
     }, 10000);
 };
+
+// NEW FUNCTION: Hide the offline alert
+window.hideOfflineAlert = function() {
+    const alertDiv = document.getElementById('offline-alert');
+    if (alertDiv && alertDiv.parentNode) {
+        // Fade out animation
+        alertDiv.style.transition = 'opacity 0.5s';
+        alertDiv.style.opacity = '0';
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 500);
+    }
+};
+
 //===============================================
 const AppManager = (function() {
     
