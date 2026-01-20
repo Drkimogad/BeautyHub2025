@@ -1,39 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script>
-    // NO SERVICE WORKER - PURE JAVASCRIPT SOLUTION
-    (function() {
-        if (window.location.pathname.includes('offline.html')) return;
-        
-        // Check immediately
-        if (!navigator.onLine) {
-            console.log('🟡 OFFLINE - Redirecting to offline.html');
-            // Use replace() to prevent back button issues
-            window.location.replace('offline.html?from=js');
-            return;
-        }
-        
-        // Listen for going offline
-        window.addEventListener('offline', () => {
-            console.log('📶 Connection lost');
-            if (!window.location.pathname.includes('offline.html')) {
-                window.location.replace('offline.html?from=event');
-            }
-        });
-        
-        // Backup check after load
-        window.addEventListener('load', () => {
-            if (!navigator.onLine && !window.location.pathname.includes('offline.html')) {
-                console.log('🟡 Loaded but offline');
-                window.location.replace('offline.html?from=load');
-            }
-        });
-    })();
-</script>
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- FIXED OFFLINE DETECTION - WON'T BREAK FIREBASE -->
+    <script>
+        // This runs immediately but SMARTLY
+        (function() {
+            // Don't run if already on offline page
+            if (window.location.pathname.includes('offline.html')) return;
+            
+            // If offline, redirect IMMEDIATELY (before Firebase tries)
+            if (!navigator.onLine) {
+                console.log('🚨 OFFLINE - Redirecting before Firebase loads');
+                
+                // Use correct path
+                let offlinePath = 'offline.html';
+                if (window.location.pathname.includes('/BeautyHub2025/')) {
+                    offlinePath = '/BeautyHub2025/offline.html';
+                }
+                
+                window.location.replace(offlinePath + '?from=prefirebase&t=' + Date.now());
+                return; // STOP here - don't load Firebase
+            }
+            
+            // If we get here, we're online - let Firebase load normally
+            console.log('✅ Online - Loading Firebase normally');
+            
+        })();
+    </script>
+    
+    <!-- REST OF YOUR HEAD CONTENT CONTINUES NORMALLY -->
     <meta name="description" content="Luxury beauty products including perfumes, lashes, skincare, and wigs">
     <title>BeautyHub2025 | Luxury Beauty Products</title>
     
@@ -41,28 +39,30 @@
     <meta name="theme-color" content="#667eea">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-<!-- Your Firebase Config -->
+    
+    <!-- Your Firebase Config -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-<script>
-  // DIRECT CONFIG
-  const firebaseConfig = {
-    apiKey: "AIzaSyAScnUVBPj0-UhJaS8-AChYPMbDWqfEjD4",
-    authDomain: "beautyhub-za.firebaseapp.com",
-    projectId: "beautyhub-za",
-    storageBucket: "beautyhub-za.firebasestorage.app",
-    messagingSenderId: "945293822088",
-    appId: "1:945293822088:web:879eede0f52df134f1f73d",
-    measurementId: "G-XCQMS80N47"
-  };
-  
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const firestore = firebase.firestore();
-  
-  console.log('Firebase loaded:', auth, firestore);
-</script>
+    
+    <script>
+      // DIRECT CONFIG - This only runs if we're online
+      const firebaseConfig = {
+        apiKey: "AIzaSyAScnUVBPj0-UhJaS8-AChYPMbDWqfEjD4",
+        authDomain: "beautyhub-za.firebaseapp.com",
+        projectId: "beautyhub-za",
+        storageBucket: "beautyhub-za.firebasestorage.app",
+        messagingSenderId: "945293822088",
+        appId: "1:945293822088:web:879eede0f52df134f1f73d",
+        measurementId: "G-XCQMS80N47"
+      };
+      
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const firestore = firebase.firestore();
+      
+      console.log('Firebase loaded:', auth, firestore);
+    </script>
 
     
     <!-- Styles & Fonts -->
