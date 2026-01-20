@@ -1,7 +1,6 @@
 // sw.js - Service Worker for BeautyHub2025
 const CACHE_NAME = 'beautyhub-v2.4';
 const OFFLINE_PAGE = 'offline.html';
-
 // Auto-detect environment based on current URL
 function detectEnvironment() {
     const pathname = self.location.pathname;
