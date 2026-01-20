@@ -63,6 +63,27 @@
       
       console.log('Firebase loaded:', auth, firestore);
     </script>
+    
+    <!-- After Firebase scripts, before your other scripts -->
+<script>
+    // SERVICE WORKER REGISTRATION - SIMPLE & RELIABLE
+    if ('serviceWorker' in navigator && location.protocol === 'https:') {
+        window.addEventListener('load', function() {
+            // Use current directory as scope
+            const scope = window.location.pathname.includes('/BeautyHub2025/') 
+                ? '/BeautyHub2025/' 
+                : './';
+            
+            navigator.serviceWorker.register('sw.js', { scope: scope })
+                .then(function(registration) {
+                    console.log('SW registered: ', registration.scope);
+                })
+                .catch(function(error) {
+                    console.log('SW registration failed: ', error);
+                });
+        });
+    }
+</script>
 
     
     <!-- Styles & Fonts -->
