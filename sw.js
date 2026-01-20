@@ -1,5 +1,5 @@
 // sw.js - Service Worker for BeautyHub2025
-const CACHE_NAME = 'beautyhub-v2.0';
+const CACHE_NAME = 'beautyhub-v2.1';
 const OFFLINE_PAGE = 'offline.html';
 
 // Auto-detect environment based on current URL
@@ -106,6 +106,11 @@ self.addEventListener('install', event => {
 self.addEventListener('fetch', event => {
     const request = event.request;
     const url = new URL(request.url);
+    
+    // FIX: Let offline.html requests pass through - DON'T intercept them
+    if (url.pathname.includes('offline.html')) {
+        return; // Let browser handle offline.html normally
+    }
     
     // Skip non-GET requests
     if (request.method !== 'GET') return;
