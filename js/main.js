@@ -75,19 +75,13 @@ window.hideOfflineAlert = function() {
 };
 // Add this function:
 window.goToOfflinePage = function() {
-    // Stop the page first
-    if (document.readyState === 'loading') {
-        window.stop();
-    }
+    console.log('Going to offline page...');
     
-    // Use same logic as initial offline detection
-    let offlinePath = 'offline.html';
-    if (window.location.pathname.includes('/BeautyHub2025/')) {
-        offlinePath = '/BeautyHub2025/offline.html';
-    }
+    // ALWAYS use relative path - works for both GitHub and Firebase
+    const offlinePath = 'offline.html';
     
-    // Redirect with timestamp
-    window.location.href = offlinePath + '?from=banner&t=' + Date.now();
+    // Use replace() to prevent back button issues
+    window.location.replace(offlinePath + '?from=banner&t=' + Date.now());
 };
 
 //===============================================
