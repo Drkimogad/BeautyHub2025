@@ -432,12 +432,10 @@
         
         // Function to go back
         function goToMain() {
-            let mainPath = 'index.html';
-            if (window.location.pathname.includes('/BeautyHub2025/')) {
-                mainPath = '/BeautyHub2025/index.html';
-            }
-            window.location.replace(mainPath + '?online=' + Date.now());
-        }
+    // ALWAYS use relative path - works for both GitHub and Firebase
+    const mainPath = 'index.html';
+    window.location.replace(mainPath + '?online=' + Date.now());
+}
         
         // Simple button function
         function checkConnection() {
