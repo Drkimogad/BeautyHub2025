@@ -3,34 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- FIXED OFFLINE DETECTION - WON'T BREAK FIREBASE -->
-    <script>
-        // This runs immediately but SMARTLY
-        (function() {
-            // Don't run if already on offline page
-            if (window.location.pathname.includes('offline.html')) return;
-            
-            // If offline, redirect IMMEDIATELY (before Firebase tries)
-            if (!navigator.onLine) {
-                console.log('🚨 OFFLINE - Redirecting before Firebase loads');
-                
-                // Use correct path
-                let offlinePath = 'offline.html';
-                if (window.location.pathname.includes('/BeautyHub2025/')) {
-                    offlinePath = '/BeautyHub2025/offline.html';
-                }
-                
-                window.location.replace(offlinePath + '?from=prefirebase&t=' + Date.now());
-                return; // STOP here - don't load Firebase
-            }
-            
-            // If we get here, we're online - let Firebase load normally
-            console.log('✅ Online - Loading Firebase normally');
-            
-        })();
-    </script>
-    
     <!-- REST OF YOUR HEAD CONTENT CONTINUES NORMALLY -->
     <meta name="description" content="Luxury beauty products including perfumes, lashes, skincare, and wigs">
     <title>BeautyHub2025 | Luxury Beauty Products</title>
@@ -66,23 +38,16 @@
     
     <!-- After Firebase scripts, before your other scripts -->
 <script>
-    // SERVICE WORKER REGISTRATION - SIMPLE & RELIABLE
-    if ('serviceWorker' in navigator && location.protocol === 'https:') {
-        window.addEventListener('load', function() {
-            // Use current directory as scope
-            const scope = window.location.pathname.includes('/BeautyHub2025/') 
-                ? '/BeautyHub2025/' 
-                : './';
-            
-            navigator.serviceWorker.register('sw.js', { scope: scope })
-                .then(function(registration) {
-                    console.log('SW registered: ', registration.scope);
-                })
-                .catch(function(error) {
-                    console.log('SW registration failed: ', error);
-                });
-        });
-    }
+    // Use ABSOLUTE path for registration
+if ('serviceWorker' in navigator) {
+    const swPath = window.location.pathname.includes('/BeautyHub2025/') 
+        ? '/BeautyHub2025/sw.js' 
+        : '/sw.js';
+    
+    navigator.serviceWorker.register(swPath)
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.log('SW failed:', err));
+}
 </script>
 
     
