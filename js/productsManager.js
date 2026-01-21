@@ -564,7 +564,86 @@ if (typeof window.refreshDashboardOrders === 'function') {
             return false;
         }
     }
-   
+
+// ============================================
+// STOCK-ONLY UPDATE (NEW - Surgical) COMMUNICATES WITH INVENTORY MANAGER.JS
+// ============================================
+async function updateStockOnly(productId, newStock) {
+    try {
+        console.log('[ProductsManager] Stock-only update:', { productId, newStock });
+        
+        const index = products.findIndex(p => p.id === productId);
+        if (index === -1) {
+            console.log('[ProductsManager] Product not found for stock update:', productId);
+            return false;
+        }
+        
+        // Validate stock
+        if (newStock < 0 || isNaN(newStock)) {
+            console.log('[ProductsManager] Invalid stock value:', newStock);
+            return false;
+        }
+        
+        // Update ONLY stock and updatedAt
+        products[index].stock = parseInt(newStock);
+        products[index].updatedAt = new Date().toISOString();
+        
+        console.log('[ProductsManager] Stock updated locally:', { 
+            name: products[index].name, 
+            oldStock: products[index].stock, 
+            newStock 
+        });
+        
+        // Save to local storage
+        saveProductsToLocalStorage();
+        saveProductsToCache();
+        
+        // Update Firestore (if enabled) - ONLY stock field
+        let firestoreSuccess = true;
+        if (CONFIG.USE_FIRESTORE && CONFIG.FIREBASE_READY()) {
+            try {
+                const db = firebase.firestore();
+                const productRef = db.collection(CONFIG.FIRESTORE_COLLECTION).doc(productId);
+                
+                await productRef.update({
+                    stock: parseInt(newStock),
+                    updatedAt: new Date().toISOString()
+                });
+                
+                console.log(`[ProductsManager] Stock updated in Firestore: ${productId}`);
+            } catch (firestoreError) {
+                console.error('[ProductsManager] Firestore stock update error:', firestoreError);
+                firestoreSuccess = false;
+            }
+        }
+        
+        // Dispatch update event for UI refresh
+        window.dispatchEvent(new CustomEvent('productsUpdated'));
+        
+        // Refresh dashboard if open
+        if (typeof window.refreshDashboardOrders === 'function') {
+            window.refreshDashboardOrders();
+        }
+        
+        // Show notification
+        if (typeof window.showDashboardNotification === 'function') {
+            window.showDashboardNotification(`Stock updated: ${products[index].name} → ${newStock} units`, 'success');
+        }
+        
+        console.log('[ProductsManager] Stock-only update successful');
+        return true;
+        
+    } catch (error) {
+        console.error('[ProductsManager] Error in updateStockOnly:', error);
+        
+        if (typeof window.showDashboardNotification === 'function') {
+            window.showDashboardNotification('Failed to update stock', 'error');
+        }
+        
+        return false;
+    }
+}
+    
 //===================================================
 // do not delete this , keep it
 //==========================================
@@ -1736,6 +1815,7 @@ async function handlePermanentDelete(productId) {
         getProductById,
         addProduct,
         updateProduct,
+        updateStockOnly, // <-- ADD THIS LINE
         deleteProduct,
         getProductsByCategory,
         getLowStockProducts,
