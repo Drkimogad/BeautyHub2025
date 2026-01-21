@@ -1,5 +1,7 @@
-// inventoryManager.js - Stock Management & Order Integration
-// UPDATED: Aligned with wholesalePrice, retailPrice, currentPrice naming
+/* inventoryManager.js - Stock Management & Order Integration
+UPDATED: Aligned with wholesalePrice, retailPrice, currentPrice naming */
+
+//==================================================
 const InventoryManager = (function() {
     // Dependencies
     let ProductsManager = null;
@@ -11,7 +13,9 @@ const InventoryManager = (function() {
         ORDERS: 'beautyhub_orders'
     };
     
-// Initialize with dependencies
+//=====================================
+    // Initialize with dependencies
+//=========================================
     function init(productsMgr, ordersMgr) {
         try {
             console.log('[InventoryManager] Initializing...');
@@ -44,7 +48,9 @@ const InventoryManager = (function() {
         }
     }
     
-// Listen for new orders
+//============================================
+    //Listen for new orders
+//======================================
     function setupOrderListener() {
         try {
             if (!OrdersManager) {
@@ -95,8 +101,10 @@ const InventoryManager = (function() {
         }
     }
     
-    // Deduct stock when order is placed
-    function deductStockFromOrder(order) {
+//=====================================================
+    //Deduct stock when order is placed
+//==============================================
+function deductStockFromOrder(order) {
         try {
             if (!ProductsManager) {
                 console.error('[InventoryManager] ProductsManager not available');
@@ -141,15 +149,8 @@ const InventoryManager = (function() {
                         category: product.category || ''
                     });
                     
-                    // Update product stock using consistent property names
-const success = ProductsManager.updateProduct(product.id, { 
-    stock: newStock,
-    retailPrice: product.retailPrice || product.retailprice || 0,
-    discountPercent: product.discountPercent || product.discountedPercent || 0,
-    currentPrice: product.currentPrice || product.currentprice || 0,
-    wholesalePrice: product.wholesalePrice || product.wholesaleprice || 0,
-    updatedAt: new Date().toISOString()
-});
+                    // NEW:Update product stock using UPDATESTOCKONLY FUNCTION FROM PRODUCTSMANAGER.JS
+                   const success = ProductsManager.updateStockOnly(product.id, newStock);
                     
                     if (!success) {
                         console.error(`[InventoryManager] Failed to update stock for ${product.name}`);
@@ -183,11 +184,9 @@ const success = ProductsManager.updateProduct(product.id, {
         window.showDashboardNotification('Stock updated successfully!', 'success');
     }
     
-    // ========== REFRESH DASHBOARD ==========
     if (typeof window.refreshDashboardOrders === 'function') {
         window.refreshDashboardOrders();
     }
-    // ========== END ADDITIONS ==========
 
                 return true;
             }
@@ -201,8 +200,10 @@ const success = ProductsManager.updateProduct(product.id, {
         }
     }
     
-    // Get inventory report
-    function getInventoryReport() {
+// ========================================
+    //Get inventory report
+//=======================================
+function getInventoryReport() {
         try {
             if (!ProductsManager) {
                 console.error('[InventoryManager] ProductsManager not available');
@@ -294,8 +295,10 @@ const success = ProductsManager.updateProduct(product.id, {
         }
     }
     
-    // Get low stock alert
-    function getLowStockAlert() {
+// =================================================
+    //Get low stock alert
+//===========================================
+function getLowStockAlert() {
         try {
             if (!ProductsManager) {
                 console.error('[InventoryManager] ProductsManager not available');
@@ -327,8 +330,10 @@ const success = ProductsManager.updateProduct(product.id, {
         }
     }
     
-    // Get stock history
-    function getStockHistory(productId, limit = 10) {
+// =======================================
+    //Get stock history
+//===================================
+function getStockHistory(productId, limit = 10) {
         try {
             const transactions = getInventoryTransactions();
             const productTransactions = transactions
@@ -360,7 +365,9 @@ const success = ProductsManager.updateProduct(product.id, {
         }
     }
     
+//=====================================================
     // Update stock manually
+//============================================
     function updateStockManually(productId, quantity, reason = 'manual_adjustment', performedBy = 'admin') {
         try {
             if (!ProductsManager) {
@@ -383,22 +390,14 @@ const success = ProductsManager.updateProduct(product.id, {
                 return false;
             }
             
-            const success = ProductsManager.updateProduct(productId, { 
-    stock: newStock,
-    retailPrice: product.retailPrice || product.retailprice || 0,
-    discountPercent: product.discountPercent || product.discountedPercent || 0,
-    currentPrice: product.currentPrice || product.currentprice || 0,
-    wholesalePrice: product.wholesalePrice || product.wholesaleprice || 0,
-    updatedAt: new Date().toISOString()
-});
+         // UPDATE VIA CALLING UPDATESTOCKONLY FUNCTION IN PRODUCTSMANAGER.JS      
+             const success = ProductsManager.updateStockOnly(productId, newStock);
             
-            if (!success) {
+              if (!success) {
                 console.error(`[InventoryManager] Failed to update product ${productId}`);
-                // ========== ADD ERROR NOTIFICATION ==========
-    if (typeof window.showDashboardNotification === 'function') {
-        window.showDashboardNotification('Failed to update stock. Please try again.', 'error');
-    }
-    // ========== END ADDITION ==========
+              if (typeof window.showDashboardNotification === 'function') {
+               window.showDashboardNotification('Failed to update stock. Please try again.', 'error');
+              }               
                 return false;
             }
             
@@ -420,16 +419,13 @@ const success = ProductsManager.updateProduct(product.id, {
             });
             
             console.log(`[InventoryManager] Manual stock update: ${product.name} ${adjustment > 0 ? '+' : ''}${adjustment} = ${newStock}`);
-            // ========== ADD SUCCESS NOTIFICATION ==========
-if (typeof window.showDashboardNotification === 'function') {
-    window.showDashboardNotification('Stock updated successfully!', 'success');
-}
+          if (typeof window.showDashboardNotification === 'function') {
+          window.showDashboardNotification('Stock updated successfully!', 'success');
+           }
 
-// ========== REFRESH DASHBOARD ==========
-if (typeof window.refreshDashboardOrders === 'function') {
-    window.refreshDashboardOrders();
-}
-// ========== END ADDITIONS ==========
+        if (typeof window.refreshDashboardOrders === 'function') {
+           window.refreshDashboardOrders();
+              }
             
             return true;
             
@@ -439,7 +435,9 @@ if (typeof window.refreshDashboardOrders === 'function') {
         }
     }
     
-    // Check stock before adding to cart
+//=============================================================
+    //Check stock before adding to cart
+//=====================================================
     function checkStockBeforeAddToCart(productId, requestedQuantity) {
         try {
             if (!ProductsManager || typeof ProductsManager.getProductById !== 'function') {
@@ -493,7 +491,9 @@ const product = ProductsManager.getProductById(productId);
         }
     }
     
+//================================================
     // Save inventory transaction
+//============================================
     function saveInventoryTransaction(transactionData) {
         try {
             if (!transactionData || !transactionData.updates) {
@@ -548,7 +548,9 @@ const product = ProductsManager.getProductById(productId);
         }
     }
     
-    // Get inventory transactions
+//=================================================
+    //Get inventory transactions
+//==========================================
     function getInventoryTransactions() {
         try {
             const existing = localStorage.getItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS);
@@ -677,7 +679,7 @@ const product = ProductsManager.getProductById(productId);
         }
     }
     
-    // Public API
+// Public API
     return {
         init,
         deductStockFromOrder,
