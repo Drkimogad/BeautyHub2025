@@ -68,8 +68,6 @@ if ('serviceWorker' in navigator) {
             <a href="#" class="nav-item" aria-current="page">Home</a>
             <a href="#products-container" class="nav-item">Shop</a>
             <a href="#contact" class="nav-item">Contact</a>
-            <a href="#" class="nav-item" id="shipping-link">Shipping & Returns</a>
-            <a href="#" class="nav-item" id="policy-link">Privacy Policy</a>
             <!-- Cart Button -->
             <button id="cart-toggle" class="nav-item cart-nav-btn" style="
                 background: none;
@@ -138,22 +136,6 @@ if ('serviceWorker' in navigator) {
         
         <!-- Products container (will be filled by products.js) -->
         <div id="products-container"></div>
-        
-        <!-- Shipping & Returns Section -->
-        <section id="shipping" class="shipping-section" style="display: none;" aria-labelledby="shipping-heading">
-            <div class="section-container">
-                <button class="close-btn" onclick="this.closest('.shipping-section').style.display='none'">×</button>
-                <h2 id="shipping-heading">Shipping & Returns</h2>
-                <div class="section-content">
-                    <p>Free shipping on orders over R500! Returns accepted within 30 days.</p>
-                    <ul>
-                        <li>Standard shipping: 3-5 business days</li>
-                        <li>Express shipping available</li>
-                        <li>No returns on opened cosmetics</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
 
         <!-- Contact section -->
         <section id="contact" class="contact-section" aria-labelledby="contact-heading">
@@ -174,37 +156,14 @@ if ('serviceWorker' in navigator) {
             </div>
         </section>
 
-        <!-- Privacy Policy Section -->
-        <section id="privacy-content" class="privacy-section" style="display: none;">
-            <div class="privacy-container">
-                <button class="close-btn" onclick="this.closest('.privacy-section').style.display='none'">×</button>
-                <h2>Privacy Policy</h2>
-                <textarea class="policy-textarea" readonly>Last Updated: January 2025
-
-1. INFORMATION WE COLLECT
-- Account details (name, email, password)
-- Order history and payment information
-- Customer support communications
-
-2. HOW WE USE YOUR DATA
-- Process orders and transactions
-- Improve our products and services
-- Send important account notifications
-
-3. DATA PROTECTION
-- SSL encrypted transactions
-- Regular security audits
-- Strict access controls
-
-4. YOUR RIGHTS
-- Access your personal data
-- Request corrections
-- Delete your account</textarea>
-            </div>
-        </section>
     </main>
 
     <footer class="main-footer">
+    <div class="footer-links">
+        <a href="shipping-returns.html">Shipping & Returns</a>
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="terms-of-service.html">Terms of Service</a>
+    </div>
         <p>&copy; <span id="current-year">2025</span> BeautyHub2025. All rights reserved.</p>
     </footer>
 
