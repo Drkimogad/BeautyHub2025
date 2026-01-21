@@ -18,6 +18,7 @@ const CustomerSearchManager = (function() {
         MIN_SURNAME_LENGTH: 2,
         MIN_PHONE_LENGTH: 10
     };
+
     // ========================================================
     // STATE MANAGEMENT
     // ========================================================
