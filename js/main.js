@@ -52,12 +52,7 @@ window.showOfflineAlert = function() {
         </div>
     `;
     document.body.appendChild(alertDiv);
-    
-    // Auto-hide after 10 seconds if still offline
-  //  setTimeout(() => {
- //       hideOfflineAlert();
-  //  }
-};
+ };
 
 // NEW FUNCTION: Hide the offline alert
 window.hideOfflineAlert = function() {
@@ -95,11 +90,10 @@ window.showOfflinePage = function() {
             alert('Offline page not available');
         });
 };
-
 //===============================================
-const AppManager = (function() {
-    
-    // ===== MAIN INITIALIZATION =====
+
+const AppManager = (function() {    
+// ===== MAIN INITIALIZATION =====
     function init() {
         try {
    
@@ -154,8 +148,6 @@ if (typeof CustomerSearchManager !== 'undefined' && CustomerSearchManager.init) 
             
             // Setup core UI functionality
             setupSmoothScrolling();
-            initializeShippingSection();
-            initializePrivacySection();
             setupNavigationHandlers();            
             // Connect cart button
             connectCartButton();           
@@ -171,135 +163,55 @@ if (typeof CustomerSearchManager !== 'undefined' && CustomerSearchManager.init) 
         }
     }
     
-    // ===== NAVIGATION HANDLERS =====
-    function setupNavigationHandlers() {
-        try {
-            // Shipping link handler
-            const shippingLink = document.getElementById('shipping-link');
-            if (shippingLink) {
-                shippingLink.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const shippingSection = document.getElementById('shipping');
-                    const privacySection = document.getElementById('privacy-content');
-                    
-                    if (!shippingSection || !privacySection) return;
-                    
-                    const showShipping = shippingSection.style.display === 'none';
-                    shippingSection.style.display = showShipping ? 'block' : 'none';
-                    privacySection.style.display = 'none';
-                    
-                    if (showShipping) {
-                        setTimeout(() => {
-                            shippingSection.scrollIntoView({ behavior: 'smooth' });
-                        }, 10);
-                    }
-                });
-            }
-            
-            // Privacy policy link handler
-            const policyLink = document.getElementById('policy-link');
-            if (policyLink) {
-                policyLink.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const privacySection = document.getElementById('privacy-content');
-                    const shippingSection = document.getElementById('shipping');
-                    
-                    if (!privacySection || !shippingSection) return;
-                    
-                    const showPrivacy = privacySection.style.display === 'none';
-                    privacySection.style.display = showPrivacy ? 'block' : 'none';
-                    shippingSection.style.display = 'none';
-                    
-                    if (showPrivacy) {
-                        setTimeout(() => {
-                            privacySection.scrollIntoView({ behavior: 'smooth' });
-                        }, 10);
-                    }
-                });
-            }
-            
-            // Cart toggle button
-            const cartToggle = document.getElementById('cart-toggle');
-            if (cartToggle) {
-                cartToggle.addEventListener('click', function() {
-                    if (typeof BeautyHubCart !== 'undefined' && BeautyHubCart.toggleCart) {
-                        BeautyHubCart.toggleCart();
-                    }
-                });
-            }
-            
-            console.log('[AppManager] Navigation handlers setup complete');
-            
-        } catch (error) {
-            console.error('[AppManager] Failed to setup navigation handlers:', error);
-        }
-    }
-    
-    // ===== SHIPPING SECTION =====
-    function initializeShippingSection() {
-        try {
-            const shippingSection = document.getElementById('shipping');
-            if (!shippingSection) return;
-            
-            const closeBtn = shippingSection.querySelector('.close-btn');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', () => {
-                    shippingSection.style.display = 'none';
-                });
-            }
-            
-        } catch (error) {
-            console.error('[AppManager] Failed to initialize shipping section:', error);
-        }
-    }
-    
-    // ===== PRIVACY SECTION =====
-    function initializePrivacySection() {
-        try {
-            const privacySection = document.getElementById('privacy-content');
-            if (!privacySection) return;
-            
-            const closeBtn = privacySection.querySelector('.close-btn');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', () => {
-                    privacySection.style.display = 'none';
-                });
-            }
-            
-        } catch (error) {
-            console.error('[AppManager] Failed to initialize privacy section:', error);
-        }
-    }
-    
-    // ===== SMOOTH SCROLLING =====
-    function setupSmoothScrolling() {
-        try {
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                if (anchor.id === 'shipping-link' || anchor.id === 'policy-link') return;
-                
-                anchor.addEventListener('click', function(e) {
-                    const targetId = this.getAttribute('href');
-                    if (targetId === '#' || targetId === '#privacy-content') return;
-                    
-                    e.preventDefault();
-                    const target = document.querySelector(targetId);
-                    if (target) {
-                        // Hide other sections
-                        const shipping = document.getElementById('shipping');
-                        const privacy = document.getElementById('privacy-content');
-                        
-                        if (shipping) shipping.style.display = 'none';
-                        if (privacy) privacy.style.display = 'none';
-                        
-                        target.scrollIntoView({ behavior: 'smooth' });
-                    }
-                });
+// ===== NAVIGATION HANDLERS =====
+function setupNavigationHandlers() {
+    try {
+        // Cart toggle button only
+        const cartToggle = document.getElementById('cart-toggle');
+        if (cartToggle) {
+            cartToggle.addEventListener('click', function() {
+                if (typeof BeautyHubCart !== 'undefined' && BeautyHubCart.toggleCart) {
+                    BeautyHubCart.toggleCart();
+                }
             });
-            
-        } catch (error) {
-            console.error('[AppManager] Failed to setup smooth scrolling:', error);
         }
+        
+        console.log('[AppManager] Navigation handlers setup complete');
+        
+    } catch (error) {
+        console.error('[AppManager] Failed to setup navigation handlers:', error);
     }
+}
+        
+// ===== SMOOTH SCROLLING =====
+function setupSmoothScrolling() {
+    try {
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            // Skip anchor links without valid targets
+            anchor.addEventListener('click', function(e) {
+                const targetId = this.getAttribute('href');
+                
+                // Skip if it's just "#" or links to non-existent sections
+                if (targetId === '#') return;
+                
+                e.preventDefault();
+                const target = document.querySelector(targetId);
+                
+                if (target) {
+                    target.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                } else {
+                    console.log('[AppManager] Smooth scrolling target not found:', targetId);
+                }
+            });
+        });
+        
+    } catch (error) {
+        console.error('[AppManager] Failed to setup smooth scrolling:', error);
+    }
+}
     
     // ===== CONNECTION FUNCTIONS =====
     function connectCartButton() {
