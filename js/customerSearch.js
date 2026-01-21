@@ -155,7 +155,8 @@ if (!checkoutFormElement) {
             
             // Insert into checkout form
             const checkoutForm = document.querySelector('#checkout-form');
-            if (checkoutForm) {
+        // if (checkoutForm) {
+        if (checkoutForm && checkoutForm.parentNode) {
                 checkoutForm.parentNode.insertBefore(searchContainer, checkoutForm);
             } else {
                 document.body.appendChild(searchContainer);
@@ -597,7 +598,8 @@ hideResult();
     // ========================================================
     function handleSearchSubmit(event) {
         event.preventDefault();
-        event.stopPropagation(); // Add this for extra safety
+       // event.stopPropagation(); // Add this for extra safety
+        event.stopImmediatePropagation(); // ADD THIS LINE
         console.log('[CustomerSearch] Search form submitted');
         
         try {
