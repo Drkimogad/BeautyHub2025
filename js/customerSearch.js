@@ -636,9 +636,23 @@ hideResult();
         console.log('[CustomerSearch] Setting up event listeners...');
         
         try {
+        // Remove old listeners first
+        const searchBtn = document.getElementById('search-btn');
+        const oldBtn = searchBtn?.cloneNode(true);
+        if (searchBtn && searchBtn.parentNode) {
+            searchBtn.parentNode.replaceChild(oldBtn, searchBtn);
+        }
+            
+        // Form submit listener
             if (searchForm) {
                 searchForm.addEventListener('submit', handleSearchSubmit);
             }
+            
+        // Button click listener
+        const newSearchBtn = document.getElementById('search-btn');
+        if (newSearchBtn) {
+            newSearchBtn.addEventListener('click', handleSearchSubmit);
+        }
             
             setupPhoneFormatting();
             
