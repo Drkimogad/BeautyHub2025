@@ -1,5 +1,7 @@
-// productsManager.js - Product CRUD & Management System WITH FIRESTORE
-// Updated property names: wholesalePrice, retailPrice, currentPrice
+/* productsManager.js - Product CRUD & Management System WITH FIRESTORE
+ Updated property names: wholesalePrice, retailPrice, currentPrice */
+
+//============================================================================
 const ProductsManager = (function() {
     console.log('[ProductsManager] Initializing Products Manager module');
     
@@ -52,7 +54,9 @@ const ProductsManager = (function() {
     
     console.log('[ProductsManager] Product schema defined');
     
-    // Initialize
+//=================
+    //Initialize
+//===================
     let products = [];
     
     function init() {
@@ -85,7 +89,8 @@ const ProductsManager = (function() {
 // ============================================
     // FIRESTORE FUNCTIONS
 // ============================================
-    
+// 1. LOAD PRODUCTS FROM FIRESTORE
+//==================================
     async function loadProductsFromFirestore() {
         try {
             console.log('[ProductsManager] Starting Firestore load process');
@@ -129,7 +134,9 @@ const ProductsManager = (function() {
             return null;
         }
     }
-    
+//============================
+// 2. save to firestore
+//=============================
     async function saveProductToFirestore(product) {
         try {
             console.log('[ProductsManager] Attempting to save product to Firestore:', product.id);
@@ -162,7 +169,9 @@ const firestoreProduct = {
             return false;
         }
     }
-    
+//=======================================
+ // 3. UPDATE PRODUCTS IN FIRESTORE
+//==================================
 async function updateProductInFirestore(productId, updateData) {
     try {
         console.log('[ProductsManager] Attempting to update product in Firestore:', productId);
@@ -208,8 +217,10 @@ async function updateProductInFirestore(productId, updateData) {
         return false;
     }
 }
-    
-    async function permanentlyDeleteFromFirestore(productId) {
+//=========================================================
+   //  4. DELETE PRODUCTS FROM FIRESTORE
+//==========================================
+async function permanentlyDeleteFromFirestore(productId) {
         try {
             console.log('[ProductsManager] Attempting permanent delete from Firestore:', productId);
             
@@ -233,9 +244,10 @@ async function updateProductInFirestore(productId, updateData) {
         }
     }
     
-    // ============================================
-    // CORE PRODUCT FUNCTIONS
-    // ============================================
+// ==========================================================
+    // CORE PRODUCTS FUNCTIONS LOADING, SAVING AND UPDATING 
+// =======================================================
+// 1. LOAD PRODUCTS
 async function loadProducts() {
     try {
         console.log('[ProductsManager] Starting product loading process');
@@ -295,7 +307,8 @@ async function loadProducts() {
     }
 }
     
-    async function updateFromFirestoreInBackground() {
+// 2. UPDATE FROM FIRESTORE IN THE BACKGROUND    
+async function updateFromFirestoreInBackground() {
         try {
             const firestoreProducts = await loadProductsFromFirestore();
             if (firestoreProducts && firestoreProducts.length > 0) {
@@ -310,7 +323,8 @@ async function loadProducts() {
         }
     }
     
-    function normalizeProductProperties(product) {
+// 3. NORMALIZE PRODUCTS PROPERTIES    
+function normalizeProductProperties(product) {
         return {
             ...product,
             wholesalePrice: product.wholesalePrice || product.wholesaleprice || 0,
@@ -319,7 +333,8 @@ async function loadProducts() {
             discountPercent: product.discountPercent || product.discountedPercent || 0
         };
     }
-    
+
+// 4. SAVE PRODUCTS TO LOCALSTORAGE
     function saveProductsToLocalStorage() {
         try {
             localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(products));
@@ -329,6 +344,7 @@ async function loadProducts() {
         }
     }
     
+// 5. LOAD PRODUCTS FROM CACHES
     function loadProductsFromCache() {
         try {
             const cached = localStorage.getItem(CONFIG.CACHE_KEY);
@@ -354,8 +370,9 @@ async function loadProducts() {
             return null;
         }
     }
-    
-    function saveProductsToCache() {
+
+ // 6. SAVE PRODUCTS TO CACHES   
+function saveProductsToCache() {
         try {
             const cacheData = {
                 products: products,
@@ -367,8 +384,9 @@ async function loadProducts() {
             console.error('[ProductsManager] Cache save error:', error);
         }
     }
-    
-    function saveProducts() {
+
+// 7. SAVE PRODUCTS IN GENERAL    
+function saveProducts() {
         try {
             console.log('[ProductsManager] Saving products to all storage locations');
             saveProductsToLocalStorage();
@@ -380,8 +398,9 @@ async function loadProducts() {
             console.error('[ProductsManager] Error saving products:', error);
         }
     }
-    
-    function invalidateCache() {
+
+// 8. INVALIDATE CACHES   
+function invalidateCache() {
         try {
             console.log('[ProductsManager] Invalidating cache');
             localStorage.removeItem(CONFIG.CACHE_KEY);
@@ -391,10 +410,11 @@ async function loadProducts() {
         }
     }
     
-    // ============================================
+
+// ============================================
     // CRUD OPERATIONS
-    // ============================================
-    
+// ============================================ 
+    // 1. ADD PRODUCTS
     async function addProduct(productData) {
         try {
             console.log('[ProductsManager] Adding new product with data:', productData);
@@ -478,9 +498,8 @@ const calculatedPrice = discountPercent > 0
             return null;
         }
     }
-//===============================================
-    //UPDATE PRODUCTS
-//==========================================
+ 
+// 2. UPDATE PRODUCTS
     async function updateProduct(productId, updateData) {
         try {
             console.log('[ProductsManager] Updating product:', productId, updateData);
@@ -565,9 +584,7 @@ if (typeof window.refreshDashboardOrders === 'function') {
         }
     }
 
-// ============================================
-// STOCK-ONLY UPDATE (NEW - Surgical) COMMUNICATES WITH INVENTORY MANAGER.JS
-// ============================================
+// 3. STOCK-ONLY UPDATE (NEW - Surgical) COMMUNICATES WITH INVENTORY MANAGER.JS
 async function updateStockOnly(productId, newStock) {
     try {
         console.log('[ProductsManager] Stock-only update:', { productId, newStock });
@@ -644,10 +661,9 @@ async function updateStockOnly(productId, newStock) {
     }
 }
     
-//===================================================
-// do not delete this , keep it
-//==========================================
-    async function deleteProduct(productId) {
+// 4. do not delete this , keep it
+// DELETE PRODUCT, DELETES AND MARKES IT INACTIVE IN THE MODAL
+async function deleteProduct(productId) {
         try {
             console.log('[ProductsManager] Soft deleting product:', productId);
             
@@ -662,8 +678,9 @@ async function updateStockOnly(productId, newStock) {
             return false;
         }
     }
-    
-    async function updateStock(productId, quantityChange) {
+
+// 5. UPDATE STOCK
+async function updateStock(productId, quantityChange) {
         try {
             console.log('[ProductsManager] Updating stock:', productId, 'change:', quantityChange);
             
@@ -696,11 +713,11 @@ async function updateStockOnly(productId, newStock) {
             return false;
         }
     }
-    
-    // ============================================
-    // QUERY FUNCTIONS
-    // ============================================
-    
+
+/* ============================================
+     QUERY FUNCTIONS
+============================================ */
+    // 1. GET PRODUCT
     function getProducts(filter = {}) {
         try {
             console.log('[ProductsManager] Getting products with filter:', filter);
@@ -733,6 +750,7 @@ async function updateStockOnly(productId, newStock) {
         }
     }
     
+// 2.GET PRODUCT BY ID
     function getProductById(productId) {
         try {
             console.log('[ProductsManager] Getting product by ID:', productId);
@@ -744,7 +762,8 @@ async function updateStockOnly(productId, newStock) {
             return null;
         }
     }
-    
+
+// 3. GET PRODUCT BY CATEGORY   
     function getProductsByCategory(category) {
         try {
             console.log('[ProductsManager] Getting products by category:', category);
@@ -756,8 +775,9 @@ async function updateStockOnly(productId, newStock) {
             return [];
         }
     }
-    
-    function getLowStockProducts() {
+
+// 4. GETLOWSTOCKPRODUCT    
+function getLowStockProducts() {
         try {
             console.log('[ProductsManager] Getting low stock products');
             const lowStock = products.filter(p => p.stock <= CONFIG.LOW_STOCK_THRESHOLD && p.stock > 0);
@@ -768,8 +788,9 @@ async function updateStockOnly(productId, newStock) {
             return [];
         }
     }
-    
-    function generateProductId() {
+
+// 5. GENERATE PRODUCT    
+function generateProductId() {
         try {
             const date = new Date();
             const year = date.getFullYear();
@@ -784,9 +805,8 @@ async function updateStockOnly(productId, newStock) {
             return `PROD-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
         }
     }
-//=========================================================
-    // CALCULATE DISCOUNTEDPRICE
-//===============================================================
+
+// 6. CALCULATE DISCOUNTEDPRICE
 function calculateDiscountedPrice(retailPrice, discountPercent) {
     try {
         console.log('[ProductsManager] Calculating discounted price:', { retailPrice, discountPercent });
@@ -821,11 +841,11 @@ function calculateDiscountedPrice(retailPrice, discountPercent) {
     }
 }
     
-    // ============================================
-    // UI FUNCTIONS
-    // ============================================
-    
-    function renderProductsAdmin(containerId = 'products-tab-content', filter = {}) {
+/* =============================
+     UI FUNCTIONS
+===================================*/
+  // 1. RENDER PRODUCT ADMIN  
+function renderProductsAdmin(containerId = 'products-tab-content', filter = {}) {
         try {
             console.log('[ProductsManager] Rendering products admin, container:', containerId, 'filter:', filter);
             
@@ -983,8 +1003,9 @@ function calculateDiscountedPrice(retailPrice, discountPercent) {
             console.error('[ProductsManager] Error rendering products admin:', error);
         }
     }
-    
-    function setupProductEventListeners() {
+
+// 2. SETUP PRODUCTEVENTLISTENER    
+function setupProductEventListeners() {
         try {
             console.log('[ProductsManager] Setting up product event listeners');
             
@@ -1096,8 +1117,9 @@ function calculateDiscountedPrice(retailPrice, discountPercent) {
             console.error('[ProductsManager] Error setting up event listeners:', error);
         }
     }
-    
-    function showProductForm(productId = null) {
+
+// 3. SHOW PRODUCT FORM    
+function showProductForm(productId = null) {
         try {
             console.log('[ProductsManager] Showing product form for:', productId || 'new product');
             
@@ -1329,7 +1351,8 @@ function calculateDiscountedPrice(retailPrice, discountPercent) {
         }
     }
     
-    function handleProductFormSubmit(productId = null) {
+// 4. HANDLE PRODUCT FORM SUBMIT
+function handleProductFormSubmit(productId = null) {
         try {
             console.log('[ProductsManager] Handling product form submit:', productId);
             
@@ -1414,7 +1437,8 @@ function calculateDiscountedPrice(retailPrice, discountPercent) {
         }
     }
     
-    function showStockAdjustmentForm(productId) {
+// 5. SHOW STOCK ADJUSTMENT FORM
+function showStockAdjustmentForm(productId) {
         try {
             console.log('[ProductsManager] Showing stock adjustment form for:', productId);
             
@@ -1519,8 +1543,9 @@ function calculateDiscountedPrice(retailPrice, discountPercent) {
             console.error('[ProductsManager] Error showing stock adjustment form:', error);
         }
     }
-    
-    function handleStockAdjustment(productId) {
+
+// 6. HANDLE STOCK ADJUSTMENT     
+function handleStockAdjustment(productId) {
         try {
             console.log('[ProductsManager] Handling stock adjustment for:', productId);
             
@@ -1573,7 +1598,7 @@ function calculateDiscountedPrice(retailPrice, discountPercent) {
             
             console.log('[ProductsManager] New stock calculated:', newStock);
             
-            if (updateProduct(productId, { stock: newStock })) {
+           if (updateStockOnly(productId, newStock)) {
                 console.log('[ProductsManager] Stock update successful');
                 closeStockModal();
                 renderProductsAdmin();
@@ -1585,7 +1610,8 @@ function calculateDiscountedPrice(retailPrice, discountPercent) {
         }
     }
     
-    function showDeleteConfirmation(productId) {
+// 7. SHOW DELETE CONFIRMATION
+function showDeleteConfirmation(productId) {
         try {
             console.log('[ProductsManager] Showing delete confirmation for:', productId);
             
@@ -1689,9 +1715,7 @@ function calculateDiscountedPrice(retailPrice, discountPercent) {
         }
     }
     
-//===========================================================
-    // handlePermanentDelete function
-//=================================================
+// 8. handlePermanentDelete function
 async function handlePermanentDelete(productId) {
     try {
         console.log('[ProductsManager] Handling permanent delete for:', productId);
@@ -1764,8 +1788,9 @@ async function handlePermanentDelete(productId) {
         }
     }
 }
-    
-    function closeProductForm() {
+
+// 9. CLOSE FUNCTIONS 
+function closeProductForm() {
         try {
             console.log('[ProductsManager] Closing product form');
             const modal = document.getElementById('product-form-modal');
