@@ -422,8 +422,9 @@ hideResult();
             const contentDiv = document.getElementById('result-content');
             
             if (!resultDiv || !contentDiv) {
-                console.error('[CustomerSearch] Search result elements not found');
-                return;
+                console.warn('[CustomerSearch] Search result elements not found - UI may be hidden');
+                // Auto-fill still worked, just can't show visual feedback
+                return; // Exit gracefully
             }
             
             const customer = searchResult.latestOrder;
