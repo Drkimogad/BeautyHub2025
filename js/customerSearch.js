@@ -24,20 +24,28 @@ const CustomerSearchManager = (function() {
     let searchContainer = null;
     let searchForm = null;
 
-    // ========================================================
-    // INITIALIZATION
-    // ========================================================
+// ========================================================
+    // INITIALIZATION    UPDATED
+// ========================================================
 function init(containerSelector = '#checkout-form') {
     console.log('[CustomerSearch] Initializing customer search system...');
     
     try {
         // Check if UI already exists
         if (document.getElementById('customer-search-container')) {
-            console.log('[CustomerSearch] Search UI already exists, skipping creation');
+            console.log('[CustomerSearch] Search UI already exists, re-initializing...');
             
-            // Just reinitialize event listeners
+            // RE-ASSIGN ALL ELEMENTS
+            searchContainer = document.getElementById('customer-search-container');
+            searchForm = document.getElementById('customer-search-form');
+            
+            // RE-INITIALIZE UI STATE
+            showLoading(false);
+            hideError();
+            hideResult();
+            
+            // RE-CONNECT EVENT LISTENERS (properly)
             setupEventListeners();
-            showLoading(false); // Ensure loading is hidden
             
             console.log('[CustomerSearch] Re-initialization complete');
             return {
@@ -47,7 +55,7 @@ function init(containerSelector = '#checkout-form') {
             };
         }
         
-        // Rest of your existing init code...
+        // Rest of your existing init code for creating new UI...
         createSearchUI();
         setupEventListeners();
         
@@ -414,61 +422,104 @@ hideResult();
     // ========================================================
     // UI FEEDBACK FUNCTIONS
     // ========================================================
-    function showSearchResult(searchResult) {
-        console.log('[CustomerSearch] Showing search result...');
+function showSearchResult(searchResult) {
+    console.log('[CustomerSearch] Showing search result...');
+    
+    try {
+        const resultDiv = document.getElementById('search-result');
+        const contentDiv = document.getElementById('result-content');
         
-        try {
-            const resultDiv = document.getElementById('search-result');
-            const contentDiv = document.getElementById('result-content');
+        if (!resultDiv || !contentDiv) {
+            console.error('[CustomerSearch] Search result elements not found - recreating');
             
-            if (!resultDiv || !contentDiv) {
-                console.warn('[CustomerSearch] Search result elements not found - UI may be hidden');
-                // Auto-fill still worked, just can't show visual feedback
-                return; // Exit gracefully
+            // Try to create them if missing
+            createResultElements();
+            
+            // Get elements again
+            const newResultDiv = document.getElementById('search-result');
+            const newContentDiv = document.getElementById('result-content');
+            
+            if (!newResultDiv || !newContentDiv) {
+                console.error('[CustomerSearch] Failed to create result elements');
+                return; // Exit if still not found
             }
             
-            const customer = searchResult.latestOrder;
-            const orderCount = searchResult.orderCount;
-            const totalSpent = searchResult.totalSpent;
-            const lastOrderDate = new Date(customer.createdAt).toLocaleDateString();
+            // Use the new elements
+            displayResultContent(newContentDiv, searchResult);
+            newResultDiv.style.display = 'block';
+            newResultDiv.className = 'search-result success';
             
-            contentDiv.innerHTML = `
-                <div class="result-header">
-                    <div class="result-success">
-                        <i class="fas fa-check-circle"></i>
-                        Returning Customer Found!
-                    </div>
-                    <div class="result-details">
-                        ${customer.firstName} ${customer.surname} • 
-                        ${orderCount} previous order${orderCount > 1 ? 's' : ''} • 
-                        Last order: ${lastOrderDate}
-                    </div>
-                    ${orderCount > 1 ? `
-                    <div class="result-stats">
-                        Total spent: R${totalSpent.toFixed(2)}
-                    </div>
-                    ` : ''}
-                </div>
-                <button type="button" id="clear-search" class="clear-search-btn">
-                    Clear
-                </button>
-            `;
-            
-            resultDiv.style.display = 'block';
-            resultDiv.className = 'search-result success';
-            
-            // Add clear button event
-            const clearBtn = document.getElementById('clear-search');
-            if (clearBtn) {
-                clearBtn.onclick = clearSearchResult;
-            }
-            
-        } catch (error) {
-            console.error('[CustomerSearch] Failed to show search result:', error);
+            return;
         }
+        
+        // Original code for when elements exist
+        displayResultContent(contentDiv, searchResult);
+        resultDiv.style.display = 'block';
+        resultDiv.className = 'search-result success';
+        
+    } catch (error) {
+        console.error('[CustomerSearch] Failed to show search result:', error);
     }
+}
 
-    function showMessage(message, type = 'info') {
+// Helper function to create missing elements
+function createResultElements() {
+    const container = document.getElementById('customer-search-container');
+    if (!container) return;
+    
+    // Create result div if missing
+    if (!document.getElementById('search-result')) {
+        const resultDiv = document.createElement('div');
+        resultDiv.id = 'search-result';
+        resultDiv.className = 'search-result';
+        resultDiv.style.display = 'none';
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.id = 'result-content';
+        
+        resultDiv.appendChild(contentDiv);
+        container.appendChild(resultDiv);
+    }
+}
+
+// Helper function to display content
+function displayResultContent(element, searchResult) {
+    const customer = searchResult.latestOrder;
+    const orderCount = searchResult.orderCount;
+    const totalSpent = searchResult.totalSpent;
+    const lastOrderDate = new Date(customer.createdAt).toLocaleDateString();
+    
+    element.innerHTML = `
+        <div class="result-header">
+            <div class="result-success">
+                <i class="fas fa-check-circle"></i>
+                Returning Customer Found!
+            </div>
+            <div class="result-details">
+                ${customer.firstName} ${customer.surname} • 
+                ${orderCount} previous order${orderCount > 1 ? 's' : ''} • 
+                Last order: ${lastOrderDate}
+            </div>
+            ${orderCount > 1 ? `
+            <div class="result-stats">
+                Total spent: R${totalSpent.toFixed(2)}
+            </div>
+            ` : ''}
+        </div>
+        <button type="button" id="clear-search" class="clear-search-btn">
+            Clear
+        </button>
+    `;
+    
+    // Add clear button event
+    const clearBtn = document.getElementById('clear-search');
+    if (clearBtn) {
+        clearBtn.onclick = clearSearchResult;
+    }
+}
+
+ // END OF UPDATED SHOWSEARCHRESUT REFACTORED FUNCTION   
+function showMessage(message, type = 'info') {
         console.log(`[CustomerSearch] Showing ${type} message:`, message);
         
         try {
