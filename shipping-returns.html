@@ -6,11 +6,104 @@
     <title>Shipping & Returns - BeautyHub2025</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .policy-page {
+            padding: 2rem 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .policy-container {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .policy-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e91e63;
+        }
+        
+        .policy-header h1 {
+            color: #9c27b0;
+            margin-bottom: 0.5rem;
+        }
+        
+        .last-updated {
+            color: #666;
+            font-style: italic;
+        }
+        
+        .policy-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #9c27b0;
+        }
+        
+        .policy-section h2 {
+            color: #9c27b0;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        
+        .policy-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .policy-section li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .policy-section li:before {
+            content: "•";
+            color: #e91e63;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .policy-note {
+            background: #e3f2fd;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-top: 2rem;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .shipping-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #e91e63, #9c27b0);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        
+        @media (max-width: 768px) {
+            .policy-container {
+                padding: 1rem;
+            }
+            
+            .policy-section {
+                padding: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <header>
         <div class="header-content">
-            <h1 class="logo"><a href="index.html">BeautyHub2025</a></h1>
+            <h1 class="logo"><a href="index.html" style="color: inherit; text-decoration: none;">BeautyHub2025</a></h1>
         </div>
         <nav class="navbar">
             <div class="nav-links">
@@ -23,61 +116,90 @@
 
     <main class="policy-page">
         <div class="policy-container">
-            <h1>Shipping & Returns Policy</h1>
-            <p class="last-updated">Last Updated: January 2025</p>
+            <div class="policy-header">
+                <h1>Shipping & Returns Policy</h1>
+                <p class="last-updated">Last Updated: January 2025</p>
+                <div class="shipping-badge">Free Shipping on Orders Over R500</div>
+            </div>
             
             <section class="policy-section">
-                <h2>Shipping Information</h2>
+                <h2>1. Shipping Information</h2>
                 <p>We offer fast, reliable shipping across South Africa:</p>
                 <ul>
                     <li><strong>Standard Shipping:</strong> 3-5 business days - R100</li>
                     <li><strong>Express Shipping:</strong> 1-2 business days - R150</li>
-                    <li><strong>Free Shipping:</strong> On orders over R500</li>
-                    <li><strong>Processing Time:</strong> Orders are processed within 24 hours (excluding weekends)</li>
+                    <li><strong>Free Shipping:</strong> Automatically applied to orders over R500</li>
+                    <li><strong>Processing Time:</strong> Orders processed within 24 hours (Mon-Fri)</li>
+                    <li><strong>Weekend Orders:</strong> Processed the next business day</li>
                 </ul>
             </section>
 
             <section class="policy-section">
-                <h2>Delivery Areas</h2>
+                <h2>2. Delivery Areas & Times</h2>
                 <ul>
-                    <li>Main cities: Johannesburg, Pretoria, Cape Town, Durban, Port Elizabeth</li>
-                    <li>Outlying areas: Add 1-2 business days to delivery estimates</li>
-                    <li>Remote areas: Contact us for shipping options</li>
+                    <li><strong>Main Cities:</strong> Johannesburg, Pretoria, Cape Town, Durban, Port Elizabeth (1-3 days)</li>
+                    <li><strong>Major Towns:</strong> Bloemfontein, East London, Polokwane (3-5 days)</li>
+                    <li><strong>Outlying Areas:</strong> Add 1-2 business days to delivery estimates</li>
+                    <li><strong>Remote Areas:</strong> Contact us for custom shipping options and quotes</li>
+                    <li><strong>Delivery Hours:</strong> 8:00 AM - 6:00 PM, Monday to Friday</li>
                 </ul>
             </section>
 
             <section class="policy-section">
-                <h2>Returns & Exchanges</h2>
+                <h2>3. Returns & Exchanges</h2>
                 <p>We want you to love your purchase. If you're not satisfied:</p>
                 <ul>
                     <li><strong>30-Day Return Window:</strong> Items must be returned within 30 days of delivery</li>
-                    <li><strong>Condition:</strong> Items must be unopened, unused, and in original packaging</li>
-                    <li><strong>Non-Returnable:</strong> Opened cosmetics, personal care items, and sale items</li>
+                    <li><strong>Condition Requirements:</strong> Unopened, unused, and in original packaging with tags</li>
+                    <li><strong>Non-Returnable Items:</strong> Opened cosmetics, personal care items, sale/clearance items</li>
                     <li><strong>Return Shipping:</strong> Customer pays return shipping unless item is defective</li>
-                    <li><strong>Refunds:</strong> Processed within 7-10 business days after we receive the return</li>
+                    <li><strong>Refund Processing:</strong> 7-10 business days after we receive and inspect the return</li>
                 </ul>
             </section>
 
             <section class="policy-section">
-                <h2>Damaged or Defective Items</h2>
+                <h2>4. Damaged or Defective Items</h2>
                 <p>If your item arrives damaged or defective:</p>
                 <ul>
-                    <li>Contact us within 48 hours of delivery</li>
-                    <li>Provide photos of the damaged item and packaging</li>
-                    <li>We'll arrange a replacement or full refund</li>
-                    <li>Free return shipping for defective items</li>
+                    <li><strong>Report Immediately:</strong> Contact us within 48 hours of delivery</li>
+                    <li><strong>Provide Evidence:</strong> Photos of damaged item, packaging, and shipping label</li>
+                    <li><strong>Replacement:</strong> We'll ship a replacement within 24 hours of approval</li>
+                    <li><strong>Full Refund:</strong> Available if replacement is not possible or preferred</li>
+                    <li><strong>Free Return Shipping:</strong> We cover all costs for defective items</li>
                 </ul>
             </section>
 
             <section class="policy-section">
-                <h2>Contact Shipping Support</h2>
-                <p>For shipping inquiries:</p>
+                <h2>5. Exchange Policy</h2>
                 <ul>
-                    <li>Email: shipping@beautyhub2025.co.za</li>
-                    <li>Phone: 011 234 5678 (Mon-Fri, 9am-5pm)</li>
-                    <li>WhatsApp: 072 123 4567</li>
+                    <li><strong>Size/Color Exchanges:</strong> Available within 14 days of delivery</li>
+                    <li><strong>Exchange Process:</strong> Return original item, then we ship replacement</li>
+                    <li><strong>Price Differences:</strong> Pay difference if exchanging for higher-priced item</li>
+                    <li><strong>Availability:</strong> Exchanges subject to stock availability</li>
+                    <li><strong>Shipping Costs:</strong> Customer pays shipping for both return and new shipment</li>
                 </ul>
             </section>
+
+            <section class="policy-section">
+                <h2>6. Contact Shipping Support</h2>
+                <ul>
+                    <li><strong>Email:</strong> shipping@beautyhub2025.co.za (24-hour response)</li>
+                    <li><strong>Phone:</strong> 011 234 5678 (Mon-Fri, 8:00 AM - 5:00 PM)</li>
+                    <li><strong>WhatsApp:</strong> 072 123 4567 (Mon-Sat, 8:00 AM - 6:00 PM)</li>
+                    <li><strong>Tracking Inquiries:</strong> Include your order number for faster assistance</li>
+                    <li><strong>Claims Department:</strong> For damaged/defective items only</li>
+                </ul>
+            </section>
+
+            <div class="policy-note">
+                <p><strong>Important Notes:</strong></p>
+                <ul>
+                    <li>All shipping times are estimates and not guaranteed</li>
+                    <li>Public holidays and extreme weather may affect delivery times</li>
+                    <li>International shipping available upon request (additional charges apply)</li>
+                    <li>Signature may be required for delivery of high-value orders</li>
+                </ul>
+            </div>
         </div>
     </main>
 
