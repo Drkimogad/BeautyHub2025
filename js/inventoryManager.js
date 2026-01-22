@@ -1,6 +1,5 @@
 /* inventoryManager.js - Stock Management & Order Integration
 UPDATED: Aligned with wholesalePrice, retailPrice, currentPrice naming */
-
 //==================================================
 const InventoryManager = (function() {
     // Dependencies
