@@ -1,4 +1,72 @@
 // main.js - clean version
+
+// ===== EMERGENCY FIX FOR ZERO PRICE PRODUCTS =====
+function fixZeroPriceProducts() {
+    console.log('[Emergency] Checking for products with price 0...');
+    
+    // Wait a moment for ProductsManager to be fully loaded
+    setTimeout(() => {
+        if (typeof ProductsManager === 'undefined') {
+            console.error('[Emergency] ProductsManager not available');
+            return;
+        }
+        
+        // Get all products (including inactive)
+        const products = ProductsManager.getProducts({ activeOnly: false });
+        let fixedCount = 0;
+        
+        products.forEach(product => {
+            // Check if price is 0 but retail price exists
+            if ((product.currentPrice === 0 || !product.currentPrice) && 
+                (product.retailPrice > 0 || product.currentprice > 0)) {
+                
+                // Determine which price field to use
+                const retailPrice = product.retailPrice || product.retailprice || 0;
+                const currentPrice = product.currentPrice || product.currentprice || 0;
+                
+                console.log(`[Emergency] Fixing price for: ${product.name}`);
+                console.log(`  Current price: ${currentPrice}, Retail price: ${retailPrice}`);
+                
+                // Update with correct price
+                ProductsManager.updateProduct(product.id, {
+                    retailPrice: retailPrice,
+                    currentPrice: retailPrice, // Set to retail price
+                    discountPercent: 0,
+                    isOnSale: false,
+                    updatedAt: new Date().toISOString()
+                });
+                
+                fixedCount++;
+            }
+        });
+        
+        if (fixedCount > 0) {
+            console.log(`[Emergency] Fixed ${fixedCount} products with 0 price`);
+            
+            // Show notification if dashboard is open
+            setTimeout(() => {
+                if (typeof window.showDashboardNotification === 'function') {
+                    window.showDashboardNotification(
+                        `Fixed ${fixedCount} products with incorrect pricing`, 
+                        'success'
+                    );
+                }
+            }, 1000);
+        } else {
+            console.log('[Emergency] No products with 0 price found');
+        }
+    }, 3000); // Wait 3 seconds for everything to load
+}
+
+// Run the fix after everything is loaded
+window.addEventListener('load', () => {
+    console.log('[Main] Window Loaded - App fully loaded');
+    
+    // Run emergency fix after 5 seconds delay
+    setTimeout(fixZeroPriceProducts, 5000);
+});
+
+// OFFLINE RELATED CODE
 // Listen for going offline DURING SESSION
 window.addEventListener('offline', () => {
     console.log('📶 Connection lost during session');
@@ -212,6 +280,7 @@ function setupSmoothScrolling() {
         console.error('[AppManager] Failed to setup smooth scrolling:', error);
     }
 }
+
     
     // ===== CONNECTION FUNCTIONS =====
     function connectCartButton() {
