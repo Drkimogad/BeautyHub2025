@@ -584,7 +584,7 @@ if (typeof window.refreshDashboardOrders === 'function') {
         }
     }
 
-// 3. STOCK-ONLY UPDATE (NEW - Surgical) COMMUNICATES WITH INVENTORY MANAGER.JS
+// 3. STOCK-ONLY UPDATE (NEW - Surgical) COMMUNICATES WITH INVENTORY MANAGER.JS UPDATED 
 async function updateStockOnly(productId, newStock) {
     try {
         console.log('[ProductsManager] Stock-only update:', { productId, newStock });
@@ -601,14 +601,17 @@ async function updateStockOnly(productId, newStock) {
             return false;
         }
         
-        // Update ONLY stock and updatedAt
+        // Store old stock for comparison
+        const oldStock = products[index].stock;
+        
+        // Update ONLY stock and updatedAt - preserve all other fields
         products[index].stock = parseInt(newStock);
         products[index].updatedAt = new Date().toISOString();
         
         console.log('[ProductsManager] Stock updated locally:', { 
             name: products[index].name, 
-            oldStock: products[index].stock, 
-            newStock 
+            oldStock: oldStock, 
+            newStock: newStock 
         });
         
         // Save to local storage
