@@ -102,103 +102,109 @@ const InventoryManager = (function() {
     }
     
 //=====================================================
-    //Deduct stock when order is placed
+    //Deduct stock when order is placed ADD SOLD TRACKING
 //==============================================
 function deductStockFromOrder(order) {
-        try {
-            if (!ProductsManager) {
-                console.error('[InventoryManager] ProductsManager not available');
-                return false;
-            }
-            
-            if (!order || !order.items) {
-                console.error('[InventoryManager] Invalid order data');
-                return false;
-            }
-            
-            console.log(`[InventoryManager] Deducting stock for order: ${order.id}`);
-            
-            let allSuccessful = true;
-            const updates = [];
-            
-            order.items.forEach(item => {
-                try {
-                    const product = ProductsManager.getProductById(item.productId);
-                    if (!product) {
-                        console.error(`[InventoryManager] Product not found: ${item.productId}`);
-                        allSuccessful = false;
-                        return;
-                    }
-                    
-                    const quantity = parseInt(item.quantity) || 1;
-                    const currentStock = parseInt(product.stock) || 0;
-                    const newStock = currentStock - quantity;
-                    
-                    if (newStock < 0) {
-                        console.error(`[InventoryManager] Insufficient stock for ${product.name}. Need ${quantity}, have ${currentStock}`);
-                        allSuccessful = false;
-                        return;
-                    }
-                    
-                    updates.push({
-                        productId: product.id,
-                        productName: product.name,
-                        oldStock: currentStock,
-                        newStock: newStock,
-                        quantity: quantity,
-                        category: product.category || ''
-                    });
-                    
-                    // NEW:Update product stock using UPDATESTOCKONLY FUNCTION FROM PRODUCTSMANAGER.JS
-                   const success = ProductsManager.updateStockOnly(product.id, newStock);
-                    
-                    if (!success) {
-                        console.error(`[InventoryManager] Failed to update stock for ${product.name}`);
-                        allSuccessful = false;
-                        return;
-                    }
-                    
-                    console.log(`[InventoryManager] Stock updated: ${product.name} ${currentStock} → ${newStock}`);
-                    
-                } catch (itemError) {
-                    console.error(`[InventoryManager] Error processing item ${item.productId}:`, itemError);
-                    allSuccessful = false;
-                }
-            });
-            
-            if (allSuccessful && updates.length > 0) {
-                // Save inventory transaction log
-                saveInventoryTransaction({
-                    type: 'order_deduction',
-                    orderId: order.id,
-                    timestamp: new Date().toISOString(),
-                    performedBy: order.customerEmail ? `customer:${order.customerEmail}` : 'customer:anonymous',
-                    referenceId: order.id,
-                    updates: updates,
-                    notes: `Stock deducted for order ${order.id} - ${order.firstName || ''} ${order.surname || ''}`
-                });
-                
-                console.log(`[InventoryManager] Stock successfully deducted for order: ${order.id}`);
-                    // ========== ADD SUCCESS NOTIFICATION ==========
-    if (typeof window.showDashboardNotification === 'function') {
-        window.showDashboardNotification('Stock updated successfully!', 'success');
-    }
-    
-    if (typeof window.refreshDashboardOrders === 'function') {
-        window.refreshDashboardOrders();
-    }
-
-                return true;
-            }
-            
-            console.warn(`[InventoryManager] Stock deduction incomplete for order: ${order.id}`);
-            return false;
-            
-        } catch (error) {
-            console.error(`[InventoryManager] Failed to deduct stock for order:`, error);
+    try {
+        if (!ProductsManager) {
+            console.error('[InventoryManager] ProductsManager not available');
             return false;
         }
+        
+        if (!order || !order.items) {
+            console.error('[InventoryManager] Invalid order data');
+            return false;
+        }
+        
+        console.log(`[InventoryManager] Deducting stock for order: ${order.id}`);
+        
+        let allSuccessful = true;
+        const updates = [];
+        
+        order.items.forEach(item => {
+            try {
+                const product = ProductsManager.getProductById(item.productId);
+                if (!product) {
+                    console.error(`[InventoryManager] Product not found: ${item.productId}`);
+                    allSuccessful = false;
+                    return;
+                }
+                
+                const quantity = parseInt(item.quantity) || 1;
+                const currentStock = parseInt(product.stock) || 0;
+                const currentSalesCount = parseInt(product.salesCount) || 0;
+                const newStock = currentStock - quantity;
+                
+                if (newStock < 0) {
+                    console.error(`[InventoryManager] Insufficient stock for ${product.name}. Need ${quantity}, have ${currentStock}`);
+                    allSuccessful = false;
+                    return;
+                }
+                
+                updates.push({
+                    productId: product.id,
+                    productName: product.name,
+                    oldStock: currentStock,
+                    newStock: newStock,
+                    quantity: quantity,
+                    category: product.category || ''
+                });
+                
+                // Update product with BOTH stock and salesCount
+                const success = ProductsManager.updateProduct(product.id, {
+                    stock: newStock,
+                    salesCount: currentSalesCount + quantity, // Increment sold count
+                    updatedAt: new Date().toISOString()
+                });
+                
+                if (!success) {
+                    console.error(`[InventoryManager] Failed to update stock for ${product.name}`);
+                    allSuccessful = false;
+                    return;
+                }
+                
+                console.log(`[InventoryManager] Stock updated: ${product.name} ${currentStock} → ${newStock}, Sold: +${quantity}`);
+                
+            } catch (itemError) {
+                console.error(`[InventoryManager] Error processing item ${item.productId}:`, itemError);
+                allSuccessful = false;
+            }
+        });
+        
+        if (allSuccessful && updates.length > 0) {
+            // Save inventory transaction log
+            saveInventoryTransaction({
+                type: 'order_deduction',
+                orderId: order.id,
+                timestamp: new Date().toISOString(),
+                performedBy: order.customerEmail ? `customer:${order.customerEmail}` : 'customer:anonymous',
+                referenceId: order.id,
+                updates: updates,
+                notes: `Stock deducted for order ${order.id} - ${order.firstName || ''} ${order.surname || ''}`
+            });
+            
+            console.log(`[InventoryManager] Stock successfully deducted for order: ${order.id}`);
+            
+            // Add success notification
+            if (typeof window.showDashboardNotification === 'function') {
+                window.showDashboardNotification('Stock updated successfully!', 'success');
+            }
+            
+            if (typeof window.refreshDashboardOrders === 'function') {
+                window.refreshDashboardOrders();
+            }
+            
+            return true;
+        }
+        
+        console.warn(`[InventoryManager] Stock deduction incomplete for order: ${order.id}`);
+        return false;
+        
+    } catch (error) {
+        console.error(`[InventoryManager] Failed to deduct stock for order:`, error);
+        return false;
     }
+}
     
 // ========================================
     //Get inventory report
