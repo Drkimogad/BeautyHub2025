@@ -500,89 +500,72 @@ const calculatedPrice = discountPercent > 0
     }
  
 // 2. UPDATE PRODUCTS
-    async function updateProduct(productId, updateData) {
-        try {
-            console.log('[ProductsManager] Updating product:', productId, updateData);
-            
-            const index = products.findIndex(p => p.id === productId);
-            if (index === -1) {
-                console.log('[ProductsManager] Product not found:', productId);
-                return false;
-            }
-            
-            // Normalize incoming data
-            const normalizedUpdate = normalizeProductProperties(updateData);
-            
-            let updatedCurrentPrice = normalizedUpdate.currentPrice !== undefined 
-             ? parseFloat(normalizedUpdate.currentPrice)
-              : products[index].currentPrice;
-            
-            const retailPrice = normalizedUpdate.retailPrice !== undefined 
-                ? parseFloat(normalizedUpdate.retailPrice) 
-                : products[index].retailPrice;
-            const discountPercent = normalizedUpdate.discountPercent !== undefined 
-                ? parseFloat(normalizedUpdate.discountPercent) 
-                : products[index].discountPercent;
-            
-            if (normalizedUpdate.discountPercent !== undefined || normalizedUpdate.retailPrice !== undefined) {
-                updatedCurrentPrice = calculateDiscountedPrice(retailPrice, discountPercent);
-                console.log('[ProductsManager] Price recalculated:', {
-                    retailPrice,
-                    discountPercent,
-                    updatedCurrentPrice
-                });
-            }
-            
-            const updatedProduct = {
-                ...products[index],
-                ...normalizedUpdate,
-                currentPrice: updatedCurrentPrice,
-                isOnSale: normalizedUpdate.isOnSale !== undefined 
-                    ? normalizedUpdate.isOnSale 
-                    : (discountPercent > 0) || products[index].isOnSale,
-                updatedAt: new Date().toISOString()
-            };
-            
-            console.log('[ProductsManager] Updated product object:', updatedProduct.id);
-            
-            // 1. Update Firestore
-            let firestoreSuccess = true;
-            if (CONFIG.USE_FIRESTORE) {
-                firestoreSuccess = await updateProductInFirestore(productId, normalizedUpdate);
-            }
-            
-            // 2. Update local
-            products[index] = updatedProduct;
-            saveProducts();
-            
-            console.log('[ProductsManager] Product updated:', {
-                id: productId,
-                name: updatedProduct.name,
-                currentPrice: updatedProduct.currentPrice,
-                discount: `${updatedProduct.discountPercent}%`,
-                firestore: firestoreSuccess ? 'success' : 'failed',
-                local: 'success'
-            });
-            // ========== ADD SUCCESS NOTIFICATION ==========
-if (typeof window.showDashboardNotification === 'function') {
-    window.showDashboardNotification('Product updated successfully!', 'success');
-}
-
-// ========== REFRESH DASHBOARD ==========
-if (typeof window.refreshDashboardOrders === 'function') {
-    window.refreshDashboardOrders();
-}
-// ========== END ADDITIONS ==========
-            return true;
-            
-        } catch (error) {
-            console.error('[ProductsManager] Error updating product:', error);
-            if (typeof window.showDashboardNotification === 'function') {
-    window.showDashboardNotification('Product updatng failed!', 'error');
-}
+async function updateProduct(productId, updateData) {
+    try {
+        console.log('[ProductsManager] Updating product:', productId, updateData);
+        
+        const index = products.findIndex(p => p.id === productId);
+        if (index === -1) {
+            console.log('[ProductsManager] Product not found:', productId);
             return false;
         }
+        
+        // Normalize incoming data
+        const normalizedUpdate = normalizeProductProperties(updateData);
+        
+        // Ensure price consistency
+        let updatedCurrentPrice = normalizedUpdate.currentPrice !== undefined 
+            ? parseFloat(normalizedUpdate.currentPrice)
+            : products[index].currentPrice;
+        
+        const retailPrice = normalizedUpdate.retailPrice !== undefined 
+            ? parseFloat(normalizedUpdate.retailPrice) 
+            : products[index].retailPrice;
+        const discountPercent = normalizedUpdate.discountPercent !== undefined 
+            ? parseFloat(normalizedUpdate.discountPercent) 
+            : products[index].discountPercent;
+        
+        if (normalizedUpdate.discountPercent !== undefined || normalizedUpdate.retailPrice !== undefined) {
+            updatedCurrentPrice = calculateDiscountedPrice(retailPrice, discountPercent);
+            console.log('[ProductsManager] Price recalculated:', {
+                retailPrice,
+                discountPercent,
+                updatedCurrentPrice
+            });
+        }
+        
+        // Preserve existing fields that aren't being updated
+        const updatedProduct = {
+            ...products[index],
+            ...normalizedUpdate,
+            currentPrice: updatedCurrentPrice,
+            isOnSale: normalizedUpdate.isOnSale !== undefined 
+                ? normalizedUpdate.isOnSale 
+                : (discountPercent > 0) || products[index].isOnSale,
+            updatedAt: new Date().toISOString()
+        };
+        
+        console.log('[ProductsManager] Updated product object:', updatedProduct);
+        
+        // 1. Update Firestore
+        let firestoreSuccess = true;
+        if (CONFIG.USE_FIRESTORE) {
+            firestoreSuccess = await updateProductInFirestore(productId, normalizedUpdate);
+        }
+        
+        // 2. Update local
+        products[index] = updatedProduct;
+        saveProducts();
+        
+        console.log('[ProductsManager] Product updated successfully');
+        
+        return true;
+        
+    } catch (error) {
+        console.error('[ProductsManager] Error updating product:', error);
+        return false;
     }
+}
 
 // 3. STOCK-ONLY UPDATE (NEW - Surgical) COMMUNICATES WITH INVENTORY MANAGER.JS UPDATED 
 async function updateStockOnly(productId, newStock) {
