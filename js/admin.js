@@ -1526,29 +1526,30 @@ function handleStatusFilter(e) {
             </div>
         `;
     }
-
-    function getProductRowHTML(product) {
-        const stock = parseInt(product.stock) || 0;
-        const stockColor = stock === 0 ? '#f44336' : stock <= 5 ? '#FF9800' : '#4CAF50';
-        const productId = product.id || 'N/A';
-        const productName = product.name || 'Unknown';
-        const category = product.category || 'Uncategorized';
-        const salesCount = product.salesCount || 0;
-        const updatedAt = product.updatedAt ? new Date(product.updatedAt).toLocaleDateString() : 'N/A';
-        
-        return `
-            <tr>
-                <td>${productId}</td>
-                <td>${productName}</td>
-                <td class="category-cell">${category}</td>
-                <td class="stock-cell" style="color: ${stockColor}">${stock}</td>
-                <td>${salesCount}</td>
-                <td class="date-cell">
-                    ${updatedAt}
-                </td>
-            </tr>
-        `;
-    }
+    
+/* UPDATED TO GET CORRECT PROPERTY NAME*/
+function getProductRowHTML(product) {
+    const stock = parseInt(product.stock) || 0;
+    const stockColor = stock === 0 ? '#f44336' : stock <= 5 ? '#FF9800' : '#4CAF50';
+    const productId = product.id || 'N/A';
+    const productName = product.name || 'Unknown';
+    const category = product.category || 'Uncategorized';
+    const salesCount = product.salesCount || 0;
+    const updatedAt = product.updatedAt ? new Date(product.updatedAt).toLocaleDateString() : 'N/A';
+    
+    return `
+        <tr>
+            <td>${productId}</td>
+            <td>${productName}</td>
+            <td class="category-cell">${category}</td>
+            <td class="stock-cell" style="color: ${stockColor}">${stock}</td>
+            <td>${salesCount}</td>
+            <td class="date-cell">
+                ${updatedAt}
+            </td>
+        </tr>
+    `;
+}
 
     function setupInventoryTrackingModalEvents(modal) {
         try {
