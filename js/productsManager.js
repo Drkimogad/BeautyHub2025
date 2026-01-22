@@ -532,15 +532,27 @@ const calculatedPrice = discountPercent > 0
                 });
             }
             
-            const updatedProduct = {
-                ...products[index],
-                ...normalizedUpdate,
-                currentPrice: updatedCurrentPrice,
-                isOnSale: normalizedUpdate.isOnSale !== undefined 
-                    ? normalizedUpdate.isOnSale 
-                    : (discountPercent > 0) || products[index].isOnSale,
-                updatedAt: new Date().toISOString()
-            };
+            // Preserve existing prices if not being updated
+const updatedProduct = {
+    ...products[index],
+    ...normalizedUpdate,
+    // Only update currentPrice if retailPrice or discountPercent changed
+    currentPrice: (normalizedUpdate.discountPercent !== undefined || 
+                   normalizedUpdate.retailPrice !== undefined) 
+                   ? updatedCurrentPrice 
+                   : products[index].currentPrice,
+    // Preserve existing price fields if not in update
+    retailPrice: normalizedUpdate.retailPrice !== undefined 
+                 ? normalizedUpdate.retailPrice 
+                 : products[index].retailPrice,
+    wholesalePrice: normalizedUpdate.wholesalePrice !== undefined 
+                    ? normalizedUpdate.wholesalePrice 
+                    : products[index].wholesalePrice,
+    isOnSale: normalizedUpdate.isOnSale !== undefined 
+              ? normalizedUpdate.isOnSale 
+              : (discountPercent > 0) || products[index].isOnSale,
+    updatedAt: new Date().toISOString()
+};
             
             console.log('[ProductsManager] Updated product object:', updatedProduct.id);
             
