@@ -322,16 +322,31 @@ async function updateFromFirestoreInBackground() {
         }
     }
     
-// 3. NORMALIZE PRODUCTS PROPERTIES    
-function normalizeProductProperties(product) {
+// 3. NORMALIZE PRODUCTS PROPERTIES - UPDATED WITH CONTEXT PARAMETER/FLAG
+function normalizeProductProperties(product, context = 'default') {
+    console.log(`[ProductsManager] Normalize - Context: ${context}, Product: ${product?.id || 'new'}`);
+    
+    // NEW: For stock-only updates, preserve original price data
+    if (context === 'stockUpdate' || context === 'inventory') {
+        console.log(`[ProductsManager] Stock update context - preserving price fields`);
         return {
             ...product,
-            wholesalePrice: product.wholesalePrice || product.wholesaleprice || 0,
-            retailPrice: product.retailPrice || product.retailprice || 0,
-            currentPrice: product.currentPrice || product.currentprice || 0,
-            discountPercent: product.discountPercent || product.discountedPercent || 0
+            // DO NOT normalize price fields - keep them as-is
+            updatedAt: new Date().toISOString()
         };
     }
+    
+    // Default: Normalize all price fields (for product edits, creation, etc.)
+    return {
+        ...product,
+        wholesalePrice: product.wholesalePrice || product.wholesaleprice || 0,
+        retailPrice: product.retailPrice || product.retailprice || 0,
+        currentPrice: product.currentPrice || product.currentprice || 0,
+        discountPercent: product.discountPercent || product.discountedPercent || 0,
+        salesCount: product.salesCount || 0, // Also normalize salesCount
+        isActive: product.isActive !== undefined ? product.isActive : true
+    };
+}
 
 // 4. SAVE PRODUCTS TO LOCALSTORAGE
     function saveProductsToLocalStorage() {
