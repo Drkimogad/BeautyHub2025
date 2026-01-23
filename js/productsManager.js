@@ -589,11 +589,32 @@ async function updateProduct(productId, updateData, context = 'default') {
         
         console.log('[ProductsManager] Updated product object:', updatedProduct.id);
         
-        // 1. Update Firestore (pass normalizedUpdate without context)
-        let firestoreSuccess = true;
-        if (CONFIG.USE_FIRESTORE) {
-            firestoreSuccess = await updateProductInFirestore(productId, normalizedUpdate);
-        }
+        // 1. Update Firestore - pass ALL updated fields including salesCount
+let firestoreSuccess = true;
+if (CONFIG.USE_FIRESTORE) {
+    // Create Firestore payload with ALL necessary fields
+    const firestorePayload = {
+        stock: updatedProduct.stock,
+        salesCount: updatedProduct.salesCount,
+        updatedAt: updatedProduct.updatedAt
+    };
+    
+    // If other fields were updated, include them too
+    if (normalizedUpdate.retailPrice !== undefined) {
+        firestorePayload.retailPrice = updatedProduct.retailPrice;
+    }
+    if (normalizedUpdate.currentPrice !== undefined) {
+        firestorePayload.currentPrice = updatedProduct.currentPrice;
+    }
+    if (normalizedUpdate.wholesalePrice !== undefined) {
+        firestorePayload.wholesalePrice = updatedProduct.wholesalePrice;
+    }
+    if (normalizedUpdate.discountPercent !== undefined) {
+        firestorePayload.discountPercent = updatedProduct.discountPercent;
+    }
+    
+    firestoreSuccess = await updateProductInFirestore(productId, firestorePayload);
+}
         
         // 2. Update local
         products[index] = updatedProduct;
@@ -663,16 +684,28 @@ async function updateStockOnly(productId, newStock) {
         saveProductsToCache();
         
         // Update Firestore (if enabled) - ONLY stock field
-        let firestoreSuccess = true;
-        if (CONFIG.USE_FIRESTORE && CONFIG.FIREBASE_READY()) {
-            try {
-                const db = firebase.firestore();
-                const productRef = db.collection(CONFIG.FIRESTORE_COLLECTION).doc(productId);
-                
-                await productRef.update({
-                    stock: parseInt(newStock),
-                    updatedAt: new Date().toISOString()
-                });
+            // Update Firestore (if enabled) - stock AND salesCount if applicable
+let firestoreSuccess = true;
+if (CONFIG.USE_FIRESTORE && CONFIG.FIREBASE_READY()) {
+    try {
+        const db = firebase.firestore();
+        const productRef = db.collection(CONFIG.FIRESTORE_COLLECTION).doc(productId);
+        
+        // Get current product to check if we need to update salesCount
+        const currentProduct = getProductById(productId);
+        const firestoreUpdate = {
+            stock: parseInt(newStock),
+            updatedAt: new Date().toISOString()
+        };
+        
+        // If stock is decreasing (shipping), update salesCount too
+        if (currentProduct && newStock < currentProduct.stock) {
+            const quantitySold = currentProduct.stock - newStock;
+            firestoreUpdate.salesCount = (currentProduct.salesCount || 0) + quantitySold;
+        }
+        
+        await productRef.update(firestoreUpdate);
+
                 
                 console.log(`[ProductsManager] Stock updated in Firestore: ${productId}`);
             } catch (firestoreError) {
