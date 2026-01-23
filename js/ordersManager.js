@@ -690,7 +690,8 @@ function updateOrderStatus(orderId, newStatus, shippingDate = '') {
                 const failedItems = [];
                 
                 order.items.forEach(item => {
-                    const success = ProductsManager.updateStock(item.productId, -item.quantity);
+                    // const success = ProductsManager.updateStock(item.productId, -item.quantity);
+                const success = ProductsManager.updateStockOnly(item.productId, -item.quantity);  //UPDATED THIS LINE
                     if (!success) {
                         allStockDeducted = false;
                         failedItems.push(item.productName);
