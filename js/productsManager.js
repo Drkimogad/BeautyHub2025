@@ -551,7 +551,10 @@ async function updateProduct(productId, updateData, context = 'default') {
                 updatedCurrentPrice
             });
         }
-        
+         // NEW: Calculate quantity change for salesCount tracking
+              const quantityChange = context === 'stockUpdate' 
+               ? (normalizedUpdate.stock - products[index].stock) 
+                  : 0;   
         // Preserve existing prices if not being updated
         const updatedProduct = {
             ...products[index],
@@ -563,7 +566,15 @@ async function updateProduct(productId, updateData, context = 'default') {
                     normalizedUpdate.retailPrice !== undefined) 
                     ? updatedCurrentPrice 
                     : products[index].currentPrice),
-            // Preserve existing price fields if not in update
+         
+            // NEW: Increment salesCount for stock deductions (shipping)
+       salesCount: (context === 'stockUpdate' && quantityChange < 0) 
+        ? (products[index].salesCount || 0) + Math.abs(quantityChange)
+        : (normalizedUpdate.salesCount !== undefined 
+           ? normalizedUpdate.salesCount 
+           : products[index].salesCount || 0),
+         
+         // Preserve existing price fields if not in update
             retailPrice: normalizedUpdate.retailPrice !== undefined 
                 ? normalizedUpdate.retailPrice 
                 : products[index].retailPrice,
