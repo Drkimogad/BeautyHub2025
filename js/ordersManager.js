@@ -690,8 +690,12 @@ function updateOrderStatus(orderId, newStatus, shippingDate = '') {
                 const failedItems = [];
                 
                 order.items.forEach(item => {
-                    // const success = ProductsManager.updateStock(item.productId, -item.quantity);
-                const success = ProductsManager.updateStockOnly(item.productId, -item.quantity);  //UPDATED THIS LINE
+                 const success = ProductsManager.updateStock(item.productId, -item.quantity);
+                    /* Using updatestock function is the cleaner option here as it does this:
+                       Intent clear: "Update stock by -1"
+                       Uses fixed updateProduct(): Won't reset prices
+                       Single source: All stock changes go through same logic
+                       Still updates Firestore: Via updateProductInFirestore() */
                     if (!success) {
                         allStockDeducted = false;
                         failedItems.push(item.productName);
