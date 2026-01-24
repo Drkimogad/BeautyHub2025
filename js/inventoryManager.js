@@ -149,7 +149,15 @@ function deductStockFromOrder(order) {
                     });
                     
                     // NEW:Update product stock using UPDATESTOCKONLY FUNCTION FROM PRODUCTSMANAGER.JS
-                   const success = ProductsManager.updateStockOnly(product.id, newStock);
+                    // ========== FIXED: PASS CONTEXT TO UPDATE STOCK ONLY ==========
+const success = ProductsManager.updateStockOnly(product.id, newStock, {
+    type: 'order_deduction',
+    orderId: order.id,
+    performedBy: order.customerEmail ? `customer:${order.customerEmail}` : 'customer:anonymous',
+    referenceId: order.id,
+    notes: `Stock deducted for order ${order.id}`
+});
+// ========== END FIX ==========
                     
                     if (!success) {
                         console.error(`[InventoryManager] Failed to update stock for ${product.name}`);
@@ -493,59 +501,81 @@ const product = ProductsManager.getProductById(productId);
 //================================================
     // Save inventory transaction
 //============================================
-    function saveInventoryTransaction(transactionData) {
-        try {
-            if (!transactionData || !transactionData.updates) {
-                console.error('[InventoryManager] Invalid transaction data');
-                return false;
-            }
-            
-            const existing = localStorage.getItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS);
-            const transactions = existing ? JSON.parse(existing) : [];
-            
-            // Get product details for updates
-            const enhancedUpdates = transactionData.updates.map(update => {
-                let product = null;
-                if (ProductsManager) {
-                    product = ProductsManager.getProductById(update.productId);
-                }
-                
-                return {
-                    productId: update.productId,
-                    productName: update.productName || product?.name || 'Unknown',
-                    previousStock: update.oldStock || update.previousStock || 0,
-                    newStock: update.newStock || 0,
-                    quantity: update.quantity || 0,
-                    category: update.category || product?.category || 'Unknown',
-                    price: product ? (product.currentPrice || product.currentprice || 0) : 0
-                };
-            });
-            
-            // Create enhanced transaction
-            const enhancedTransaction = {
-                id: `TX-${new Date().toISOString().slice(0,10).replace(/-/g, '')}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
-                type: transactionData.type || 'unknown',
-                timestamp: transactionData.timestamp || new Date().toISOString(),
-                performedBy: transactionData.performedBy || 'system',
-                referenceId: transactionData.referenceId || '',
-                notes: transactionData.notes || '',
-                updates: enhancedUpdates
-            };
-            
-            transactions.push(enhancedTransaction);
-            
-            // Keep only last 200 transactions to prevent localStorage overflow
-            const trimmedTransactions = transactions.slice(-200);
-            localStorage.setItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS, JSON.stringify(trimmedTransactions));
-            
-            console.log(`[InventoryManager] Transaction saved: ${enhancedTransaction.id}`);
-            return true;
-            
-        } catch (error) {
-            console.error('[InventoryManager] Failed to save transaction:', error);
+function saveInventoryTransaction(transactionData) {
+    try {
+        console.log('[InventoryManager] Saving transaction:', transactionData.type);
+        
+        if (!transactionData) {
+            console.error('[InventoryManager] No transaction data provided');
             return false;
         }
+        
+        // Validate required fields
+        if (!transactionData.updates || !Array.isArray(transactionData.updates) || transactionData.updates.length === 0) {
+            console.error('[InventoryManager] Invalid or empty updates array');
+            return false;
+        }
+        
+        const existing = localStorage.getItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS);
+        const transactions = existing ? JSON.parse(existing) : [];
+        
+        // Enhanced transaction with better data
+        const enhancedTransaction = {
+            id: `TX-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+            type: transactionData.type || 'unknown',
+            timestamp: transactionData.timestamp || new Date().toISOString(),
+            performedBy: transactionData.performedBy || 'system',
+            referenceId: transactionData.referenceId || '',
+            notes: transactionData.notes || '',
+            updates: transactionData.updates.map(update => ({
+                productId: update.productId || '',
+                productName: update.productName || 'Unknown',
+                previousStock: update.oldStock || update.previousStock || 0,
+                newStock: update.newStock || 0,
+                quantity: update.quantity || 0,
+                category: update.category || 'Unknown',
+                price: update.price || 0
+            }))
+        };
+        
+        // Add to transactions
+        transactions.push(enhancedTransaction);
+        
+        // Keep only last 200 transactions
+        const trimmedTransactions = transactions.slice(-200);
+        
+        // Save to localStorage
+        localStorage.setItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS, JSON.stringify(trimmedTransactions));
+        
+        console.log(`[InventoryManager] Transaction saved: ${enhancedTransaction.id}`, {
+            type: enhancedTransaction.type,
+            updates: enhancedTransaction.updates.length,
+            timestamp: enhancedTransaction.timestamp
+        });
+        
+        // ========== NEW: VERIFY SAVE WAS SUCCESSFUL ==========
+        // Read back to confirm
+        const verify = JSON.parse(localStorage.getItem(STORAGE_KEYS.INVENTORY_TRANSACTATIONS));
+        const savedCount = verify ? verify.length : 0;
+        console.log(`[InventoryManager] Transaction save verified: ${savedCount} total transactions`);
+        // ========== END NEW CODE ==========
+        
+        return true;
+        
+    } catch (error) {
+        console.error('[InventoryManager] Failed to save transaction:', error);
+        
+        // ========== NEW: DEBUG LOCALSTORAGE ISSUES ==========
+        console.error('[InventoryManager] Debug info:', {
+            localStorageAvailable: typeof localStorage !== 'undefined',
+            storageKey: STORAGE_KEYS.INVENTORY_TRANSACTIONS,
+            errorMessage: error.message
+        });
+        // ========== END NEW CODE ==========
+        
+        return false;
     }
+}
     
 //=================================================
     //Get inventory transactions
