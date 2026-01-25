@@ -1294,6 +1294,16 @@ function handleStatusFilter(e) {
         console.log('[Analytics] Opening Inventory Tracking Modal');
         
         try {
+            // ========== ADD THIS: Force refresh from localStorage ==========
+        // Clear any cached data and reload fresh
+        if (typeof InventoryManager !== 'undefined' && 
+            typeof InventoryManager.getInventoryTransactions === 'function') {
+            // Force fresh data load
+            const freshReport = InventoryManager.getInventoryTransactions();
+            console.log('[Analytics] Fresh report loaded:', freshReport.summary.totalTransactions);
+        }
+        // ========== END ADDITION ==========
+
             if (typeof InventoryManager === 'undefined') {
                 console.error('[Analytics] InventoryManager not loaded');
                 alert('Inventory system not available');
@@ -1305,8 +1315,8 @@ function handleStatusFilter(e) {
             let report = { summary: {}, recentTransactions: [] };
             
             // Safely get report
-            if (typeof InventoryManager.getInventoryTransactionsReport === 'function') {
-                report = InventoryManager.getInventoryTransactionsReport() || report;
+            if (typeof InventoryManager.getInventoryTransactions === 'function') {
+                report = InventoryManager.getInventoryTransactions() || report;
             }
             
             modal.innerHTML = getInventoryTrackingModalHTML(report);
