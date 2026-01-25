@@ -1179,67 +1179,88 @@ function handleStatusFilter(e) {
         }
     }
 
-    function handleOrderActions(e) {
-        const orderId = e.target.dataset.orderId;
-        if (!orderId) return;
-        
-        try {
-            if (e.target.classList.contains('view-order') || e.target.closest('.view-order')) {
-                if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.showOrderDetails === 'function') {
-                    OrdersManager.showOrderDetails(orderId);
-                } else {
-                    alert(`Order details for ${orderId} - Feature not available`);
-                }
-            }
-            
-            if (e.target.classList.contains('mark-paid') || e.target.closest('.mark-paid')) {
-    if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.markAsPaid === 'function') {
-        if (OrdersManager.markAsPaid(orderId)) {
-            // IMMEDIATE UI UPDATE
-            const orderCard = e.target.closest('.dashboard-order-card');
-            if (orderCard) {
-                // Update status badge
-                const statusBadge = orderCard.querySelector('.order-status-badge');
-                if (statusBadge) {
-                    statusBadge.textContent = 'PAID';
-                    statusBadge.style.background = '#2196f3';
-                }
-                
-                // Disable paid button
-                const paidBtn = orderCard.querySelector('.mark-paid');
-                if (paidBtn) {
-                    paidBtn.textContent = '✓ Paid';
-                    paidBtn.disabled = true;
-                    paidBtn.style.opacity = '0.6';
-                }
-                
-                // Show shipped button
-                const shippedBtn = orderCard.querySelector('.mark-shipped');
-                if (shippedBtn) {
-                    shippedBtn.style.display = 'flex';
-                }
-                
-                // Hide cancel button
-                const cancelBtn = orderCard.querySelector('.cancel-order');
-                if (cancelBtn) {
-                    cancelBtn.style.display = 'none';
-                }
-            }
-            
-            // Update counts
-            updateOrderCounts();
-            updateDashboardBadge();
-            updateAdminButtonVisibility();
-            
-            // Show notification
-            if (typeof window.showDashboardNotification === 'function') {
-                window.showDashboardNotification(`Order ${orderId} marked as paid`, 'success');
+function handleOrderActions(e) {
+    const orderId = e.target.dataset.orderId;
+    if (!orderId) return;
+    
+    try {
+        if (e.target.classList.contains('view-order') || e.target.closest('.view-order')) {
+            if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.showOrderDetails === 'function') {
+                OrdersManager.showOrderDetails(orderId);
+            } else {
+                alert(`Order details for ${orderId} - Feature not available`);
             }
         }
-     }
-   }
- }
-}
+        
+        if (e.target.classList.contains('mark-paid') || e.target.closest('.mark-paid')) {
+            if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.markAsPaid === 'function') {
+                if (OrdersManager.markAsPaid(orderId)) {
+                    // IMMEDIATE UI UPDATE
+                    const orderCard = e.target.closest('.dashboard-order-card');
+                    if (orderCard) {
+                        // Update status badge
+                        const statusBadge = orderCard.querySelector('.order-status-badge');
+                        if (statusBadge) {
+                            statusBadge.textContent = 'PAID';
+                            statusBadge.style.background = '#2196f3';
+                        }
+                        
+                        // Disable paid button
+                        const paidBtn = orderCard.querySelector('.mark-paid');
+                        if (paidBtn) {
+                            paidBtn.textContent = '✓ Paid';
+                            paidBtn.disabled = true;
+                            paidBtn.style.opacity = '0.6';
+                        }
+                        
+                        // Show shipped button
+                        const shippedBtn = orderCard.querySelector('.mark-shipped');
+                        if (shippedBtn) {
+                            shippedBtn.style.display = 'flex';
+                        }
+                        
+                        // Hide cancel button
+                        const cancelBtn = orderCard.querySelector('.cancel-order');
+                        if (cancelBtn) {
+                            cancelBtn.style.display = 'none';
+                        }
+                    }
+                    
+                    // Update counts
+                    updateOrderCounts();
+                    updateDashboardBadge();
+                    updateAdminButtonVisibility();
+                    
+                    // Show notification
+                    if (typeof window.showDashboardNotification === 'function') {
+                        window.showDashboardNotification(`Order ${orderId} marked as paid`, 'success');
+                    }
+                }
+            }
+        }
+        
+        // ADD THE MISSING HANDLERS FOR OTHER BUTTONS:
+        if (e.target.classList.contains('mark-shipped') || e.target.closest('.mark-shipped')) {
+            if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.markAsShipped === 'function') {
+                if (OrdersManager.markAsShipped(orderId)) {
+                    loadDashboardData();
+                    updateAdminButtonVisibility();
+                }
+            }
+        }
+        
+        if (e.target.classList.contains('cancel-order') || e.target.closest('.cancel-order')) {
+            if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.showCancellationModal === 'function') {
+                OrdersManager.showCancellationModal(orderId);
+            } else {
+                alert('Cancellation feature not available');
+            }
+        }
+        
+    } catch (error) {
+        console.error('[Dashboard] Order action error:', error);
+    }
+} // THIS IS THE CORRECT SINGLE CLOSING BRACE FOR THE FUNCTION
         
 
 // ========================================================
