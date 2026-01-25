@@ -1435,9 +1435,25 @@ function generateCancelledOrderCardHTML(order) {
         }
     }
 
-    function handleOrderActions(e) {
+function handleOrderActions(e) {
     try {
         const orderId = e.target.dataset.orderId;
+        
+        // DEBUG: Log ALL clicks with order IDs
+        if (orderId) {
+            console.log(`[DEBUG] Order action clicked:`, {
+                orderId: orderId,
+                targetClass: e.target.className,
+                closestDashboard: !!e.target.closest('#admin-dashboard-modal'),
+                closestDashboardCard: !!e.target.closest('.dashboard-order-card'),
+                buttonType: e.target.classList.contains('mark-paid') ? 'mark-paid' :
+                           e.target.classList.contains('mark-shipped') ? 'mark-shipped' :
+                           e.target.classList.contains('cancel-order') ? 'cancel-order' :
+                           e.target.classList.contains('view-details') ? 'view-details' :
+                           e.target.classList.contains('delete-order') ? 'delete-order' : 'unknown'
+            });
+        }
+        
         if (!orderId) return;
         
         // CHECK: If this is a dashboard button, don't handle it
@@ -1448,6 +1464,12 @@ function generateCancelledOrderCardHTML(order) {
             console.log(`[OrdersManager] Dashboard button clicked - letting admin.js handle it`);
             return; // Let admin.js handle dashboard actions
         }
+        
+        // Log any non-dashboard order clicks (should be none if you're right)
+        console.log(`[DEBUG] NON-DASHBOARD order button clicked! This shouldn't happen if you have no other pages.`, {
+            orderId: orderId,
+            element: e.target.outerHTML
+        });
         
         // Only handle non-dashboard buttons
         if (e.target.classList.contains('mark-paid') && !e.target.disabled) {
