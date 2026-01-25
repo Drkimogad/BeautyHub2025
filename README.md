@@ -611,3 +611,27 @@ if (typeof CustomerSearchManager !== 'undefined' && CustomerSearchManager.init) 
     CustomerSearchManager.init();
     console.log('[AppManager] CustomerSearchManager initialized');
 }
+NB:
+TRACK INVENTORY MODAL vs INVENTORY REPORT:
+
+text
+TRACK INVENTORY MODAL (Transactions View):
+├── Shows: Real-time stock change history
+├── Data: Individual transactions (who, when, why)
+├── Focus: Process tracking (orders, adjustments, returns)
+├── Purpose: Audit trail & activity monitoring
+├── Shows: Transaction IDs, timestamps, performers
+└── Example: "TX-20250123-ABC1 - order_deduction - 2pm - Admin"
+
+INVENTORY REPORT (Summary View):
+├── Shows: Current stock snapshot
+├── Data: Product quantities at this moment
+├── Focus: Current status (how much you have now)
+├── Purpose: Business decisions & restocking
+├── Shows: Stock levels, sales counts, value
+└── Example: "Product X: 20 in stock, 5 sold, R1000 value"
+
+KEY DIFFERENCE:
+• Transactions = HISTORY (what happened over time)
+• Report = SNAPSHOT (what exists right now)
+Track Inventory shows the story of stock changes. Inventory Report shows the current picture.
