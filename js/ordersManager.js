@@ -682,33 +682,40 @@ function updateOrderStatus(orderId, newStatus, shippingDate = '') {
                 shippingDate = new Date().toISOString().split('T')[0];
             }
             
-            // Update inventory stock if ProductsManager is available
-            if (typeof ProductsManager !== 'undefined') {
-                console.log(`[OrdersManager] Updating inventory for shipped order ${orderId}`);
-                
-                let allStockDeducted = true;
-                const failedItems = [];
-                
-                order.items.forEach(item => {
-                 const success = ProductsManager.updateStock(item.productId, -item.quantity);
-                    /* Using updatestock function is the cleaner option here as it does this:
-                       Intent clear: "Update stock by -1"
-                       Uses fixed updateProduct(): Won't reset prices
-                       Single source: All stock changes go through same logic
-                       Still updates Firestore: Via updateProductInFirestore() */
-                    if (!success) {
-                        allStockDeducted = false;
-                        failedItems.push(item.productName);
-                    }
-                });
-                
-                if (!allStockDeducted) {
-                    const errorMsg = `Cannot ship order ${orderId}. Insufficient stock for: ${failedItems.join(', ')}`;
-                    console.error(`[OrdersManager] ${errorMsg}`);
-                    alert(errorMsg);
-                    return false;
-                }
-            }
+            // Update inventory stock using InventoryManager if available
+if (typeof InventoryManager !== 'undefined' && 
+    typeof InventoryManager.deductStockFromOrder === 'function') {
+    console.log(`[OrdersManager] Updating inventory via InventoryManager for shipped order ${orderId}`);
+    
+    const inventorySuccess = InventoryManager.deductStockFromOrder(order);
+    if (!inventorySuccess) {
+        console.error(`[OrdersManager] Inventory update failed for order ${orderId}`);
+        alert(`Cannot ship order ${orderId}. Inventory update failed.`);
+        return false;
+    }
+} 
+// Fallback to ProductsManager if InventoryManager not available
+else if (typeof ProductsManager !== 'undefined') {
+    console.log(`[OrdersManager] Updating inventory via ProductsManager for shipped order ${orderId}`);
+    
+    let allStockDeducted = true;
+    const failedItems = [];
+    
+    order.items.forEach(item => {
+        const success = ProductsManager.updateStock(item.productId, -item.quantity);
+        if (!success) {
+            allStockDeducted = false;
+            failedItems.push(item.productName);
+        }
+    });
+    
+    if (!allStockDeducted) {
+        const errorMsg = `Cannot ship order ${orderId}. Insufficient stock for: ${failedItems.join(', ')}`;
+        console.error(`[OrdersManager] ${errorMsg}`);
+        alert(errorMsg);
+        return false;
+    }
+}
             
             // Update order status
             const success = updateOrderStatus(orderId, 'shipped', shippingDate);
