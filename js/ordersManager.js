@@ -1419,11 +1419,12 @@ function generateCancelledOrderCardHTML(order) {
             // Mark as paid
             if (e.target.classList.contains('mark-paid') && !e.target.disabled) {
                 console.log(`[OrdersManager] Marking order ${orderId} as paid`);
+
                 if (markAsPaid(orderId)) {
                     e.target.textContent = '✓ Paid';
                     e.target.disabled = true;
                     e.target.classList.add('disabled');
-                    renderOrders();
+                    // renderOrders(); // IT IS HANDLED IN ADMIN.JD
                 }
             }
             
