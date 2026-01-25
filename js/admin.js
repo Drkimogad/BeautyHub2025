@@ -704,86 +704,92 @@ function renderCancelledOrdersDirectly() {
         }
     }
 
-    function getOrderCardHTML(order) {
-        try {
-            const statusColors = {
-                pending: '#ff9800',
-                paid: '#2196f3',
-                shipped: '#4caf50',
-                cancelled: '#9e9e9e'
-            };
-            
-            // Use property fallbacks
-            const orderId = order.id || 'N/A';
-            const status = order.status || 'pending';
-            const createdAt = order.createdAt ? new Date(order.createdAt) : new Date();
-            const orderDate = createdAt.toLocaleDateString();
-            const orderTime = createdAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            const totalAmount = parseFloat(order.totalAmount || order.total || 0);
-            const itemCount = Array.isArray(order.items) ? order.items.length : 0;
-            const firstName = order.firstName || order.firstName || '';
-            const surname = order.surname || order.lastName || '';
-            const customerPhone = order.customerPhone || order.phone || '';
-            
-            return `
-                <div class="dashboard-order-card" data-order-id="${orderId}">
-                    <div class="order-card-header">
-                        <div class="order-info">
-                            <div class="order-status-badge" style="background: ${statusColors[status] || '#666'}">
-                                ${status.toUpperCase()}
-                            </div>
-                            <span class="order-id">${orderId}</span>
-                            <span class="order-time">${orderDate} ${orderTime}</span>
+function getOrderCardHTML(order) {
+    try {
+        const statusColors = {
+            pending: '#ff9800',
+            paid: '#2196f3',
+            shipped: '#4caf50',
+            cancelled: '#9e9e9e'
+        };
+        
+        // ✅ FIXED: Get the ACTUAL order status, not hardcoded
+        const orderId = order.id || 'N/A';
+        const status = order.status || 'pending'; // ✅ THIS IS THE FIX
+        const createdAt = order.createdAt ? new Date(order.createdAt) : new Date();
+        const orderDate = createdAt.toLocaleDateString();
+        const orderTime = createdAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const totalAmount = parseFloat(order.totalAmount || order.total || 0);
+        const itemCount = Array.isArray(order.items) ? order.items.length : 0;
+        const firstName = order.firstName || order.firstName || '';
+        const surname = order.surname || order.lastName || '';
+        const customerPhone = order.customerPhone || order.phone || '';
+        
+        // ✅ FIXED: Use ACTUAL status for button visibility
+        const isPending = status === 'pending';
+        const isPaid = status === 'paid';
+        const isShipped = status === 'shipped';
+        const isCancelled = status === 'cancelled';
+        
+        return `
+            <div class="dashboard-order-card" data-order-id="${orderId}">
+                <div class="order-card-header">
+                    <div class="order-info">
+                        <div class="order-status-badge" style="background: ${statusColors[status] || '#666'}">
+                            ${status.toUpperCase()}
                         </div>
-                        
-                        <div class="order-summary">
-                            <div class="order-total">R${totalAmount.toFixed(2)}</div>
-                            <div class="order-items">${itemCount} item${itemCount !== 1 ? 's' : ''}</div>
-                        </div>
+                        <span class="order-id">${orderId}</span>
+                        <span class="order-time">${orderDate} ${orderTime}</span>
                     </div>
                     
-                    <div class="order-details">
-                        <div class="customer-info">
-                            <div class="customer-name">${firstName} ${surname}</div>
-                            <div class="customer-phone">
-                                <i class="fas fa-phone"></i>
-                                ${customerPhone}
-                            </div>
-                        </div>
+                    <div class="order-summary">
+                        <div class="order-total">R${totalAmount.toFixed(2)}</div>
+                        <div class="order-items">${itemCount} item${itemCount !== 1 ? 's' : ''}</div>
                     </div>
-                    
-                    <div class="order-actions">
-    <button class="dashboard-action-btn view-order" data-order-id="${orderId}">
-        <i class="fas fa-eye"></i>
-        Details
-    </button>
-    
-    ${status === 'pending' ? `
-    <button class="dashboard-action-btn mark-paid" data-order-id="${orderId}">
-        <i class="fas fa-money-bill-wave"></i>
-        Paid
-    </button>
-    
-    <button class="dashboard-action-btn cancel-order" data-order-id="${orderId}">
-        <i class="fas fa-ban"></i>
-        Cancel
-    </button>
-    ` : ''}
-    
-    ${status === 'paid' ? `
-    <button class="dashboard-action-btn mark-shipped" data-order-id="${orderId}">
-        <i class="fas fa-truck"></i>
-        Ship
-    </button>
-    ` : ''}
-</div>
                 </div>
-            `;
-        } catch (error) {
-            console.error('[Dashboard] Failed to generate order card:', error);
-            return '<div class="error-order-card">Error loading order</div>';
-        }
+                
+                <div class="order-details">
+                    <div class="customer-info">
+                        <div class="customer-name">${firstName} ${surname}</div>
+                        <div class="customer-phone">
+                            <i class="fas fa-phone"></i>
+                            ${customerPhone}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="order-actions">
+                    <button class="dashboard-action-btn view-order" data-order-id="${orderId}">
+                        <i class="fas fa-eye"></i>
+                        Details
+                    </button>
+                    
+                    ${isPending ? `
+                    <button class="dashboard-action-btn mark-paid" data-order-id="${orderId}">
+                        <i class="fas fa-money-bill-wave"></i>
+                        Paid
+                    </button>
+                    
+                    <button class="dashboard-action-btn cancel-order" data-order-id="${orderId}">
+                        <i class="fas fa-ban"></i>
+                        Cancel
+                    </button>
+                    ` : ''}
+                    
+                    ${isPaid ? `
+                    <button class="dashboard-action-btn mark-shipped" data-order-id="${orderId}">
+                        <i class="fas fa-truck"></i>
+                        Ship
+                    </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        console.error('[Dashboard] Failed to generate order card:', error);
+        return '<div class="error-order-card">Error loading order</div>';
     }
+}
 
     function getNoOrdersHTML(title, message = '') {
         return `
@@ -1204,93 +1210,72 @@ function handleOrderActions(e) {
             }
         }
         
-        // 2. MARK AS PAID
-        if (e.target.classList.contains('mark-paid') || e.target.closest('.mark-paid')) {
-            if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.markAsPaid === 'function') {
-                if (OrdersManager.markAsPaid(orderId)) {
-                    // Update the UI immediately
-                    const orderCard = e.target.closest('.dashboard-order-card');
-                    if (orderCard) {
-                        // Update status badge
-                        const statusBadge = orderCard.querySelector('.order-status-badge');
-                        if (statusBadge) {
-                            statusBadge.textContent = 'PAID';
-                            statusBadge.style.background = '#2196f3';
-                        }
-                        
-                        // Disable paid button
-                        const paidBtn = orderCard.querySelector('.mark-paid');
-                        if (paidBtn) {
-                            paidBtn.textContent = '✓ Paid';
-                            paidBtn.disabled = true;
-                            paidBtn.style.opacity = '0.6';
-                        }
-                        
-                        // Show shipped button (if exists)
-                        const shippedBtn = orderCard.querySelector('.mark-shipped');
-                        if (shippedBtn) {
-                            shippedBtn.style.display = 'flex';
-                        }
-                        
-                        // Hide cancel button
-                        const cancelBtn = orderCard.querySelector('.cancel-order');
-                        if (cancelBtn) {
-                            cancelBtn.style.display = 'none';
-                        }
-                    }
-                    
-                    // Update counts
-                    updateOrderCounts();
-                    updateDashboardBadge();
-                    updateAdminButtonVisibility();
-                    
-                    // Show success message
-                    alert(`Order ${orderId} marked as paid!`);
+        // MARK AS PAID
+if (e.target.classList.contains('mark-paid') || e.target.closest('.mark-paid')) {
+    if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.markAsPaid === 'function') {
+        if (confirm(`Mark order ${orderId} as paid?`)) {
+            if (OrdersManager.markAsPaid(orderId)) {
+                // ✅ IMMEDIATE UI UPDATE - Remove from pending view
+                const orderCard = e.target.closest('.dashboard-order-card');
+                if (orderCard) {
+                    orderCard.remove(); // Remove from pending list
                 }
+                
+                // ✅ Refresh the WHOLE pending orders list
+                if (currentStatusFilter === 'pending') {
+                    renderDashboardOrders('pending');
+                }
+                
+                // Update counts
+                updateOrderCounts();
+                updateDashboardBadge();
+                updateAdminButtonVisibility();
+                
+                // Show success message
+                alert(`✅ Order ${orderId} marked as paid!`);
             }
+        }
+    }
+}
+        
+        // MARK AS SHIPPED
+if (e.target.classList.contains('mark-shipped') || e.target.closest('.mark-shipped')) {
+    if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.markAsShipped === 'function') {
+        // Ask for shipping date
+        const defaultDate = new Date().toISOString().split('T')[0];
+        const dateInput = prompt('Enter shipping date (YYYY-MM-DD) or leave empty for today:', defaultDate);
+        
+        if (dateInput === null) {
+            return; // User cancelled
         }
         
-        // 3. MARK AS SHIPPED
-        if (e.target.classList.contains('mark-shipped') || e.target.closest('.mark-shipped')) {
-            if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.markAsShipped === 'function') {
-                // Ask for shipping date
-                const defaultDate = new Date().toISOString().split('T')[0];
-                const dateInput = prompt('Enter shipping date (YYYY-MM-DD) or leave empty for today:', defaultDate);
-                
-                if (dateInput === null) {
-                    return; // User cancelled
+        let shippingDate = dateInput.trim();
+        if (shippingDate && !/^\d{4}-\d{2}-\d{2}$/.test(shippingDate)) {
+            alert('Please enter date in YYYY-MM-DD format');
+            return;
+        }
+        
+        if (confirm(`Mark order ${orderId} as shipped on ${shippingDate || defaultDate}?`)) {
+            if (OrdersManager.markAsShipped(orderId, shippingDate || defaultDate)) {
+                // ✅ Remove from current view if it's in paid view
+                const orderCard = e.target.closest('.dashboard-order-card');
+                if (orderCard && currentStatusFilter === 'paid') {
+                    orderCard.remove();
                 }
                 
-                let shippingDate = dateInput.trim();
-                if (shippingDate && !/^\d{4}-\d{2}-\d{2}$/.test(shippingDate)) {
-                    alert('Please enter date in YYYY-MM-DD format');
-                    return;
-                }
+                // ✅ Refresh the current view
+                renderDashboardOrders(currentStatusFilter);
                 
-                if (OrdersManager.markAsShipped(orderId, shippingDate || defaultDate)) {
-                    // Update UI
-                    const orderCard = e.target.closest('.dashboard-order-card');
-                    if (orderCard) {
-                        const statusBadge = orderCard.querySelector('.order-status-badge');
-                        if (statusBadge) {
-                            statusBadge.textContent = 'SHIPPED';
-                            statusBadge.style.background = '#4CAF50';
-                        }
-                        
-                        // Disable shipped button
-                        e.target.textContent = '✓ Shipped';
-                        e.target.disabled = true;
-                        e.target.style.opacity = '0.6';
-                    }
-                    
-                    // Refresh dashboard
-                    loadDashboardData();
-                    updateAdminButtonVisibility();
-                    
-                    alert(`Order ${orderId} marked as shipped!`);
-                }
+                // Refresh counts
+                updateOrderCounts();
+                updateDashboardBadge();
+                updateAdminButtonVisibility();
+                
+                alert(`✅ Order ${orderId} marked as shipped!`);
             }
         }
+    }
+}
         
         // 4. CANCEL ORDER
         if (e.target.classList.contains('cancel-order') || e.target.closest('.cancel-order')) {
