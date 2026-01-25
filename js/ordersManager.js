@@ -1415,6 +1415,12 @@ function generateCancelledOrderCardHTML(order) {
         try {
             const orderId = e.target.dataset.orderId;
             if (!orderId) return;
+
+              // Only handle if we're NOT in a dashboard card
+        const inDashboardCard = e.target.closest('.dashboard-order-card');
+        if (inDashboardCard) {
+            return; // Let admin.js handle dashboard actions
+        }
             
             // Mark as paid
             if (e.target.classList.contains('mark-paid') && !e.target.disabled) {
@@ -1424,7 +1430,7 @@ function generateCancelledOrderCardHTML(order) {
                     e.target.textContent = '✓ Paid';
                     e.target.disabled = true;
                     e.target.classList.add('disabled');
-                    // renderOrders(); // IT IS HANDLED IN ADMIN.JD
+                     renderOrders(); // IT IS HANDLED IN ADMIN.JD
                 }
             }
             
