@@ -1436,88 +1436,21 @@ function generateCancelledOrderCardHTML(order) {
     }
 
 function handleOrderActions(e) {
-    try {
-        const orderId = e.target.dataset.orderId;
-        
-        // DEBUG: Log ALL clicks with order IDs
-        if (orderId) {
-            console.log(`[DEBUG] Order action clicked:`, {
-                orderId: orderId,
-                targetClass: e.target.className,
-                closestDashboard: !!e.target.closest('#admin-dashboard-modal'),
-                closestDashboardCard: !!e.target.closest('.dashboard-order-card'),
-                buttonType: e.target.classList.contains('mark-paid') ? 'mark-paid' :
-                           e.target.classList.contains('mark-shipped') ? 'mark-shipped' :
-                           e.target.classList.contains('cancel-order') ? 'cancel-order' :
-                           e.target.classList.contains('view-details') ? 'view-details' :
-                           e.target.classList.contains('delete-order') ? 'delete-order' : 'unknown'
-            });
-        }
-        
-        if (!orderId) return;
-        
-        // CHECK: If this is a dashboard button, don't handle it
-        const inDashboard = e.target.closest('#admin-dashboard-modal') || 
-                           e.target.closest('.dashboard-order-card');
-        
-        if (inDashboard) {
-            console.log(`[OrdersManager] Dashboard button clicked - letting admin.js handle it`);
-            return; // Let admin.js handle dashboard actions
-        }
-        
-        // Log any non-dashboard order clicks (should be none if you're right)
-        console.log(`[DEBUG] NON-DASHBOARD order button clicked! This shouldn't happen if you have no other pages.`, {
-            orderId: orderId,
-            element: e.target.outerHTML
-        });
-        
-        // Only handle non-dashboard buttons
-        if (e.target.classList.contains('mark-paid') && !e.target.disabled) {
-            console.log(`[OrdersManager] Marking order ${orderId} as paid`);
-            if (markAsPaid(orderId)) {
-                e.target.textContent = '✓ Paid';
-                e.target.disabled = true;
-                e.target.classList.add('disabled');
-                // DON'T call renderOrders() here
-            }
-        }
-            
-            // Mark as shipped
-            if (e.target.classList.contains('mark-shipped') && !e.target.disabled) {
-                console.log(`[OrdersManager] Marking order ${orderId} as shipped`);
-                if (showShippingDateInput(orderId)) {
-                    e.target.textContent = '✓ Shipped';
-                    e.target.disabled = true;
-                    e.target.classList.add('disabled');
-                }
-            }
-            
-            // Cancel order
-            if (e.target.classList.contains('cancel-order')) {
-                console.log(`[OrdersManager] Cancelling order ${orderId}`);
-                showCancellationModal(orderId);
-            }
-            
-            // Delete order
-            if (e.target.classList.contains('delete-order')) {
-                console.log(`[OrdersManager] Deleting order ${orderId}`);
-                if (confirm('Are you sure you want to delete this order?')) {
-                    if (deleteOrder(orderId)) {
-                        e.target.closest('.order-card-detailed')?.remove();
-                    }
-                }
-            }
-            
-            // View details
-            if (e.target.classList.contains('view-details')) {
-                console.log(`[OrdersManager] Viewing details for order ${orderId}`);
-                showOrderDetails(orderId);
-            }
-            
-        } catch (error) {
-            console.error('[OrdersManager] Order action handler failed:', error);
-        }
+    // ✅ SIMPLIFIED VERSION - Only handle what's absolutely necessary
+    
+    // If it's in the dashboard, don't do anything
+    if (e.target.closest('#admin-dashboard-modal') || 
+        e.target.closest('.dashboard-content')) {
+        return;
     }
+    
+    // Only handle non-dashboard view-details (if your app has other pages)
+    const orderId = e.target.dataset.orderId;
+    if (orderId && e.target.classList.contains('view-details') && 
+        !e.target.closest('#admin-dashboard-modal')) {
+        showOrderDetails(orderId);
+    }
+}
 
 // ========================================================
 // ORDER DETAILS MODAL - FULLY IMPLEMENTED
