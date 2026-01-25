@@ -129,6 +129,17 @@ if (typeof OrdersManager !== 'undefined' && OrdersManager.init) {
     OrdersManager.init();
     console.log('[AppManager] OrdersManager initialized');
 }
+// Add this AFTER ProductsManager and OrdersManager initialization:
+// InventoryManager (for stock tracking and transactions)
+if (typeof InventoryManager !== 'undefined' && InventoryManager.init) {
+    // Check if dependencies are available
+    if (typeof ProductsManager !== 'undefined' && typeof OrdersManager !== 'undefined') {
+        InventoryManager.init(ProductsManager, OrdersManager);
+        console.log('[AppManager] InventoryManager initialized');
+    } else {
+        console.warn('[AppManager] InventoryManager dependencies not available');
+    }
+}
 
 // CustomerSearchManager (for customer lookup in checkout)
 if (typeof CustomerSearchManager !== 'undefined' && CustomerSearchManager.init) {
