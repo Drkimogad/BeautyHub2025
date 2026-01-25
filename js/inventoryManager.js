@@ -38,7 +38,8 @@ const InventoryManager = (function() {
                 getStockHistory,
                 updateStockManually,
                 checkStockBeforeAddToCart,
-                getInventoryTransactionsReport
+                getInventoryTransactions,
+                saveInventoryTransaction
             };
             
         } catch (error) {
