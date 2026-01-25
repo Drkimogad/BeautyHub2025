@@ -1290,66 +1290,88 @@ function handleStatusFilter(e) {
     // ========================================================
     // ANALYTICS MODAL FUNCTIONS
     // ========================================================
+    // 1. SHOWINVENTORYTRACKINGMODAL
     function showInventoryTrackingModal() {
-        console.log('[Analytics] Opening Inventory Tracking Modal');
-        
-        try {
-            // ========== ADD THIS: Force refresh from localStorage ==========
+    console.log('[Analytics] Opening Inventory Tracking Modal');
+    
+    try {
+        // ========== ADD THIS: Force refresh from localStorage ==========
         // Clear any cached data and reload fresh
         if (typeof InventoryManager !== 'undefined' && 
             typeof InventoryManager.getInventoryTransactions === 'function') {
             // Force fresh data load
-            const freshReport = InventoryManager.getInventoryTransactions();
+            // ⚠️⚠️⚠️ FIX THIS LINE - getInventoryTransactions returns ARRAY, not report ⚠️⚠️⚠️
+            const transactions = InventoryManager.getInventoryTransactions() || [];
+            const freshReport = {
+                summary: {
+                    totalTransactions: transactions.length,
+                    totalProducts: new Set(transactions.flatMap(t => t.updates?.map(u => u.productId) || [])).size,
+                    totalStockChanges: transactions.reduce((sum, t) => {
+                        return sum + (t.updates?.reduce((s, u) => s + Math.abs(u.quantity || 0), 0) || 0);
+                    }, 0)
+                },
+                recentTransactions: transactions.slice(-10).map(t => ({
+                    id: t.id,
+                    type: t.type,
+                    timestamp: t.timestamp,
+                    performedBy: t.performedBy,
+                    productCount: t.updates?.length || 0,
+                    totalQuantity: t.updates?.reduce((sum, u) => sum + Math.abs(u.quantity || 0), 0) || 0
+                }))
+            };
             console.log('[Analytics] Fresh report loaded:', freshReport.summary.totalTransactions);
         }
         // ========== END ADDITION ==========
 
-            if (typeof InventoryManager === 'undefined') {
-                console.error('[Analytics] InventoryManager not loaded');
-                alert('Inventory system not available');
-                return;
-            }
-            
-            const modal = createOrGetModal('inventory-tracking-modal');
-            
-            let report = { summary: {}, recentTransactions: [] };
-
-// Safely get report
-if (typeof InventoryManager.getInventoryTransactions === 'function') {
-    const transactions = InventoryManager.getInventoryTransactions() || [];
-    
-    // Convert array to report format
-    report = {
-        summary: {
-            totalTransactions: transactions.length,
-            totalProducts: new Set(transactions.flatMap(t => t.updates?.map(u => u.productId) || [])).size,
-            totalStockChanges: transactions.reduce((sum, t) => {
-                return sum + (t.updates?.reduce((s, u) => s + Math.abs(u.quantity || 0), 0) || 0);
-            }, 0)
-        },
-        recentTransactions: transactions.slice(-10).map(t => ({
-            id: t.id,
-            type: t.type,
-            timestamp: t.timestamp,
-            performedBy: t.performedBy,
-            productCount: t.updates?.length || 0,
-            totalQuantity: t.updates?.reduce((sum, u) => sum + Math.abs(u.quantity || 0), 0) || 0
-        }))
-    };
-}
-            
-            modal.innerHTML = getInventoryTrackingModalHTML(report);
-            modal.style.display = 'flex';
-            
-            setupInventoryTrackingModalEvents(modal);
-            
-        } catch (error) {
-            console.error('[Analytics] Failed to show inventory tracking modal:', error);
-            alert('Failed to open inventory tracking');
+        if (typeof InventoryManager === 'undefined') {
+            console.error('[Analytics] InventoryManager not loaded');
+            alert('Inventory system not available');
+            return;
         }
-    }
+        
+        const modal = createOrGetModal('inventory-tracking-modal');
+        
+        let report = { summary: {}, recentTransactions: [] };
 
-    function showInventoryReportModal() {
+        // Safely get report
+        if (typeof InventoryManager.getInventoryTransactions === 'function') {
+            const transactions = InventoryManager.getInventoryTransactions() || [];
+            
+            // Convert array to report format
+            report = {
+                summary: {
+                    totalTransactions: transactions.length,
+                    totalProducts: new Set(transactions.flatMap(t => t.updates?.map(u => u.productId) || [])).size,
+                    totalStockChanges: transactions.reduce((sum, t) => {
+                        return sum + (t.updates?.reduce((s, u) => s + Math.abs(u.quantity || 0), 0) || 0);
+                    }, 0)
+                },
+                recentTransactions: transactions.slice(-10).map(t => ({
+                    id: t.id,
+                    type: t.type,
+                    timestamp: t.timestamp,
+                    performedBy: t.performedBy,
+                    productCount: t.updates?.length || 0,
+                    totalQuantity: t.updates?.reduce((sum, u) => sum + Math.abs(u.quantity || 0), 0) || 0
+                }))
+            };
+        }
+        
+        modal.innerHTML = getInventoryTrackingModalHTML(report);
+        modal.style.display = 'flex';
+        
+        setupInventoryTrackingModalEvents(modal);
+        
+    } catch (error) {
+        console.error('[Analytics] Failed to show inventory tracking modal:', error);
+        alert('Failed to open inventory tracking');
+    }
+}
+    
+//=============================================
+     // 2. SHOW INVENTORY REPORT
+//=====================================
+function showInventoryReportModal() {
         console.log('[Analytics] Opening Inventory Report Modal');
         
         try {
@@ -1406,8 +1428,10 @@ if (typeof InventoryManager.getInventoryTransactions === 'function') {
         }
         return modal;
     }
-
-    function getInventoryTrackingModalHTML(report) {
+//=========================================================
+    // 3. SHOW INVENTORY TRACKING HTML
+//===========================================
+function getInventoryTrackingModalHTML(report) {
         const summary = report.summary || {};
         const transactions = report.recentTransactions || [];
         
@@ -1457,8 +1481,10 @@ if (typeof InventoryManager.getInventoryTransactions === 'function') {
             </div>
         `;
     }
-
-    function getTransactionHTML(transaction) {
+//=========================================
+    // 4. GET TRANSACTIONS HTML
+//=======================================
+function getTransactionHTML(transaction) {
         const typeColor = transaction.type === 'order_deduction' ? '#4CAF50' : '#2196f3';
         const transactionId = transaction.id || 'N/A';
         const timestamp = transaction.timestamp ? new Date(transaction.timestamp).toLocaleString() : 'Unknown';
@@ -1476,8 +1502,10 @@ if (typeof InventoryManager.getInventoryTransactions === 'function') {
             </div>
         `;
     }
-
-    function getInventoryReportModalHTML(products) {
+//============================================
+    // 5. GET INVENTORY REPORT MODAL HTML
+//========================================
+function getInventoryReportModalHTML(products) {
         const totalStock = products.reduce((sum, p) => sum + (parseInt(p.stock) || 0), 0);
         const lowStockCount = products.filter(p => {
             const stock = parseInt(p.stock) || 0;
@@ -1555,8 +1583,10 @@ if (typeof InventoryManager.getInventoryTransactions === 'function') {
             </div>
         `;
     }
-
-    function getProductRowHTML(product) {
+//================================================
+    //6. GET PRODUCTS ROW HTML
+//===========================================
+function getProductRowHTML(product) {
         const stock = parseInt(product.stock) || 0;
         const stockColor = stock === 0 ? '#f44336' : stock <= 5 ? '#FF9800' : '#4CAF50';
         const productId = product.id || 'N/A';
@@ -1579,7 +1609,10 @@ if (typeof InventoryManager.getInventoryTransactions === 'function') {
         `;
     }
 
-    function setupInventoryTrackingModalEvents(modal) {
+//=============================================
+    // 7. SETUP INVENTORY TRACKING MODAL EVENTS
+//===============================================
+function setupInventoryTrackingModalEvents(modal) {
         try {
             const closeBtn = document.getElementById('close-inventory-tracking');
             if (closeBtn) {
@@ -1613,7 +1646,9 @@ if (typeof InventoryManager.getInventoryTransactions === 'function') {
             console.error('[Analytics] Failed to setup modal events:', error);
         }
     }
-
+//==============================================================
+    // 8. SETUP INVENTORY REPORT MODAL EVENTS
+//========================================================
     function setupInventoryReportModalEvents(modal) {
         try {
             const closeBtn = document.getElementById('close-inventory-report');
