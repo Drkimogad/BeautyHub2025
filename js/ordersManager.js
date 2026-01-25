@@ -1436,18 +1436,21 @@ function generateCancelledOrderCardHTML(order) {
     }
 
 function handleOrderActions(e) {
-    // ✅ SIMPLIFIED VERSION - Only handle what's absolutely necessary
-    
-    // If it's in the dashboard, don't do anything
+    // IGNORE ALL ADMIN/DASHBOARD CLICKS
+    // Let admin.js handle everything in the dashboard
     if (e.target.closest('#admin-dashboard-modal') || 
-        e.target.closest('.dashboard-content')) {
-        return;
+        e.target.closest('.dashboard-content') ||
+        e.target.closest('#admin-login-modal')) {
+        return; // Stop here, let admin.js handle it
     }
     
-    // Only handle non-dashboard view-details (if your app has other pages)
+    // ONLY handle non-dashboard clicks (if you have other pages)
     const orderId = e.target.dataset.orderId;
-    if (orderId && e.target.classList.contains('view-details') && 
-        !e.target.closest('#admin-dashboard-modal')) {
+    if (!orderId) return;
+    
+    // View details for non-dashboard pages only
+    if (e.target.classList.contains('view-details')) {
+        console.log(`[OrdersManager] Viewing details for non-dashboard order ${orderId}`);
         showOrderDetails(orderId);
     }
 }
