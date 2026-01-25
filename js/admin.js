@@ -1313,11 +1313,30 @@ function handleStatusFilter(e) {
             const modal = createOrGetModal('inventory-tracking-modal');
             
             let report = { summary: {}, recentTransactions: [] };
-            
-            // Safely get report
-            if (typeof InventoryManager.getInventoryTransactions === 'function') {
-                report = InventoryManager.getInventoryTransactions() || report;
-            }
+
+// Safely get report
+if (typeof InventoryManager.getInventoryTransactions === 'function') {
+    const transactions = InventoryManager.getInventoryTransactions() || [];
+    
+    // Convert array to report format
+    report = {
+        summary: {
+            totalTransactions: transactions.length,
+            totalProducts: new Set(transactions.flatMap(t => t.updates?.map(u => u.productId) || [])).size,
+            totalStockChanges: transactions.reduce((sum, t) => {
+                return sum + (t.updates?.reduce((s, u) => s + Math.abs(u.quantity || 0), 0) || 0);
+            }, 0)
+        },
+        recentTransactions: transactions.slice(-10).map(t => ({
+            id: t.id,
+            type: t.type,
+            timestamp: t.timestamp,
+            performedBy: t.performedBy,
+            productCount: t.updates?.length || 0,
+            totalQuantity: t.updates?.reduce((sum, u) => sum + Math.abs(u.quantity || 0), 0) || 0
+        }))
+    };
+}
             
             modal.innerHTML = getInventoryTrackingModalHTML(report);
             modal.style.display = 'flex';
