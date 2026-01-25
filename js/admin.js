@@ -1188,22 +1188,27 @@ function handleOrderActions(e) {
         buttonType: e.target.classList.contains('mark-paid') ? 'mark-paid' : 
                    e.target.classList.contains('mark-shipped') ? 'mark-shipped' :
                    e.target.classList.contains('cancel-order') ? 'cancel-order' :
-                   e.target.classList.contains('view-details') ? 'view-details' : 'other'
+                   e.target.classList.contains('view-details') ? 'view-details' :
+                   e.target.classList.contains('delete-order') ? 'delete-order' :
+                   e.target.classList.contains('print-order') ? 'print-order' : 'other'
     });
     
     try {
-        if (e.target.classList.contains('view-order') || e.target.closest('.view-order')) {
+        // 1. VIEW DETAILS
+        if (e.target.classList.contains('view-order') || 
+            e.target.classList.contains('view-details') || 
+            e.target.closest('.view-order') || 
+            e.target.closest('.view-details')) {
             if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.showOrderDetails === 'function') {
                 OrdersManager.showOrderDetails(orderId);
-            } else {
-                alert(`Order details for ${orderId} - Feature not available`);
             }
         }
         
+        // 2. MARK AS PAID
         if (e.target.classList.contains('mark-paid') || e.target.closest('.mark-paid')) {
             if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.markAsPaid === 'function') {
                 if (OrdersManager.markAsPaid(orderId)) {
-                    // IMMEDIATE UI UPDATE
+                    // Update the UI immediately
                     const orderCard = e.target.closest('.dashboard-order-card');
                     if (orderCard) {
                         // Update status badge
@@ -1221,7 +1226,7 @@ function handleOrderActions(e) {
                             paidBtn.style.opacity = '0.6';
                         }
                         
-                        // Show shipped button
+                        // Show shipped button (if exists)
                         const shippedBtn = orderCard.querySelector('.mark-shipped');
                         if (shippedBtn) {
                             shippedBtn.style.display = 'flex';
@@ -1239,36 +1244,97 @@ function handleOrderActions(e) {
                     updateDashboardBadge();
                     updateAdminButtonVisibility();
                     
-                    // Show notification
-                    if (typeof window.showDashboardNotification === 'function') {
-                        window.showDashboardNotification(`Order ${orderId} marked as paid`, 'success');
+                    // Show success message
+                    alert(`Order ${orderId} marked as paid!`);
+                }
+            }
+        }
+        
+        // 3. MARK AS SHIPPED
+        if (e.target.classList.contains('mark-shipped') || e.target.closest('.mark-shipped')) {
+            if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.markAsShipped === 'function') {
+                // Ask for shipping date
+                const defaultDate = new Date().toISOString().split('T')[0];
+                const dateInput = prompt('Enter shipping date (YYYY-MM-DD) or leave empty for today:', defaultDate);
+                
+                if (dateInput === null) {
+                    return; // User cancelled
+                }
+                
+                let shippingDate = dateInput.trim();
+                if (shippingDate && !/^\d{4}-\d{2}-\d{2}$/.test(shippingDate)) {
+                    alert('Please enter date in YYYY-MM-DD format');
+                    return;
+                }
+                
+                if (OrdersManager.markAsShipped(orderId, shippingDate || defaultDate)) {
+                    // Update UI
+                    const orderCard = e.target.closest('.dashboard-order-card');
+                    if (orderCard) {
+                        const statusBadge = orderCard.querySelector('.order-status-badge');
+                        if (statusBadge) {
+                            statusBadge.textContent = 'SHIPPED';
+                            statusBadge.style.background = '#4CAF50';
+                        }
+                        
+                        // Disable shipped button
+                        e.target.textContent = '✓ Shipped';
+                        e.target.disabled = true;
+                        e.target.style.opacity = '0.6';
+                    }
+                    
+                    // Refresh dashboard
+                    loadDashboardData();
+                    updateAdminButtonVisibility();
+                    
+                    alert(`Order ${orderId} marked as shipped!`);
+                }
+            }
+        }
+        
+        // 4. CANCEL ORDER
+        if (e.target.classList.contains('cancel-order') || e.target.closest('.cancel-order')) {
+            if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.showCancellationModal === 'function') {
+                OrdersManager.showCancellationModal(orderId);
+            }
+        }
+        
+        // 5. DELETE ORDER
+        if (e.target.classList.contains('delete-order') || e.target.closest('.delete-order')) {
+            if (confirm(`Are you sure you want to delete order ${orderId}? This action cannot be undone.`)) {
+                if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.deleteOrder === 'function') {
+                    if (OrdersManager.deleteOrder(orderId)) {
+                        // Remove from UI
+                        const orderCard = e.target.closest('.dashboard-order-card');
+                        if (orderCard) {
+                            orderCard.remove();
+                        }
+                        
+                        // Refresh counts
+                        updateOrderCounts();
+                        updateDashboardBadge();
+                        updateAdminButtonVisibility();
+                        
+                        alert(`Order ${orderId} deleted successfully!`);
                     }
                 }
             }
         }
         
-        // ADD THE MISSING HANDLERS FOR OTHER BUTTONS:
-        if (e.target.classList.contains('mark-shipped') || e.target.closest('.mark-shipped')) {
-            if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.markAsShipped === 'function') {
-                if (OrdersManager.markAsShipped(orderId)) {
-                    loadDashboardData();
-                    updateAdminButtonVisibility();
+        // 6. PRINT ORDER
+        if (e.target.classList.contains('print-order') || e.target.closest('.print-order')) {
+            if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.getOrderById === 'function') {
+                const order = OrdersManager.getOrderById(orderId);
+                if (order && typeof OrdersManager.generatePrintHTML === 'function') {
+                    OrdersManager.generatePrintHTML(order);
                 }
-            }
-        }
-        
-        if (e.target.classList.contains('cancel-order') || e.target.closest('.cancel-order')) {
-            if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.showCancellationModal === 'function') {
-                OrdersManager.showCancellationModal(orderId);
-            } else {
-                alert('Cancellation feature not available');
             }
         }
         
     } catch (error) {
         console.error('[Dashboard] Order action error:', error);
     }
-} // THIS IS THE CORRECT SINGLE CLOSING BRACE FOR THE FUNCTION
+}
         
 
 // ========================================================
