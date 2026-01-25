@@ -70,33 +70,33 @@ const CONFIG = {
 // ========================================================
     // STORAGE FUNCTIONS
 // ========================================================
-    function loadOrders() {
-        console.log('[OrdersManager] Loading orders from storage...');
+function loadOrders() {
+    console.log('[OrdersManager] Loading orders from storage...');
+    
+    try {
+        const savedOrders = localStorage.getItem(CONFIG.STORAGE_KEYS.ORDERS);
+        if (savedOrders) {
+            orders = JSON.parse(savedOrders) || [];
+            console.log(`[OrdersManager] Successfully loaded ${orders.length} orders from localStorage`);
+        } else {
+            orders = [];
+            console.log('[OrdersManager] No saved orders found in localStorage');
+        }
         
-        try {
-            const savedOrders = localStorage.getItem(CONFIG.STORAGE_KEYS.ORDERS);
-            if (savedOrders) {
-                orders = JSON.parse(savedOrders) || [];
-                console.log(`[OrdersManager] Successfully loaded ${orders.length} orders`);
-            } else {
-                orders = [];
-                console.log('[OrdersManager] No saved orders found');
-            }
-            
-        // CRITICAL: Load orderIdCounter from localStorage
+        // CRITICAL FIX - Load counter properly
         const savedCounter = localStorage.getItem(CONFIG.STORAGE_KEYS.ORDER_COUNTER);
         if (savedCounter) {
             orderIdCounter = parseInt(savedCounter);
             console.log(`[OrdersManager] Loaded orderIdCounter: ${orderIdCounter}`);
         } else {
-            // If no counter saved, find the highest ID from existing orders
+            // If no counter, find highest ID from existing orders
             if (orders.length > 0) {
-                const highestId = orders.reduce((max, order) => {
-                    const idNum = parseInt(order.id.replace(/\D/g, ''));
-                    return idNum > max ? idNum : max;
-                }, 0);
+                const highestId = Math.max(...orders.map(order => {
+                    const match = order.id.match(/ORD\d{10}(\d{4})/);
+                    return match ? parseInt(match[1]) : 1000;
+                }));
                 orderIdCounter = highestId + 1;
-                console.log(`[OrdersManager] Derived orderIdCounter from orders: ${orderIdCounter}`);
+                console.log(`[OrdersManager] Derived orderIdCounter: ${orderIdCounter}`);
             } else {
                 orderIdCounter = 1000;
             }
@@ -681,71 +681,80 @@ function updateOrderStatus(orderId, newStatus, shippingDate = '') {
         return updateOrderStatus(orderId, 'paid');
     }
 
-    function markAsShipped(orderId, shippingDate = '') {
-        console.log(`[OrdersManager] Marking order ${orderId} as shipped`);
+
+function markAsShipped(orderId, shippingDate = '') {
+    console.log(`[OrdersManager] Marking order ${orderId} as shipped`);
+    
+    try {
+        // Validate order exists
+        const order = getOrderById(orderId);
+        if (!order) {
+            console.error(`[OrdersManager] Order ${orderId} not found for shipping`);
+            return false;
+        }
         
-        try {
-            // Validate order exists
-            const order = getOrderById(orderId);
-            if (!order) {
-                console.error(`[OrdersManager] Order ${orderId} not found for shipping`);
+        // Default shipping date to today
+        if (!shippingDate) {
+            shippingDate = new Date().toISOString().split('T')[0];
+        }
+        
+        // Check if already shipped (prevent duplicate shipping)
+        if (order.status === 'shipped') {
+            console.warn(`[OrdersManager] Order ${orderId} is already shipped`);
+            alert('This order is already shipped.');
+            return false;
+        }
+        
+        // Only deduct inventory if order is not already shipped
+        // AND ONLY if it's being shipped now
+        let inventorySuccess = true;
+        
+        if (typeof InventoryManager !== 'undefined' && 
+            typeof InventoryManager.deductStockFromOrder === 'function') {
+            console.log(`[OrdersManager] Deducting inventory for shipped order ${orderId}`);
+            inventorySuccess = InventoryManager.deductStockFromOrder(order);
+        } else if (typeof ProductsManager !== 'undefined') {
+            console.log(`[OrdersManager] Updating inventory via ProductsManager for shipped order ${orderId}`);
+            
+            let allStockDeducted = true;
+            const failedItems = [];
+            
+            order.items.forEach(item => {
+                const success = ProductsManager.updateStock(item.productId, -item.quantity);
+                if (!success) {
+                    allStockDeducted = false;
+                    failedItems.push(item.productName);
+                }
+            });
+            
+            if (!allStockDeducted) {
+                const errorMsg = `Cannot ship order ${orderId}. Insufficient stock for: ${failedItems.join(', ')}`;
+                console.error(`[OrdersManager] ${errorMsg}`);
+                alert(errorMsg);
                 return false;
             }
-            
-            // Default shipping date to today
-            if (!shippingDate) {
-                shippingDate = new Date().toISOString().split('T')[0];
-            }
-            
-            // Update inventory stock using InventoryManager if available
-if (typeof InventoryManager !== 'undefined' && 
-    typeof InventoryManager.deductStockFromOrder === 'function') {
-    console.log(`[OrdersManager] Updating inventory via InventoryManager for shipped order ${orderId}`);
-    
-    const inventorySuccess = InventoryManager.deductStockFromOrder(order);
-    if (!inventorySuccess) {
-        console.error(`[OrdersManager] Inventory update failed for order ${orderId}`);
-        alert(`Cannot ship order ${orderId}. Inventory update failed.`);
-        return false;
-    }
-} 
-// Fallback to ProductsManager if InventoryManager not available
-else if (typeof ProductsManager !== 'undefined') {
-    console.log(`[OrdersManager] Updating inventory via ProductsManager for shipped order ${orderId}`);
-    
-    let allStockDeducted = true;
-    const failedItems = [];
-    
-    order.items.forEach(item => {
-        const success = ProductsManager.updateStock(item.productId, -item.quantity);
-        if (!success) {
-            allStockDeducted = false;
-            failedItems.push(item.productName);
         }
-    });
-    
-    if (!allStockDeducted) {
-        const errorMsg = `Cannot ship order ${orderId}. Insufficient stock for: ${failedItems.join(', ')}`;
-        console.error(`[OrdersManager] ${errorMsg}`);
-        alert(errorMsg);
+        
+        if (!inventorySuccess) {
+            console.error(`[OrdersManager] Inventory update failed for order ${orderId}`);
+            alert(`Cannot ship order ${orderId}. Inventory update failed.`);
+            return false;
+        }
+        
+        // Update order status
+        const success = updateOrderStatus(orderId, 'shipped', shippingDate);
+        
+        if (success) {
+            console.log(`[OrdersManager] Order ${orderId} marked as shipped on ${shippingDate}`);
+        }
+        
+        return success;
+        
+    } catch (error) {
+        console.error(`[OrdersManager] Shipping failed for order ${orderId}:`, error);
         return false;
     }
 }
-            
-            // Update order status
-            const success = updateOrderStatus(orderId, 'shipped', shippingDate);
-            
-            if (success) {
-                console.log(`[OrdersManager] Order ${orderId} marked as shipped on ${shippingDate}`);
-            }
-            
-            return success;
-            
-        } catch (error) {
-            console.error(`[OrdersManager] Shipping failed for order ${orderId}:`, error);
-            return false;
-        }
-    }
 
     // ========================================================
     // ORDER CANCELLATION. Remove refund logic for pending-only cancellation:
@@ -1427,27 +1436,29 @@ function generateCancelledOrderCardHTML(order) {
     }
 
     function handleOrderActions(e) {
-        try {
-            const orderId = e.target.dataset.orderId;
-            if (!orderId) return;
-
-              // Only handle if we're NOT in a dashboard card
-        const inDashboardCard = e.target.closest('.dashboard-order-card');
-        if (inDashboardCard) {
+    try {
+        const orderId = e.target.dataset.orderId;
+        if (!orderId) return;
+        
+        // CHECK: If this is a dashboard button, don't handle it
+        const inDashboard = e.target.closest('#admin-dashboard-modal') || 
+                           e.target.closest('.dashboard-order-card');
+        
+        if (inDashboard) {
+            console.log(`[OrdersManager] Dashboard button clicked - letting admin.js handle it`);
             return; // Let admin.js handle dashboard actions
         }
-            
-            // Mark as paid
-            if (e.target.classList.contains('mark-paid') && !e.target.disabled) {
-                console.log(`[OrdersManager] Marking order ${orderId} as paid`);
-
-                if (markAsPaid(orderId)) {
-                    e.target.textContent = '✓ Paid';
-                    e.target.disabled = true;
-                    e.target.classList.add('disabled');
-                     renderOrders(); // IT IS HANDLED IN ADMIN.JD
-                }
+        
+        // Only handle non-dashboard buttons
+        if (e.target.classList.contains('mark-paid') && !e.target.disabled) {
+            console.log(`[OrdersManager] Marking order ${orderId} as paid`);
+            if (markAsPaid(orderId)) {
+                e.target.textContent = '✓ Paid';
+                e.target.disabled = true;
+                e.target.classList.add('disabled');
+                // DON'T call renderOrders() here
             }
+        }
             
             // Mark as shipped
             if (e.target.classList.contains('mark-shipped') && !e.target.disabled) {
