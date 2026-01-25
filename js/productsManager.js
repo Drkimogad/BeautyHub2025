@@ -652,14 +652,10 @@ if (CONFIG.USE_FIRESTORE) {
     }
 }
 
-// 3. STOCK-ONLY UPDATE (NEW - Surgical) COMMUNICATES WITH INVENTORY MANAGER.JS, it paasess inventory transactions loggings too
-async function updateStockOnly(productId, newStock, context = {}) {
+// 3. STOCK-ONLY UPDATE (NEW - Surgical) COMMUNICATES WITH INVENTORY MANAGER.JS
+async function updateStockOnly(productId, newStock) {
     try {
-        console.log('[ProductsManager] Stock-only update:', { 
-            productId, 
-            newStock, 
-            context: context.type || 'no context' 
-        });
+        console.log('[ProductsManager] Stock-only update:', { productId, newStock });
         
         const index = products.findIndex(p => p.id === productId);
         if (index === -1) {
@@ -673,96 +669,45 @@ async function updateStockOnly(productId, newStock, context = {}) {
             return false;
         }
         
-        // Get current product BEFORE updating
-        const currentProduct = { ...products[index] };
-        const oldStock = parseInt(currentProduct.stock) || 0;
-        const quantityChange = newStock - oldStock;
-        
         // Update ONLY stock and updatedAt
         products[index].stock = parseInt(newStock);
         products[index].updatedAt = new Date().toISOString();
         
-        // ========== NEW: AUTOMATICALLY UPDATE SALESCOUNT WHEN STOCK DECREASES ==========
-        if (quantityChange < 0) { // Stock decreased (items sold/shipped)
-            const quantitySold = Math.abs(quantityChange);
-            const currentSalesCount = currentProduct.salesCount || 0;
-            products[index].salesCount = currentSalesCount + quantitySold;
-            
-            console.log('[ProductsManager] SalesCount incremented:', {
-                product: currentProduct.name,
-                oldSalesCount: currentSalesCount,
-                newSalesCount: products[index].salesCount,
-                quantitySold: quantitySold
-            });
-        }
-        // ========== END NEW CODE ==========
-        
         console.log('[ProductsManager] Stock updated locally:', { 
-            name: currentProduct.name, 
-            oldStock: oldStock, 
-            newStock: newStock,
-            salesCountUpdated: quantityChange < 0 ? 'YES' : 'NO'
+            name: products[index].name, 
+            oldStock: products[index].stock, 
+            newStock 
         });
         
         // Save to local storage
         saveProductsToLocalStorage();
         saveProductsToCache();
         
-        // ========== NEW: SAVE INVENTORY TRANSACTION ==========
-        if (context.type && typeof window.InventoryManager !== 'undefined') {
-            try {
-                // Create transaction data
-                const transactionData = {
-                    type: context.type || 'stock_adjustment',
-                    orderId: context.orderId || '',
-                    performedBy: context.performedBy || 'system',
-                    referenceId: context.referenceId || '',
-                    notes: context.notes || `Stock adjustment: ${quantityChange > 0 ? '+' : ''}${quantityChange} units`,
-                    updates: [{
-                        productId: currentProduct.id,
-                        productName: currentProduct.name,
-                        oldStock: oldStock,
-                        newStock: newStock,
-                        quantity: Math.abs(quantityChange),
-                        category: currentProduct.category || '',
-                        price: currentProduct.currentPrice || currentProduct.currentprice || 0
-                    }]
-                };
-                
-                // Call InventoryManager to save transaction
-                if (window.InventoryManager.saveInventoryTransaction) {
-                    window.InventoryManager.saveInventoryTransaction(transactionData);
-                    console.log('[ProductsManager] Inventory transaction saved:', transactionData.type);
-                } else {
-                    console.warn('[ProductsManager] InventoryManager.saveInventoryTransaction not available');
-                }
-            } catch (transactionError) {
-                console.error('[ProductsManager] Failed to save inventory transaction:', transactionError);
-            }
-        }
-        // ========== END NEW CODE ==========
+        // Update Firestore (if enabled) - ONLY stock field
+            // Update Firestore (if enabled) - stock AND salesCount if applicable
+let firestoreSuccess = true;
+if (CONFIG.USE_FIRESTORE && CONFIG.FIREBASE_READY()) {
+    try {
+        const db = firebase.firestore();
+        const productRef = db.collection(CONFIG.FIRESTORE_COLLECTION).doc(productId);
         
-        // Update Firestore (if enabled) - stock AND salesCount
-        let firestoreSuccess = true;
-        if (CONFIG.USE_FIRESTORE && CONFIG.FIREBASE_READY()) {
-            try {
-                const db = firebase.firestore();
-                const productRef = db.collection(CONFIG.FIRESTORE_COLLECTION).doc(productId);
+        // Get current product to check if we need to update salesCount
+        const currentProduct = getProductById(productId);
+        const firestoreUpdate = {
+            stock: parseInt(newStock),
+            updatedAt: new Date().toISOString()
+        };
+        
+        // If stock is decreasing (shipping), update salesCount too
+        if (currentProduct && newStock < currentProduct.stock) {
+            const quantitySold = currentProduct.stock - newStock;
+            firestoreUpdate.salesCount = (currentProduct.salesCount || 0) + quantitySold;
+        }
+        
+        await productRef.update(firestoreUpdate);
+
                 
-                // Prepare Firestore update payload
-                const firestoreUpdate = {
-                    stock: parseInt(newStock),
-                    updatedAt: new Date().toISOString()
-                };
-                
-                // Include salesCount if it was updated
-                if (quantityChange < 0) {
-                    firestoreUpdate.salesCount = products[index].salesCount;
-                }
-                
-                await productRef.update(firestoreUpdate);
-                
-                console.log(`[ProductsManager] Stock updated in Firestore: ${productId}`, firestoreUpdate);
+                console.log(`[ProductsManager] Stock updated in Firestore: ${productId}`);
             } catch (firestoreError) {
                 console.error('[ProductsManager] Firestore stock update error:', firestoreError);
                 firestoreSuccess = false;
@@ -779,11 +724,7 @@ async function updateStockOnly(productId, newStock, context = {}) {
         
         // Show notification
         if (typeof window.showDashboardNotification === 'function') {
-            const productName = currentProduct.name || 'Product';
-            const message = quantityChange < 0 
-                ? `Shipped ${Math.abs(quantityChange)} of ${productName}` 
-                : `Stock updated: ${productName} → ${newStock} units`;
-            window.showDashboardNotification(message, 'success');
+            window.showDashboardNotification(`Stock updated: ${products[index].name} → ${newStock} units`, 'success');
         }
         
         console.log('[ProductsManager] Stock-only update successful');
