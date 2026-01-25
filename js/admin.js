@@ -1183,6 +1183,14 @@ function handleOrderActions(e) {
     const orderId = e.target.dataset.orderId;
     if (!orderId) return;
     
+    console.log(`[Admin.js] Handling order button:`, {
+        orderId: orderId,
+        buttonType: e.target.classList.contains('mark-paid') ? 'mark-paid' : 
+                   e.target.classList.contains('mark-shipped') ? 'mark-shipped' :
+                   e.target.classList.contains('cancel-order') ? 'cancel-order' :
+                   e.target.classList.contains('view-details') ? 'view-details' : 'other'
+    });
+    
     try {
         if (e.target.classList.contains('view-order') || e.target.closest('.view-order')) {
             if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.showOrderDetails === 'function') {
