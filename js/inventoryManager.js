@@ -718,6 +718,7 @@ function saveInventoryTransaction(transactionData) {
         getStockHistory,
         updateStockManually,
         checkStockBeforeAddToCart,
-        getInventoryTransactionsReport
+        getInventoryTransactionsReport,
+        saveInventoryTransaction       // <-- ALSO ADD THIS if missing
     };
 })();
