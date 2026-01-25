@@ -83,28 +83,43 @@ const CONFIG = {
                 console.log('[OrdersManager] No saved orders found');
             }
             
-            const savedCounter = localStorage.getItem(CONFIG.STORAGE_KEYS.ORDER_COUNTER);
-            if (savedCounter) {
-                orderIdCounter = parseInt(savedCounter) || 1000;
+        // CRITICAL: Load orderIdCounter from localStorage
+        const savedCounter = localStorage.getItem(CONFIG.STORAGE_KEYS.ORDER_COUNTER);
+        if (savedCounter) {
+            orderIdCounter = parseInt(savedCounter);
+            console.log(`[OrdersManager] Loaded orderIdCounter: ${orderIdCounter}`);
+        } else {
+            // If no counter saved, find the highest ID from existing orders
+            if (orders.length > 0) {
+                const highestId = orders.reduce((max, order) => {
+                    const idNum = parseInt(order.id.replace(/\D/g, ''));
+                    return idNum > max ? idNum : max;
+                }, 0);
+                orderIdCounter = highestId + 1;
+                console.log(`[OrdersManager] Derived orderIdCounter from orders: ${orderIdCounter}`);
+            } else {
+                orderIdCounter = 1000;
             }
-            
-        } catch (error) {
-            console.error('[OrdersManager] Failed to load orders:', error);
-            orders = [];
-            orderIdCounter = 1000;
-            saveOrders(); // Reset corrupted storage
         }
+        
+    } catch (error) {
+        console.error('[OrdersManager] Failed to load orders:', error);
+        orderIdCounter = 1000;
+        saveOrders();
     }
+}
 
-    function saveOrders() {
-        try {
-            localStorage.setItem(CONFIG.STORAGE_KEYS.ORDERS, JSON.stringify(orders));
-            localStorage.setItem(CONFIG.STORAGE_KEYS.ORDER_COUNTER, orderIdCounter.toString());
-            console.log('[OrdersManager] Orders saved to storage');
-        } catch (error) {
-            console.error('[OrdersManager] Failed to save orders:', error);
-        }
+
+function saveOrders() {
+    try {
+        localStorage.setItem(CONFIG.STORAGE_KEYS.ORDERS, JSON.stringify(orders));
+        // CRITICAL: Save the counter too!
+        localStorage.setItem(CONFIG.STORAGE_KEYS.ORDER_COUNTER, orderIdCounter.toString());
+        console.log('[OrdersManager] Orders and counter saved to storage');
+    } catch (error) {
+        console.error('[OrdersManager] Failed to save orders:', error);
     }
+}
 
     // ========================================================
 // FIRESTORE FUNCTIONS
