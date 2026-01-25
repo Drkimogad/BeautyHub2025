@@ -661,7 +661,7 @@ function saveInventoryTransaction(transactionData) {
         getStockHistory,
         updateStockManually,
         checkStockBeforeAddToCart,
-        getInventoryTransactionsReport: getInventoryTransactionsReport,
-        saveInventoryTransaction: saveInventoryTransaction
+        getInventoryTransactionsReport,
+        saveInventoryTransaction
     };
 })();
