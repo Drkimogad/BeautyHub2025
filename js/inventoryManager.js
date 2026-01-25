@@ -65,7 +65,8 @@ const InventoryManager = (function() {
                         const order = OrdersManager.getOrderById(e.detail.orderId);
                         if (order) {
                             console.log(`[InventoryManager] Processing orderCreated event for order ${order.id}`);
-                            deductStockFromOrder(order);
+                          //  deductStockFromOrder(order);
+                            // DO NOTHING - stock will be deducted when order is shipped
                         }
                     }
                 } catch (error) {
