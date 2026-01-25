@@ -497,63 +497,6 @@ const product = ProductsManager.getProductById(productId);
         }
     }
     
-//================================================
-    // Save inventory transaction
-//============================================
-    function saveInventoryTransaction(transactionData) {
-        try {
-            if (!transactionData || !transactionData.updates) {
-                console.error('[InventoryManager] Invalid transaction data');
-                return false;
-            }
-            
-            const existing = localStorage.getItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS);
-            const transactions = existing ? JSON.parse(existing) : [];
-            
-            // Get product details for updates
-            const enhancedUpdates = transactionData.updates.map(update => {
-                let product = null;
-                if (ProductsManager) {
-                    product = ProductsManager.getProductById(update.productId);
-                }
-                
-                return {
-                    productId: update.productId,
-                    productName: update.productName || product?.name || 'Unknown',
-                    previousStock: update.oldStock || update.previousStock || 0,
-                    newStock: update.newStock || 0,
-                    quantity: update.quantity || 0,
-                    category: update.category || product?.category || 'Unknown',
-                    price: product ? (product.currentPrice || product.currentprice || 0) : 0
-                };
-            });
-            
-            // Create enhanced transaction
-            const enhancedTransaction = {
-                id: `TX-${new Date().toISOString().slice(0,10).replace(/-/g, '')}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
-                type: transactionData.type || 'unknown',
-                timestamp: transactionData.timestamp || new Date().toISOString(),
-                performedBy: transactionData.performedBy || 'system',
-                referenceId: transactionData.referenceId || '',
-                notes: transactionData.notes || '',
-                updates: enhancedUpdates
-            };
-            
-            transactions.push(enhancedTransaction);
-            
-            // Keep only last 200 transactions to prevent localStorage overflow
-            const trimmedTransactions = transactions.slice(-200);
-            localStorage.setItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS, JSON.stringify(trimmedTransactions));
-            
-            console.log(`[InventoryManager] Transaction saved: ${enhancedTransaction.id}`);
-            return true;
-            
-        } catch (error) {
-            console.error('[InventoryManager] Failed to save transaction:', error);
-            return false;
-        }
-    }
-    
 //=================================================
     //Get inventory transactions
 //==========================================
@@ -719,6 +662,6 @@ function saveInventoryTransaction(transactionData) {
         updateStockManually,
         checkStockBeforeAddToCart,
         getInventoryTransactionsReport: getInventoryTransactionsReport,
-        saveInventoryTransaction       // <-- ALSO ADD THIS if missing
+        saveInventoryTransaction: saveInventoryTransaction
     };
 })();
