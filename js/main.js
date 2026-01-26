@@ -130,12 +130,12 @@ if (typeof OrdersManager !== 'undefined' && OrdersManager.init) {
     console.log('[AppManager] OrdersManager initialized');
 }
     // === ADD SALES ANALYTICS HERE ===
-// SalesAnalytics (for financial dashboards)
-if (typeof SalesAnalytics !== 'undefined' && SalesAnalytics.init) {
-    SalesAnalytics.init();
-    console.log('[AppManager] SalesAnalytics initialized');
+// salesAnalytics (for financial dashboards)
+if (typeof salesAnalytics !== 'undefined' && salesAnalytics.init) {
+    salesAnalytics.init();
+    console.log('[AppManager] salesAnalytics initialized');
 } else {
-    console.warn('[AppManager] SalesAnalytics not available');
+    console.warn('[AppManager] salesAnalytics not available');
 }
 // === END ADDITION ===
 
