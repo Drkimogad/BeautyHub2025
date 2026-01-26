@@ -1381,7 +1381,7 @@ if (e.target.classList.contains('mark-shipped') || e.target.closest('.mark-shipp
     // ANALYTICS MODAL FUNCTIONS
     // ========================================================
     // 1. SHOWINVENTORYTRACKINGMODAL
-    function showInventoryTrackingModal() {
+    async function showInventoryTrackingModal() { // asunc now , it has to await
     console.log('[Analytics] Opening Inventory Tracking Modal');
     
     try {
@@ -1391,7 +1391,7 @@ if (e.target.classList.contains('mark-shipped') || e.target.closest('.mark-shipp
             typeof InventoryManager.getInventoryTransactions === 'function') {
             // Force fresh data load
             // ⚠️⚠️⚠️ FIX THIS LINE - getInventoryTransactions returns ARRAY, not report ⚠️⚠️⚠️
-            const transactions = InventoryManager.getInventoryTransactions() || [];
+            const transactions = await InventoryManager.getInventoryTransactions() || [];
             const freshReport = {
                 summary: {
                     totalTransactions: transactions.length,
