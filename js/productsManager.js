@@ -1,6 +1,7 @@
 /* productsManager.js - Product CRUD & Management System WITH FIRESTORE
  Updated property names: wholesalePrice, retailPrice, currentPrice */
 //============================================================================
+
 const ProductsManager = (function() {
     console.log('[ProductsManager] Initializing Products Manager module');
     
