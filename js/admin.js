@@ -1397,8 +1397,9 @@ async function showInventoryTrackingModal() {
 
         // Safely get report
         if (typeof InventoryManager.getInventoryTransactions === 'function') {
-            const transactions = await InventoryManager.getInventoryTransactions() || [];
-            
+    // ADD 'true' parameter to force fresh data
+    const transactions = await InventoryManager.getInventoryTransactions(true) || [];
+   
             // Convert array to report format
             report = {
                 summary: {
@@ -1865,14 +1866,33 @@ function setupInventoryTrackingModalEvents(modal) {
                     modal.style.display = 'none';
                 };
             }
-            
             const refreshBtn = document.getElementById('refresh-inventory-btn');
-            if (refreshBtn) {
-                refreshBtn.onclick = () => {
-                    console.log('[Analytics] Refreshing inventory data');
-                    showInventoryTrackingModal();
-                };
-            }
+if (refreshBtn) {
+    refreshBtn.onclick = () => {
+        console.log('[Analytics] Refreshing inventory data with force refresh');
+        
+        // Add loading state to button
+        refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+        refreshBtn.disabled = true;
+        
+        // Clear localStorage cache to force fresh fetch
+        if (typeof InventoryManager !== 'undefined' && InventoryManager.invalidateCache) {
+            InventoryManager.invalidateCache();
+        }
+        
+        // Call with slight delay to show loading state
+        setTimeout(() => {
+            showInventoryTrackingModal();
+            
+            // Restore button after modal loads
+            setTimeout(() => {
+                refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+                refreshBtn.disabled = false;
+            }, 500);
+        }, 300);
+    };
+}
+            
             
             const exportBtn = document.getElementById('export-inventory-btn');
             if (exportBtn) {
