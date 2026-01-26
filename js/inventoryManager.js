@@ -176,15 +176,18 @@ function deductStockFromOrder(order) {
             
             if (allSuccessful && updates.length > 0) {
                 // Save inventory transaction log
-                saveInventoryTransaction({
-                    type: 'order_deduction',
-                    orderId: order.id,
-                    timestamp: new Date().toISOString(),
-                    performedBy: order.customerEmail ? `customer:${order.customerEmail}` : 'customer:anonymous',
-                    referenceId: order.id,
-                    updates: updates,
-                    notes: `Stock deducted for order ${order.id} - ${order.firstName || ''} ${order.surname || ''}`
-                });
+saveInventoryTransaction({
+    type: 'order_deduction',
+    orderId: order.id,
+    orderTotal: order.totalAmount || 0,
+    customerName: `${order.firstName || ''} ${order.surname || ''}`.trim(),
+    customerPhone: order.customerPhone || '',
+    timestamp: new Date().toISOString(),
+    performedBy: order.customerEmail ? `customer:${order.customerEmail}` : 'customer:anonymous',
+    referenceId: order.id,
+    updates: updates,
+    notes: `Stock deducted for order ${order.id} - ${order.firstName || ''} ${order.surname || ''}`
+});
                 
                 console.log(`[InventoryManager] Stock successfully deducted for order: ${order.id}`);
                     // ========== ADD SUCCESS NOTIFICATION ==========
@@ -560,15 +563,22 @@ function saveInventoryTransaction(transactionData) {
             localStorage.removeItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS);
         }
         
-        // ENHANCE TRANSACTION DATA
-        const enhancedTransaction = {
-            id: `TX-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
-            type: transactionData.type || 'unknown',
-            timestamp: transactionData.timestamp || new Date().toISOString(),
-            performedBy: transactionData.performedBy || 'system',
-            referenceId: transactionData.referenceId || '',
-            notes: transactionData.notes || '',
-            updates: transactionData.updates.map((update, index) => {
+// ENHANCE TRANSACTION DATA
+const enhancedTransaction = {
+    id: `TX-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+    type: transactionData.type || 'unknown',
+    timestamp: transactionData.timestamp || new Date().toISOString(),
+    performedBy: transactionData.performedBy || 'system',
+    referenceId: transactionData.referenceId || '',
+    // ADD ORDER DETAILS
+    orderId: transactionData.orderId || '',
+    orderTotal: transactionData.orderTotal || 0,
+    customerName: transactionData.customerName || '',
+    customerPhone: transactionData.customerPhone || '',
+    customerType: transactionData.customerType || '',
+    // END ORDER DETAILS
+    notes: transactionData.notes || '',
+    updates: transactionData.updates.map((update, index) => {
                 // Get product details if ProductsManager is available
                 let product = null;
                 if (ProductsManager) {
