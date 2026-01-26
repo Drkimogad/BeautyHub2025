@@ -147,18 +147,26 @@ function deductStockFromOrder(order) {
                         allSuccessful = false;
                         return;
                     }
+
+                    const currentSalesCount = parseInt(product.salesCount) || 0;
+const newSalesCount = currentSalesCount + quantity;
+
+updates.push({
+    productId: product.id,
+    productName: product.name,
+    oldStock: currentStock,
+    newStock: newStock,
+    oldSalesCount: currentSalesCount, // ADD THIS
+    newSalesCount: newSalesCount,     // ADD THIS
+    quantity: quantity,
+    category: product.category || ''
+});
                     
-                    updates.push({
-                        productId: product.id,
-                        productName: product.name,
-                        oldStock: currentStock,
-                        newStock: newStock,
-                        quantity: quantity,
-                        category: product.category || ''
-                    });
+
                     
                     // NEW:Update product stock using UPDATESTOCKONLY FUNCTION FROM PRODUCTSMANAGER.JS
-                   const success = ProductsManager.updateStockOnly(product.id, newStock);
+                  // const success = ProductsManager.updateStockOnly(product.id, newStock);
+                    const success = ProductsManager.updateStockOnly(product.id, newStock, newSalesCount); // PASSESALES COUNT
                     
                     if (!success) {
                         console.error(`[InventoryManager] Failed to update stock for ${product.name}`);
