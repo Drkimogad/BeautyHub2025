@@ -6538,3 +6538,12 @@ header {
     100% { transform: rotate(360deg); }
 }
 
+/* FOR TRANSACTION MODAL */
+.transaction-item:hover {
+    background-color: #f9f9f9;
+    border-color: #2196f3;
+}
+
+.transaction-item:active {
+    transform: scale(0.99);
+}
