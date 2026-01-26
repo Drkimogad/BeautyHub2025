@@ -554,7 +554,7 @@ async function getInventoryTransactions() {
 }
 
 // Get comprehensive inventory report for analytics ENHANCED FOR PRODUCTION
-function saveInventoryTransaction(transactionData) {
+async function saveInventoryTransaction(transactionData) {
     try {
         console.log('[InventoryManager] ⚡ SAVING TRANSACTION - START ⚡');
         console.log('[InventoryManager] Transaction data received:', {
@@ -652,23 +652,33 @@ const enhancedTransaction = {
         const MAX_TRANSACTIONS = 500;
         const trimmedTransactions = transactions.slice(-MAX_TRANSACTIONS);
         
-        // SAVE TO LOCALSTORAGE
+              // SAVE TO LOCALSTORAGE
+try {
+    localStorage.setItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS, JSON.stringify(trimmedTransactions));
+    console.log(`[InventoryManager] ✅ SAVED: Transaction ${enhancedTransaction.id} to localStorage`);
+    
+    // ========== ADD FIRESTORE SAVE HERE ==========
+    // Save to Firestore (async but we don't wait for it to complete)
+    if (typeof firebase !== 'undefined' && firebase.firestore) {
         try {
-            localStorage.setItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS, JSON.stringify(trimmedTransactions));
-            console.log(`[InventoryManager] ✅ SAVED: Transaction ${enhancedTransaction.id} to localStorage`);
-            // After saving to localStorage, also save to Firestore
-if (typeof firebase !== 'undefined' && firebase.firestore) {
-    try {
-        const db = firebase.firestore();
-        await db.collection('inventory_transactions').doc(enhancedTransaction.id).set(enhancedTransaction);
-        console.log(`[InventoryManager] ✅ Saved to Firestore: ${enhancedTransaction.id}`);
-    } catch (firestoreError) {
-        console.error('[InventoryManager] Firestore save failed:', firestoreError);
+            const db = firebase.firestore();
+            // Use .then() to avoid making the whole function wait
+            db.collection('inventory_transactions').doc(enhancedTransaction.id).set(enhancedTransaction)
+                .then(() => {
+                    console.log(`[InventoryManager] ✅ Saved to Firestore: ${enhancedTransaction.id}`);
+                })
+                .catch(firestoreError => {
+                    console.error('[InventoryManager] Firestore save failed:', firestoreError);
+                    // Don't return false here - localStorage save succeeded
+                });
+        } catch (firestoreError) {
+            console.error('[InventoryManager] Firestore setup failed:', firestoreError);
+        }
     }
-}
-            
-            // VERIFY SAVE
-            const verify = localStorage.getItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS);
+    // ========== END FIRESTORE SAVE ==========
+    
+    // VERIFY SAVE (keep existing code)
+    const verify = localStorage.getItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS);
             if (verify) {
                 const savedData = JSON.parse(verify);
                 const lastTransaction = savedData[savedData.length - 1];
