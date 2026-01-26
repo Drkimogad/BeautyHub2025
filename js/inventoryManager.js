@@ -536,28 +536,34 @@ async function loadTransactionsFromFirestore() {
 }
     
 //=========Get inventory transactions===============
-async function getInventoryTransactions() {
+    // READS FROM FIRESTORE FIRST CHOICE WHEN MODAL IS CALLED BETTER 
+async function getInventoryTransactions(forceRefresh = false) {
     try {
-        // Get from localStorage
+        // ALWAYS TRY FIRESTORE FIRST FOR FRESH DATA
+        const firestoreTransactions = await loadTransactionsFromFirestore();
+        
+        if (firestoreTransactions.length > 0) {
+            console.log(`[InventoryManager] Returning ${firestoreTransactions.length} fresh Firestore transactions`);
+            
+            // Update localStorage with fresh data for offline use
+            localStorage.setItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS, JSON.stringify(firestoreTransactions));
+            
+            return firestoreTransactions;
+        }
+        
+        // Fallback to localStorage if Firestore fails or returns empty
+        console.log('[InventoryManager] Firestore empty or failed, using localStorage');
         const existing = localStorage.getItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS);
         const localTransactions = existing ? JSON.parse(existing) : [];
         
-        // Get from Firestore
-        const firestoreTransactions = await loadTransactionsFromFirestore();
-        
-        // Merge: Firestore overwrites localStorage
-        const firestoreIds = new Set(firestoreTransactions.map(t => t.id));
-        const localOnly = localTransactions.filter(t => !firestoreIds.has(t.id));
-        const allTransactions = [...firestoreTransactions, ...localOnly];
-        
-        // Save merged back to localStorage
-        localStorage.setItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS, JSON.stringify(allTransactions));
-        
-        return allTransactions;
+        return localTransactions;
         
     } catch (error) {
         console.error('[InventoryManager] Failed to get transactions:', error);
-        return [];
+        
+        // Ultimate fallback
+        const existing = localStorage.getItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS);
+        return existing ? JSON.parse(existing) : [];
     }
 }
 
