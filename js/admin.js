@@ -1575,23 +1575,85 @@ function getInventoryTrackingModalHTML(report) {
     // 4. GET TRANSACTIONS HTML
 //=======================================
 function getTransactionHTML(transaction) {
-        const typeColor = transaction.type === 'order_deduction' ? '#4CAF50' : '#2196f3';
-        const transactionId = transaction.id || 'N/A';
-        const timestamp = transaction.timestamp ? new Date(transaction.timestamp).toLocaleString() : 'Unknown';
-        const transactionType = transaction.type || 'Unknown';
-        
-        return `
-            <div class="transaction-item">
-                <div class="transaction-info">
-                    <div class="transaction-id">${transactionId}</div>
-                    <div class="transaction-time">${timestamp}</div>
+    const typeColor = transaction.type === 'order_deduction' ? '#4CAF50' : '#2196f3';
+    const transactionId = transaction.id || 'N/A';
+    const timestamp = transaction.timestamp ? new Date(transaction.timestamp).toLocaleString() : 'Unknown';
+    const transactionType = transaction.type || 'Unknown';
+    
+    // ADD ORDER INFO IF AVAILABLE
+    const orderInfo = transaction.orderId ? 
+        `<div class="order-info-small">
+            Order: ${transaction.orderId} | Customer: ${transaction.customerName || 'N/A'}
+        </div>` : '';
+    
+    return `
+        <div class="transaction-item" 
+             data-transaction-id="${transactionId}"
+             ${transaction.orderId ? `data-order-id="${transaction.orderId}"` : ''}
+             style="cursor: pointer; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 0.5rem; padding: 1rem; transition: all 0.2s;">
+            
+            <div class="transaction-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="transaction-info" style="flex: 1;">
+                    <div class="transaction-id" style="font-weight: bold; font-size: 1.1rem; color: #333;">
+                        ${transactionId}
+                    </div>
+                    <div class="transaction-time" style="color: #666; font-size: 0.9rem; margin-top: 0.25rem;">
+                        ${timestamp}
+                    </div>
+                    ${orderInfo}
                 </div>
-                <div class="transaction-type" style="background: ${typeColor}">
-                    ${transactionType}
+                
+                <div class="transaction-type" style="
+                    background: ${typeColor};
+                    color: white;
+                    padding: 0.25rem 0.75rem;
+                    border-radius: 20px;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                ">
+                    ${transactionType.replace('_', ' ').toUpperCase()}
                 </div>
             </div>
-        `;
+            
+            <!-- ADD HOVER EFFECT -->
+            <div class="transaction-hover" style="
+                display: none;
+                margin-top: 0.5rem;
+                padding-top: 0.5rem;
+                border-top: 1px dashed #e0e0e0;
+                font-size: 0.85rem;
+                color: #666;
+            ">
+                <div style="margin-bottom: 0.25rem;">
+                    <strong>Total Items:</strong> ${transaction.updates?.length || 0}
+                </div>
+                ${transaction.orderTotal ? `
+                <div style="margin-bottom: 0.25rem;">
+                    <strong>Order Total:</strong> R${parseFloat(transaction.orderTotal).toFixed(2)}
+                </div>
+                ` : ''}
+                <div style="color: #2196f3; font-weight: 600;">
+                    <i class="fas fa-info-circle"></i> Click to view full details
+                </div>
+            </div>
+        </div>
+    `;
+}
+//=========================NEW FUNCTION===========
+function showTransactionDetails(transactionElement) {
+    const transactionId = transactionElement.dataset.transactionId;
+    const orderId = transactionElement.dataset.orderId;
+    
+    if (orderId && typeof OrdersManager !== 'undefined' && 
+        typeof OrdersManager.showOrderDetails === 'function') {
+        // Open the order details modal
+        OrdersManager.showOrderDetails(orderId);
+    } else {
+        // Show transaction info
+        alert(`Transaction: ${transactionId}\nOrder: ${orderId || 'N/A'}\n\nOpen the order in dashboard for details.`);
     }
+}
+    
 //============================================
     // 5. GET INVENTORY REPORT MODAL HTML
 //========================================
@@ -1704,6 +1766,57 @@ function getProductRowHTML(product) {
 //===============================================
 function setupInventoryTrackingModalEvents(modal) {
         try {
+            // ADD CLICK HANDLER FOR TRANSACTIONS
+        const transactionsList = modal.querySelector('.transactions-list');
+        if (transactionsList) {
+            transactionsList.addEventListener('click', function(e) {
+                const transactionItem = e.target.closest('.transaction-item');
+                if (!transactionItem) return;
+                
+                const transactionId = transactionItem.dataset.transactionId;
+                const orderId = transactionItem.dataset.orderId;
+                
+                console.log(`[Analytics] Transaction clicked: ${transactionId}, Order: ${orderId}`);
+                
+                // If transaction has an order ID, show order details
+                if (orderId && typeof OrdersManager !== 'undefined' && 
+                    typeof OrdersManager.showOrderDetails === 'function') {
+                    OrdersManager.showOrderDetails(orderId);
+                    
+                    // Close inventory modal
+                    modal.style.display = 'none';
+                } else {
+                    // Show transaction details
+                    showTransactionDetails(transactionItem);
+                }
+            });
+            
+            // ADD HOVER EFFECTS
+            transactionsList.addEventListener('mouseover', function(e) {
+                const transactionItem = e.target.closest('.transaction-item');
+                if (transactionItem) {
+                    const hoverDiv = transactionItem.querySelector('.transaction-hover');
+                    if (hoverDiv) {
+                        hoverDiv.style.display = 'block';
+                    }
+                    transactionItem.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                    transactionItem.style.transform = 'translateY(-2px)';
+                }
+            });
+            
+            transactionsList.addEventListener('mouseout', function(e) {
+                const transactionItem = e.target.closest('.transaction-item');
+                if (transactionItem) {
+                    const hoverDiv = transactionItem.querySelector('.transaction-hover');
+                    if (hoverDiv) {
+                        hoverDiv.style.display = 'none';
+                    }
+                    transactionItem.style.boxShadow = 'none';
+                    transactionItem.style.transform = 'translateY(0)';
+                }
+            });
+        }
+
             const closeBtn = document.getElementById('close-inventory-tracking');
             if (closeBtn) {
                 closeBtn.onclick = () => {
