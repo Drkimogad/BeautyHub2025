@@ -1445,37 +1445,96 @@ async function showInventoryTrackingModal() {
      // 2. SHOW INVENTORY REPORT
 //=====================================
 function showInventoryReportModal() {
-        console.log('[Analytics] Opening Inventory Report Modal');
+    console.log('[Analytics] Opening Inventory Report Modal - FETCHING FRESH FROM FIRESTORE');
+    
+    try {
+        let products = [];
         
-        try {
-            let products = [];
+        // TRY TO GET FRESH FROM FIRESTORE FIRST
+        if (typeof firebase !== 'undefined' && firebase.firestore) {
+            const db = firebase.firestore();
             
-            // Try to get products from ProductsManager
-            if (typeof ProductsManager !== 'undefined' && typeof ProductsManager.getProducts === 'function') {
-                products = ProductsManager.getProducts({ activeOnly: true }) || [];
-            } else {
-                // Fallback: Try localStorage
-                try {
-                    const productsJSON = localStorage.getItem('beautyhub_products');
-                    if (productsJSON) {
-                        products = JSON.parse(productsJSON) || [];
-                    }
-                } catch (error) {
-                    console.error('[Analytics] Failed to get products from localStorage:', error);
-                }
-            }
-            
+            // Show loading state first
             const modal = createOrGetModal('inventory-report-modal');
-            modal.innerHTML = getInventoryReportModalHTML(products);
+            modal.innerHTML = `
+                <div class="inventory-report-content">
+                    <div class="inventory-report-header">
+                        <i class="fas fa-chart-line"></i>
+                        <h2>Inventory Report</h2>
+                        <button id="close-inventory-report" class="modal-close-btn">&times;</button>
+                    </div>
+                    <div class="inventory-report-body">
+                        <div class="loading-content">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <h3>Loading Fresh Inventory Data...</h3>
+                            <p>Fetching latest from Firestore...</p>
+                        </div>
+                    </div>
+                </div>
+            `;
             modal.style.display = 'flex';
             
-            setupInventoryReportModalEvents(modal);
+            // FETCH FRESH FROM FIRESTORE
+            db.collection('products').get()
+                .then(snapshot => {
+                    products = [];
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        products.push({
+                            id: doc.id,
+                            ...data,
+                            wholesalePrice: data.wholesalePrice || data.wholesaleprice || 0,
+                            retailPrice: data.retailPrice || data.retailprice || 0,
+                            currentPrice: data.currentPrice || data.currentprice || 0,
+                            discountPercent: data.discountPercent || data.discountedPercent || 0,
+                            stock: parseInt(data.stock) || 0,
+                            salesCount: parseInt(data.salesCount) || 0,
+                            isActive: data.isActive !== false
+                        });
+                    });
+                    
+                    console.log('[Analytics] Fresh Firestore data loaded:', products.length, 'products');
+                    
+                    // Update ProductsManager cache with fresh data
+                    if (typeof ProductsManager !== 'undefined' && ProductsManager.products) {
+                        ProductsManager.products = products;
+                        localStorage.setItem('beautyhub_products', JSON.stringify(products));
+                    }
+                    
+                    // Render with fresh data
+                    modal.innerHTML = getInventoryReportModalHTML(products);
+                    setupInventoryReportModalEvents(modal);
+                })
+                .catch(error => {
+                    console.error('[Analytics] Firestore fetch failed, falling back to cache:', error);
+                    
+                    // Fallback to cached data
+                    if (typeof ProductsManager !== 'undefined' && typeof ProductsManager.getProducts === 'function') {
+                        products = ProductsManager.getProducts({ activeOnly: true }) || [];
+                    }
+                    
+                    modal.innerHTML = getInventoryReportModalHTML(products);
+                    setupInventoryReportModalEvents(modal);
+                });
             
-        } catch (error) {
-            console.error('[Analytics] Failed to show inventory report modal:', error);
-            alert('Failed to open inventory report');
+            return; // Exit early, Firestore fetch is async
         }
+        
+        // Fallback if Firebase not available
+        if (typeof ProductsManager !== 'undefined' && typeof ProductsManager.getProducts === 'function') {
+            products = ProductsManager.getProducts({ activeOnly: true }) || [];
+        }
+        
+        const modal = createOrGetModal('inventory-report-modal');
+        modal.innerHTML = getInventoryReportModalHTML(products);
+        modal.style.display = 'flex';
+        setupInventoryReportModalEvents(modal);
+        
+    } catch (error) {
+        console.error('[Analytics] Failed to show inventory report modal:', error);
+        alert('Failed to open inventory report');
     }
+}
 
     function createOrGetModal(id) {
         let modal = document.getElementById(id);
