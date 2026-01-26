@@ -1381,38 +1381,10 @@ if (e.target.classList.contains('mark-shipped') || e.target.closest('.mark-shipp
     // ANALYTICS MODAL FUNCTIONS
     // ========================================================
     // 1. SHOWINVENTORYTRACKINGMODAL
-    async function showInventoryTrackingModal() { // asunc now , it has to await
+async function showInventoryTrackingModal() {
     console.log('[Analytics] Opening Inventory Tracking Modal');
     
     try {
-        // ========== ADD THIS: Force refresh from localStorage ==========
-        // Clear any cached data and reload fresh
-        if (typeof InventoryManager !== 'undefined' && 
-            typeof InventoryManager.getInventoryTransactions === 'function') {
-            // Force fresh data load
-            // ⚠️⚠️⚠️ FIX THIS LINE - getInventoryTransactions returns ARRAY, not report ⚠️⚠️⚠️
-            const transactions = await InventoryManager.getInventoryTransactions() || [];
-            const freshReport = {
-                summary: {
-                    totalTransactions: transactions.length,
-                    totalProducts: new Set(transactions.flatMap(t => t.updates?.map(u => u.productId) || [])).size,
-                    totalStockChanges: transactions.reduce((sum, t) => {
-                        return sum + (t.updates?.reduce((s, u) => s + Math.abs(u.quantity || 0), 0) || 0);
-                    }, 0)
-                },
-                recentTransactions: transactions.slice(-10).map(t => ({
-                    id: t.id,
-                    type: t.type,
-                    timestamp: t.timestamp,
-                    performedBy: t.performedBy,
-                    productCount: t.updates?.length || 0,
-                    totalQuantity: t.updates?.reduce((sum, u) => sum + Math.abs(u.quantity || 0), 0) || 0
-                }))
-            };
-            console.log('[Analytics] Fresh report loaded:', freshReport.summary.totalTransactions);
-        }
-        // ========== END ADDITION ==========
-
         if (typeof InventoryManager === 'undefined') {
             console.error('[Analytics] InventoryManager not loaded');
             alert('Inventory system not available');
@@ -1425,7 +1397,7 @@ if (e.target.classList.contains('mark-shipped') || e.target.closest('.mark-shipp
 
         // Safely get report
         if (typeof InventoryManager.getInventoryTransactions === 'function') {
-            const transactions = InventoryManager.getInventoryTransactions() || [];
+            const transactions = await InventoryManager.getInventoryTransactions() || [];
             
             // Convert array to report format
             report = {
@@ -1436,24 +1408,26 @@ if (e.target.classList.contains('mark-shipped') || e.target.closest('.mark-shipp
                         return sum + (t.updates?.reduce((s, u) => s + Math.abs(u.quantity || 0), 0) || 0);
                     }, 0)
                 },
-recentTransactions: transactions.slice(-10).map(t => ({
-    id: t.id,
-    type: t.type,
-    timestamp: t.timestamp,
-    performedBy: t.performedBy,
-    // ADD THESE FIELDS:
-    orderId: t.orderId || t.referenceId || '',
-    customerName: t.customerName || '',
-    customerPhone: t.customerPhone || '',
-    orderTotal: t.orderTotal || 0,
-    customerType: t.customerType || '',
-    // Keep existing:
-    productCount: t.updates?.length || 0,
-    totalQuantity: t.updates?.reduce((sum, u) => sum + Math.abs(u.quantity || 0), 0) || 0,
-    // Include the full updates array for details
-    updates: t.updates || []
-}))
+                recentTransactions: transactions.slice(-10).map(t => ({
+                    id: t.id,
+                    type: t.type,
+                    timestamp: t.timestamp,
+                    performedBy: t.performedBy,
+                    // ADD THESE FIELDS:
+                    orderId: t.orderId || t.referenceId || '',
+                    customerName: t.customerName || '',
+                    customerPhone: t.customerPhone || '',
+                    orderTotal: t.orderTotal || 0,
+                    customerType: t.customerType || '',
+                    // Keep existing:
+                    productCount: t.updates?.length || 0,
+                    totalQuantity: t.updates?.reduce((sum, u) => sum + Math.abs(u.quantity || 0), 0) || 0,
+                    // Include the full updates array for details
+                    updates: t.updates || []
+                }))
             };
+            
+            console.log('[Analytics] Fresh report loaded:', report.summary.totalTransactions);
         }
         
         modal.innerHTML = getInventoryTrackingModalHTML(report);
