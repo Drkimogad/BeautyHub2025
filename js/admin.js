@@ -1436,14 +1436,23 @@ if (e.target.classList.contains('mark-shipped') || e.target.closest('.mark-shipp
                         return sum + (t.updates?.reduce((s, u) => s + Math.abs(u.quantity || 0), 0) || 0);
                     }, 0)
                 },
-                recentTransactions: transactions.slice(-10).map(t => ({
-                    id: t.id,
-                    type: t.type,
-                    timestamp: t.timestamp,
-                    performedBy: t.performedBy,
-                    productCount: t.updates?.length || 0,
-                    totalQuantity: t.updates?.reduce((sum, u) => sum + Math.abs(u.quantity || 0), 0) || 0
-                }))
+recentTransactions: transactions.slice(-10).map(t => ({
+    id: t.id,
+    type: t.type,
+    timestamp: t.timestamp,
+    performedBy: t.performedBy,
+    // ADD THESE FIELDS:
+    orderId: t.orderId || t.referenceId || '',
+    customerName: t.customerName || '',
+    customerPhone: t.customerPhone || '',
+    orderTotal: t.orderTotal || 0,
+    customerType: t.customerType || '',
+    // Keep existing:
+    productCount: t.updates?.length || 0,
+    totalQuantity: t.updates?.reduce((sum, u) => sum + Math.abs(u.quantity || 0), 0) || 0,
+    // Include the full updates array for details
+    updates: t.updates || []
+}))
             };
         }
         
