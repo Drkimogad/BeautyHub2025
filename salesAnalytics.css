@@ -315,4 +315,50 @@
     font-size: 1.8rem;
     font-weight: 700;
     color: var(--dark-text);
-    margin-bottom
+}
+    /* will need to be completed*/
+/* ======================================================== */
+/* BREAKDOWN STYLES */
+/* ======================================================== */
+.breakdown-container {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.breakdown-section {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--shadow-light);
+    border: 1px solid var(--border-light);
+}
+
+.breakdown-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border-light);
+}
+
+.breakdown-header i {
+    font-size: 1.2rem;
+    color: var(--purple);
+}
+
+.breakdown-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--dark-text);
+}
+
+.breakdown-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+    
