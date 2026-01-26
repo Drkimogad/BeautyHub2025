@@ -502,20 +502,58 @@ const product = ProductsManager.getProductById(productId);
         }
     }
     
-//=================================================
-    //Get inventory transactions
-//==========================================
-    function getInventoryTransactions() {
-        try {
-            const existing = localStorage.getItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS);
-            return existing ? JSON.parse(existing) : [];
-        } catch (error) {
-            console.error('[InventoryManager] Failed to get transactions:', error);
+//===========NEW LOAD INVENTORY TRANSACTIONS FROM FIRESTORE===========
+async function loadTransactionsFromFirestore() {
+    try {
+        if (typeof firebase === 'undefined' || !firebase.firestore) {
+            console.log('[InventoryManager] Firestore not available');
             return [];
         }
+        
+        const db = firebase.firestore();
+        const snapshot = await db.collection('inventory_transactions').get();
+        const firestoreTransactions = [];
+        
+        snapshot.forEach(doc => {
+            firestoreTransactions.push(doc.data());
+        });
+        
+        console.log(`[InventoryManager] Loaded ${firestoreTransactions.length} transactions from Firestore`);
+        return firestoreTransactions;
+        
+    } catch (error) {
+        console.error('[InventoryManager] Firestore load error:', error);
+        return [];
     }
+}
     
-    // Get comprehensive inventory report for analytics ENHANCED FOR PRODUCTION ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡
+//=========Get inventory transactions===============
+async function getInventoryTransactions() {
+    try {
+        // Get from localStorage
+        const existing = localStorage.getItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS);
+        const localTransactions = existing ? JSON.parse(existing) : [];
+        
+        // Get from Firestore
+        const firestoreTransactions = await loadTransactionsFromFirestore();
+        
+        // Merge: Firestore overwrites localStorage
+        const firestoreIds = new Set(firestoreTransactions.map(t => t.id));
+        const localOnly = localTransactions.filter(t => !firestoreIds.has(t.id));
+        const allTransactions = [...firestoreTransactions, ...localOnly];
+        
+        // Save merged back to localStorage
+        localStorage.setItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS, JSON.stringify(allTransactions));
+        
+        return allTransactions;
+        
+    } catch (error) {
+        console.error('[InventoryManager] Failed to get transactions:', error);
+        return [];
+    }
+}
+
+// Get comprehensive inventory report for analytics ENHANCED FOR PRODUCTION
 function saveInventoryTransaction(transactionData) {
     try {
         console.log('[InventoryManager] ⚡ SAVING TRANSACTION - START ⚡');
@@ -618,6 +656,16 @@ const enhancedTransaction = {
         try {
             localStorage.setItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS, JSON.stringify(trimmedTransactions));
             console.log(`[InventoryManager] ✅ SAVED: Transaction ${enhancedTransaction.id} to localStorage`);
+            // After saving to localStorage, also save to Firestore
+if (typeof firebase !== 'undefined' && firebase.firestore) {
+    try {
+        const db = firebase.firestore();
+        await db.collection('inventory_transactions').doc(enhancedTransaction.id).set(enhancedTransaction);
+        console.log(`[InventoryManager] ✅ Saved to Firestore: ${enhancedTransaction.id}`);
+    } catch (firestoreError) {
+        console.error('[InventoryManager] Firestore save failed:', firestoreError);
+    }
+}
             
             // VERIFY SAVE
             const verify = localStorage.getItem(STORAGE_KEYS.INVENTORY_TRANSACTIONS);
