@@ -653,8 +653,8 @@ if (CONFIG.USE_FIRESTORE) {
 }
 
 // 3. STOCK-ONLY UPDATE (NEW - Surgical) COMMUNICATES WITH INVENTORY MANAGER.JS
-async function updateStockOnly(productId, newStock) {
-    try {
+async function updateStockOnly(productId, newStock, newSalesCount = null) { //ACCEPT 3 PARAMETERS
+ try {
         console.log('[ProductsManager] Stock-only update:', { productId, newStock });
         
         const index = products.findIndex(p => p.id === productId);
@@ -669,15 +669,27 @@ async function updateStockOnly(productId, newStock) {
             return false;
         }
         
-        // Update ONLY stock and updatedAt
-        products[index].stock = parseInt(newStock);
-        products[index].updatedAt = new Date().toISOString();
-        
-        console.log('[ProductsManager] Stock updated locally:', { 
-            name: products[index].name, 
-            oldStock: products[index].stock, 
-            newStock 
-        });
+       // Update stock, salesCount, and updatedAt
+products[index].stock = parseInt(newStock);
+products[index].updatedAt = new Date().toISOString();
+
+// ADD THIS: Update salesCount if provided
+if (newSalesCount !== null) {
+    const oldSalesCount = products[index].salesCount || 0;
+    products[index].salesCount = parseInt(newSalesCount) || 0;
+    
+    console.log('[ProductsManager] Sales count updated locally:', { 
+        name: products[index].name, 
+        oldSalesCount: oldSalesCount, 
+        newSalesCount: products[index].salesCount 
+    });
+}
+
+console.log('[ProductsManager] Stock updated locally:', { 
+    name: products[index].name, 
+    oldStock: products[index].stock, 
+    newStock: newStock 
+});
         
         // Save to local storage
         saveProductsToLocalStorage();
