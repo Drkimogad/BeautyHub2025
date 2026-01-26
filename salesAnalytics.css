@@ -361,4 +361,912 @@
     flex-direction: column;
     gap: 12px;
 }
-    
+
+/* ======================================================== */
+/* MODAL 2: PROFIT MARGIN INTELLIGENCE STYLES */
+/* ======================================================== */
+
+/* View Selector */
+.view-selector-row {
+    padding: 16px 24px;
+    background: var(--white);
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.view-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.view-tab {
+    padding: 8px 16px;
+    background: var(--bg-light);
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--dark-text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.view-tab:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-medium);
+}
+
+.view-tab.active {
+    background: var(--purple);
+    color: var(--white);
+    border-color: var(--purple);
+}
+
+.view-tab i {
+    font-size: 0.9rem;
+}
+
+.filter-dropdown {
+    padding: 8px 12px;
+    border: 2px solid var(--border-light);
+    border-radius: 6px;
+    background: var(--white);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--dark-text);
+    cursor: pointer;
+    min-width: 140px;
+}
+
+.filter-dropdown:hover {
+    border-color: var(--border-medium);
+}
+
+.filter-dropdown:focus {
+    outline: none;
+    border-color: var(--purple);
+}
+
+/* Profit Metrics Container */
+.profit-metrics-container {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.profit-view {
+    display: none;
+}
+
+.profit-view.active-view {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.profit-view-header {
+    margin-bottom: 20px;
+}
+
+.profit-view-header h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.2rem;
+    color: var(--dark-text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profit-view-header h3 i {
+    color: var(--purple);
+}
+
+.view-description {
+    font-size: 0.9rem;
+    color: var(--border-medium);
+}
+
+/* Margin Overview */
+.margin-overview-header {
+    margin-bottom: 24px;
+}
+
+.margin-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+    .margin-cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.margin-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 20px;
+    border: 2px solid var(--border-light);
+    transition: all 0.3s ease;
+}
+
+.margin-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+.margin-card.wholesale-card {
+    border-top: 4px solid var(--purple);
+}
+
+.margin-card.retail-card {
+    border-top: 4px solid var(--info-blue);
+}
+
+.margin-card.actual-card {
+    border-top: 4px solid var(--success-green);
+}
+
+.margin-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.margin-card-header i {
+    font-size: 1.2rem;
+}
+
+.margin-card-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--dark-text);
+}
+
+.wholesale-card .margin-card-header i {
+    color: var(--purple);
+}
+
+.retail-card .margin-card-header i {
+    color: var(--info-blue);
+}
+
+.actual-card .margin-card-header i {
+    color: var(--success-green);
+}
+
+.margin-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.margin-metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border-light);
+}
+
+.margin-metric:last-child {
+    border-bottom: none;
+}
+
+.margin-label {
+    font-size: 0.9rem;
+    color: var(--border-medium);
+}
+
+.margin-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.wholesale-card .margin-value {
+    color: var(--purple);
+}
+
+.retail-card .margin-value {
+    color: var(--info-blue);
+}
+
+.actual-card .margin-value {
+    color: var(--success-green);
+}
+
+.margin-note {
+    margin-top: 16px;
+    font-size: 0.8rem;
+    color: var(--border-medium);
+    font-style: italic;
+}
+
+/* Margin Summary */
+.margin-summary {
+    background: var(--bg-light);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.summary-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.summary-item i {
+    font-size: 1.2rem;
+}
+
+.summary-item .success-icon {
+    color: var(--success-green);
+}
+
+.summary-item .warning-icon {
+    color: var(--warning-orange);
+}
+
+.summary-label {
+    font-weight: 600;
+    color: var(--dark-text);
+}
+
+.summary-value {
+    font-weight: 700;
+    color: var(--purple);
+}
+
+/* Profit Tables */
+.profit-table-container {
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+.profit-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--white);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-light);
+}
+
+.profit-table thead {
+    background: var(--bg-light);
+    border-bottom: 2px solid var(--border-light);
+}
+
+.profit-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--dark-text);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.profit-table tbody tr {
+    border-bottom: 1px solid var(--border-light);
+    transition: background 0.2s ease;
+}
+
+.profit-table tbody tr:hover {
+    background: var(--bg-hover);
+}
+
+.profit-table td {
+    padding: 12px 16px;
+    font-size: 0.95rem;
+}
+
+.profit-table .category-name {
+    font-weight: 600;
+    color: var(--dark-text);
+}
+
+.profit-table .profit-value {
+    font-weight: 700;
+    color: var(--success-green);
+}
+
+.profit-table .totals-row {
+    background: var(--bg-light);
+    font-weight: bold;
+    border-top: 2px solid var(--border-light);
+}
+
+.profit-table .totals-row td {
+    padding: 14px 16px;
+}
+
+.total-profit {
+    color: var(--success-green);
+}
+
+.total-margin {
+    font-size: 1.1rem;
+}
+
+.loading-row, .no-data-row {
+    text-align: center;
+    padding: 40px !important;
+    color: var(--border-medium);
+}
+
+.loading-row i, .no-data-row i {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    display: block;
+}
+
+/* Margin Badges */
+.margin-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    min-width: 60px;
+}
+
+.margin-badge.margin-high {
+    background: rgba(76, 175, 80, 0.1);
+    color: var(--success-green);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.margin-badge.margin-medium {
+    background: rgba(255, 152, 0, 0.1);
+    color: var(--warning-orange);
+    border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.margin-badge.margin-low {
+    background: rgba(244, 67, 54, 0.1);
+    color: var(--error-red);
+    border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+/* Category Insights */
+.category-insights {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+    .category-insights {
+        grid-template-columns: 1fr;
+    }
+}
+
+.insight-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--border-light);
+}
+
+.insight-card.best-category {
+    border-top: 4px solid var(--gold);
+}
+
+.insight-card.restock-alert {
+    border-top: 4px solid var(--warning-orange);
+}
+
+.insight-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.insight-header i {
+    font-size: 1.2rem;
+}
+
+.insight-card.best-category .insight-header i {
+    color: var(--gold);
+}
+
+.insight-card.restock-alert .insight-header i {
+    color: var(--warning-orange);
+}
+
+.insight-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--dark-text);
+}
+
+.insight-content {
+    text-align: center;
+}
+
+.insight-category {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--dark-text);
+}
+
+.insight-metric {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.insight-card.best-category .insight-metric {
+    color: var(--gold);
+}
+
+.insight-card.restock-alert .insight-metric {
+    color: var(--warning-orange);
+}
+
+.insight-detail {
+    font-size: 0.85rem;
+    color: var(--border-medium);
+}
+
+/* Top Products Controls */
+.top-products-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.sort-label {
+    font-size: 0.9rem;
+    color: var(--dark-text);
+    font-weight: 600;
+}
+
+.sort-btn {
+    padding: 6px 12px;
+    background: var(--bg-light);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--dark-text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sort-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-medium);
+}
+
+.sort-btn.active {
+    background: var(--purple);
+    color: var(--white);
+    border-color: var(--purple);
+}
+
+.limit-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.limit-label {
+    font-size: 0.9rem;
+    color: var(--dark-text);
+    font-weight: 600;
+}
+
+.limit-select {
+    padding: 6px 10px;
+    border: 2px solid var(--border-light);
+    border-radius: 6px;
+    background: var(--white);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--dark-text);
+    cursor: pointer;
+}
+
+.limit-select:hover {
+    border-color: var(--border-medium);
+}
+
+.limit-select:focus {
+    outline: none;
+    border-color: var(--purple);
+}
+
+/* Product Info in Table */
+.product-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.product-name {
+    font-weight: 600;
+    color: var(--dark-text);
+}
+
+.product-category {
+    font-size: 0.8rem;
+    color: var(--border-medium);
+}
+
+/* Profit Distribution */
+.profit-distribution {
+    margin-top: 30px;
+    background: var(--bg-light);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.profit-distribution h4 {
+    margin: 0 0 16px 0;
+    font-size: 1.1rem;
+    color: var(--dark-text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profit-distribution h4 i {
+    color: var(--purple);
+}
+
+.distribution-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.distribution-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.bar-label {
+    width: 140px;
+    font-size: 0.9rem;
+    color: var(--dark-text);
+    font-weight: 500;
+}
+
+.bar-container {
+    flex: 1;
+    height: 24px;
+    background: var(--border-light);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    border-radius: 12px;
+    transition: width 0.5s ease;
+}
+
+.distribution-bar.high-margin .bar-fill {
+    background: var(--success-green);
+}
+
+.distribution-bar.medium-margin .bar-fill {
+    background: var(--warning-orange);
+}
+
+.distribution-bar.low-margin .bar-fill {
+    background: var(--error-red);
+}
+
+.bar-value {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--white);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Insights View */
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 992px) {
+    .insights-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .insights-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.insight-card-large {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--border-light);
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.insight-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.insight-icon.revenue-insight {
+    background: rgba(76, 175, 80, 0.1);
+    color: var(--success-green);
+}
+
+.insight-icon.cost-insight {
+    background: rgba(33, 150, 243, 0.1);
+    color: var(--info-blue);
+}
+
+.insight-icon.inventory-insight {
+    background: rgba(255, 152, 0, 0.1);
+    color: var(--warning-orange);
+}
+
+.insight-content-large {
+    flex: 1;
+}
+
+.insight-content-large h4 {
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    color: var(--dark-text);
+}
+
+.insight-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.insight-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.insight-item i {
+    font-size: 0.9rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.insight-item .success-icon {
+    color: var(--success-green);
+}
+
+.insight-item .warning-icon {
+    color: var(--warning-orange);
+}
+
+.insight-item .urgent-icon {
+    color: var(--error-red);
+}
+
+.insight-item.urgent {
+    background: rgba(244, 67, 54, 0.05);
+    padding: 8px;
+    border-radius: 6px;
+    border-left: 3px solid var(--error-red);
+}
+
+.insight-text {
+    font-size: 0.9rem;
+    color: var(--dark-text);
+    line-height: 1.4;
+}
+
+/* Key Metrics Summary */
+.key-metrics-summary {
+    background: var(--bg-light);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.key-metrics-summary h4 {
+    margin: 0 0 16px 0;
+    font-size: 1.1rem;
+    color: var(--dark-text);
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+@media (max-width: 768px) {
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.key-metric {
+    background: var(--white);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    border: 1px solid var(--border-light);
+}
+
+.metric-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-hover);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: var(--purple);
+    flex-shrink: 0;
+}
+
+.metric-content {
+    flex: 1;
+}
+
+.metric-label {
+    font-size: 0.85rem;
+    color: var(--border-medium);
+    margin-bottom: 4px;
+}
+
+.metric-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--dark-text);
+    margin-bottom: 2px;
+}
+
+.metric-change, .metric-detail {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.metric-change.positive {
+    color: var(--success-green);
+}
+
+.metric-change.negative {
+    color: var(--error-red);
+}
+
+.metric-detail {
+    color: var(--border-medium);
+}
+
+/* Profit Actions */
+.profit-actions {
+    padding: 20px 24px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    border-top: 1px solid var(--border-light);
+    flex-wrap: wrap;
+}
+
+.profit-actions .action-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.profit-actions .action-btn i {
+    font-size: 0.95rem;
+}
+
+.profit-actions .export-btn {
+    background: var(--success-green);
+    color: var(--white);
+}
+
+.profit-actions .export-btn:hover {
+    background: #43a047;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+.profit-actions .alert-btn {
+    background: var(--warning-orange);
+    color: var(--white);
+}
+
+.profit-actions .alert-btn:hover {
+    background: #f57c00;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+.profit-actions .compare-btn {
+    background: var(--info-blue);
+    color: var(--white);
+}
+
+.profit-actions .compare-btn:hover {
+    background: #1976d2;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+.profit-actions .refresh-btn {
+    background: var(--white);
+    color: var(--dark-text);
+    border: 2px solid var(--border-light);
+}
+
+.profit-actions .refresh-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-medium);
+    transform: translateY(-2px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
