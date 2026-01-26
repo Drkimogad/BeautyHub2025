@@ -129,6 +129,16 @@ if (typeof OrdersManager !== 'undefined' && OrdersManager.init) {
     OrdersManager.init();
     console.log('[AppManager] OrdersManager initialized');
 }
+    // === ADD SALES ANALYTICS HERE ===
+// SalesAnalytics (for financial dashboards)
+if (typeof SalesAnalytics !== 'undefined' && SalesAnalytics.init) {
+    SalesAnalytics.init();
+    console.log('[AppManager] SalesAnalytics initialized');
+} else {
+    console.warn('[AppManager] SalesAnalytics not available');
+}
+// === END ADDITION ===
+
 // Add this AFTER ProductsManager and OrdersManager initialization:
 // InventoryManager (for stock tracking and transactions)
 if (typeof InventoryManager !== 'undefined' && InventoryManager.init) {
