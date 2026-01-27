@@ -606,9 +606,48 @@ if (searchContainer) {
         }
     }
 
+// ========================================================
+// WHATSAPP ALERT TO ADMIN (YOU)  Added new congirm its placement
+// ========================================================
+async function sendAdminWhatsAppAlert(order, customerData) {
+    try {
+        console.log('[CustomerOrder] Sending WhatsApp alert to admin for order:', order.id);
+        
+        // REPLACE THIS WITH YOUR ACTUAL WHATSAPP NUMBER (with country code, no +)
+        // South Africa: 27XXXXXXXXX
+        // Example: 27821234567
+        const adminWhatsAppNumber = "27720138750"; // ⚠️ CHANGE THIS TO YOUR NUMBER
+        
+        const message = encodeURIComponent(
+            `📦 *NEW ORDER ALERT*\n\n` +
+            `*Order #:* ${order.id}\n` +
+            `*Customer:* ${customerData.firstName} ${customerData.surname}\n` +
+            `*Phone:* ${customerData.customerPhone}\n` +
+            `*WhatsApp:* ${customerData.customerWhatsApp || 'Not provided'}\n` +
+            `*Type:* ${customerData.customerType.toUpperCase()}\n` +
+            `*Amount:* R${order.totalAmount.toFixed(2)}\n` +
+            `*Items:* ${order.items.length} product(s)\n` +
+            `*Address:* ${customerData.shippingAddress.substring(0, 50)}...\n\n` +
+            `📍 *Action Required:* Log into Admin Dashboard`
+        );
+        
+        // Open WhatsApp in new tab
+        const whatsappUrl = `https://wa.me/${adminWhatsAppNumber}?text=${message}`;
+        window.open(whatsappUrl, '_blank');
+        
+        console.log('[CustomerOrder] WhatsApp alert sent to admin');
+        
+    } catch (error) {
+        console.error('[CustomerOrder] Failed to send WhatsApp alert:', error);
+        // Don't show error to customer - this is background notification
+    }
+}
+    
     async function handleSuccessfulOrder(order, formData) {
         try {
             console.log('[CustomerOrder] Order created successfully:', order.id);
+            // ⭐⭐⭐ ADD THIS LINE ⭐⭐⭐
+        await sendAdminWhatsAppAlert(order, formData);
             
             // Clear cart
             if (typeof BeautyHubCart !== 'undefined' && typeof BeautyHubCart.clearCart === 'function') {
