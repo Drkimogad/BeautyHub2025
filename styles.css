@@ -6625,3 +6625,116 @@ header {
         transform: translateY(0);
     }
 }
+
+
+/* ========================================================
+   WHATSAPP BUTTON STYLES
+   ======================================================== */
+
+/* WhatsApp button in order cards */
+.dashboard-action-btn.whatsapp-customer {
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 2px 4px rgba(37, 211, 102, 0.3) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-action-btn.whatsapp-customer:hover {
+    background: linear-gradient(135deg, #1EBE5D 0%, #0D7D6F 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(37, 211, 102, 0.4) !important;
+}
+
+.dashboard-action-btn.whatsapp-customer:active {
+    transform: translateY(0);
+}
+
+.dashboard-action-btn.whatsapp-customer i {
+    font-size: 1.1em;
+    margin-right: 5px;
+}
+
+/* WhatsApp icon pulse animation for new orders */
+@keyframes whatsapp-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.dashboard-order-card[data-order-status="pending"] .whatsapp-customer i {
+    animation: whatsapp-pulse 2s infinite;
+}
+
+/* WhatsApp button in order details modal (optional) */
+.modal-actions .whatsapp-btn {
+    background: #25D366;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.modal-actions .whatsapp-btn:hover {
+    background: #128C7E;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+}
+
+/* WhatsApp notification badge */
+.whatsapp-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #FF4081;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Responsive WhatsApp button */
+@media (max-width: 768px) {
+    .dashboard-action-btn.whatsapp-customer {
+        padding: 8px 12px !important;
+        font-size: 0.9em !important;
+    }
+    
+    .dashboard-action-btn.whatsapp-customer i {
+        margin-right: 3px !important;
+        font-size: 1em !important;
+    }
+}
+
+/* WhatsApp button in compact mode */
+.compact-orders .whatsapp-customer {
+    min-width: auto !important;
+    padding: 6px 10px !important;
+}
+
+.compact-orders .whatsapp-customer span {
+    display: none !important;
+}
+
+.compact-orders .whatsapp-customer i {
+    margin-right: 0 !important;
+}
