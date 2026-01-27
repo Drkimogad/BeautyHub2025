@@ -1194,7 +1194,7 @@ function handleAnalyticsButtons(e) {
     
     // Sales Analytics dropdown button (toggle dropdown)
     if (e.target.id === 'sales-analytics-btn' || e.target.closest('#sales-analytics-btn')) {
-        console.log('[Analytics] Sales Analytics button clicked');
+        console.log('[Analytics] sales Analytics button clicked');
         toggleAnalyticsDropdown();
         return; // Important: return to prevent other handlers
     }
@@ -1203,8 +1203,8 @@ function handleAnalyticsButtons(e) {
     if (e.target.id === 'financial-summary-option' || e.target.closest('#financial-summary-option')) {
         console.log('[Analytics] Financial Summary selected');
         hideAnalyticsDropdown();
-        if (typeof SalesAnalytics !== 'undefined' && SalesAnalytics.showFinancialSummary) {
-            SalesAnalytics.showFinancialSummary();
+        if (typeof salesAnalytics !== 'undefined' && salesAnalytics.showFinancialSummary) {
+            salesAnalytics.showFinancialSummary();
         }
         return;
     }
@@ -1212,8 +1212,8 @@ function handleAnalyticsButtons(e) {
     if (e.target.id === 'profit-margin-option' || e.target.closest('#profit-margin-option')) {
         console.log('[Analytics] Profit Margin selected');
         hideAnalyticsDropdown();
-        if (typeof SalesAnalytics !== 'undefined' && SalesAnalytics.showProfitMarginAnalysis) {
-            SalesAnalytics.showProfitMarginAnalysis();
+        if (typeof salesAnalytics !== 'undefined' && salesAnalytics.showProfitMarginAnalysis) {
+            salesAnalytics.showProfitMarginAnalysis();
         }
         return;
     }
