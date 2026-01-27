@@ -175,6 +175,45 @@ async function loadOrdersFromFirestore() {
     }
 }
 
+//==== add this after loadordersfromfirestore=====
+async function refreshFromFirestore() {
+    try {
+        console.log('[OrdersManager] Refreshing orders from Firestore...');
+        
+        if (!CONFIG.FIREBASE_READY() || !CONFIG.USE_FIRESTORE) {
+            console.log('[OrdersManager] Firestore disabled or not ready');
+            return false;
+        }
+        
+        const freshOrders = await loadOrdersFromFirestore();
+        
+        if (freshOrders.length > 0) {
+            // Merge fresh data with existing
+            const freshIds = new Set(freshOrders.map(o => o.id));
+            const localOnly = orders.filter(o => !freshIds.has(o.id));
+            
+            // Update orders array with fresh data
+            orders = [...freshOrders, ...localOnly];
+            
+            // Save to localStorage cache
+            saveOrders();
+            
+            // Dispatch event to notify other components
+            window.dispatchEvent(new CustomEvent('ordersUpdated'));
+            
+            console.log(`[OrdersManager] Refreshed ${freshOrders.length} orders from Firestore`);
+            return true;
+        }
+        
+        console.log('[OrdersManager] No new orders from Firestore');
+        return false;
+        
+    } catch (error) {
+        console.error('[OrdersManager] Failed to refresh from Firestore:', error);
+        return false;
+    }
+}
+
 async function updateOrderInFirestore(orderId, updateData) {
     try {
         console.log('[OrdersManager] Updating order in Firestore:', orderId);
@@ -2540,7 +2579,8 @@ function generatePrintHTML(order) {
         updateAdminBadge,
         showCancellationModal,
         getPriceForCustomer, // Export this for use in other modules
-        getPriceTierForCustomer
+        getPriceTierForCustomer,
+        refreshFromFirestore // <-- ADD THIS LINE
     };
 })();
 
