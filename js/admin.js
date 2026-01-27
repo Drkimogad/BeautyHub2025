@@ -782,6 +782,16 @@ function getOrderCardHTML(order) {
                         <i class="fas fa-eye"></i>
                         Details
                     </button>
+                <!-- ⭐⭐⭐ NEW WHATSAPP BUTTON - Shows for ALL orders ⭐⭐⭐ -->
+    <button class="dashboard-action-btn whatsapp-customer" 
+            data-order-id="${orderId}"
+            data-whatsapp="${customerWhatsApp || customerPhone}"
+            data-customer-name="${firstName} ${surname}"
+            data-order-total="${totalAmount.toFixed(2)}"
+            title="Message customer on WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+        WhatsApp
+    </button>
                     
                     ${isPending ? `
                     <button class="dashboard-action-btn mark-paid" data-order-id="${orderId}">
@@ -1280,6 +1290,22 @@ function handleOrderActions(e) {
                 OrdersManager.showOrderDetails(orderId);
             }
         }
+        // ⭐⭐⭐ NEW: WHATSAPP BUTTON ⭐⭐⭐
+        if (e.target.classList.contains('whatsapp-customer') || 
+            e.target.closest('.whatsapp-customer')) {
+            
+            const whatsappNumber = e.target.dataset.whatsapp;
+            const customerName = e.target.dataset.customerName;
+            const orderTotal = e.target.dataset.orderTotal;
+            
+            if (whatsappNumber) {
+                sendWhatsAppToCustomer(whatsappNumber, customerName, orderId, orderTotal);
+            } else {
+                alert('No WhatsApp number available for this customer');
+            }
+            
+            return; // Prevent other handlers
+        }
         
         // MARK AS PAID
 if (e.target.classList.contains('mark-paid') || e.target.closest('.mark-paid')) {
@@ -1392,7 +1418,54 @@ if (e.target.classList.contains('mark-shipped') || e.target.closest('.mark-shipp
     }
 }
         
-
+// ========================================================
+// WHATSAPP CUSTOMER MESSAGING
+// ========================================================
+function sendWhatsAppToCustomer(whatsappNumber, customerName, orderId, orderTotal) {
+    try {
+        console.log(`[Admin] Opening WhatsApp for order ${orderId} to ${whatsappNumber}`);
+        
+        // Remove any non-digit characters from phone number
+        const cleanNumber = whatsappNumber.replace(/\D/g, '');
+        
+        // Pre-filled message templates
+        const messages = {
+            pending: `Hi ${customerName},%0A%0AThis is BeautyHub regarding your Order #${orderId}.%0ATotal: R${orderTotal}%0A%0APlease proceed with payment:%0A%0A• Bank: [YOUR BANK NAME]%0A• Account: [YOUR ACCOUNT NUMBER]%0A• Reference: ${orderId}%0A%0AOnce paid, send proof here.%0A%0AThank you!`,
+            
+            paid: `Hi ${customerName},%0A%0AYour Order #${orderId} (R${orderTotal}) is confirmed as PAID.%0A%0AWe are preparing your order for shipping.%0AYou will receive tracking details soon.%0A%0AThank you for your business!`,
+            
+            shipped: `Hi ${customerName},%0A%0AYour Order #${orderId} has been SHIPPED!%0A%0ATracking: [ADD TRACKING NUMBER]%0AEstimated delivery: [ADD DATE]%0A%0APlease confirm receipt when delivered.%0A%0AThank you!`
+        };
+        
+        // Create menu to select message type
+        const messageType = prompt(
+            `Select message type for ${customerName} (Order #${orderId}):\n\n` +
+            `1. Payment Request (pending orders)\n` +
+            `2. Payment Confirmation (paid orders)\n` +
+            `3. Shipping Notification (shipped orders)\n\n` +
+            `Enter 1, 2, or 3:`,
+            '1'
+        );
+        
+        let selectedMessage = messages.pending; // Default
+        
+        if (messageType === '2') {
+            selectedMessage = messages.paid;
+        } else if (messageType === '3') {
+            selectedMessage = messages.shipped;
+        }
+        
+        // Open WhatsApp Web/App
+        const whatsappUrl = `https://wa.me/${cleanNumber}?text=${selectedMessage}`;
+        window.open(whatsappUrl, '_blank');
+        
+        console.log(`[Admin] WhatsApp opened for customer ${cleanNumber}`);
+        
+    } catch (error) {
+        console.error('[Admin] Failed to open WhatsApp:', error);
+        alert('Failed to open WhatsApp. Please check the phone number.');
+    }
+}
 // ========================================================
     // FIREBASE AUTH LISTENER
  // ========================================================
