@@ -583,6 +583,27 @@ service cloud.firestore {
     }
   }
 }
+ Order Flow Diagram:
+Customer Places Order
+        ↓
+[1] Order saved → localStorage
+        ↓
+[2] WhatsApp alert → Your phone
+        ↓
+[3] You (Admin) → Open admin panel
+        ↓
+[4] Contact customer → Phone/WhatsApp
+        ↓
+[5] Send payment details → Manual
+        ↓
+[6] Mark as PAID → Admin interface
+        ↓
+[7] Mark as SHIPPED → When dispatched
+        ↓
+[8] Generate Invoice → PDF/print
+        ↓
+[9] Send to customer → Email/WhatsApp
+
 📞 SUPPORT & TROUBLESHOOTING
 Common Issues
 "Firebase not initialized" → Check Firebase scripts load before your JS
