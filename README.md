@@ -912,4 +912,68 @@ This documentation now covers EVERY aspect of the application - from code archit
 
 Final Note: The app is designed with surgical precision - each module has a single responsibility, and data flows in one direction: Firestore → Cache → UI. Never reverse this flow without explicit business logic.
 
+Analytics System Enhancement
+What Was Added
+The analytics system now includes real-time Firestore data integration with enhanced financial and profit margin analysis.
+
+New Features
+1. Firestore-First Data Fetching
+Financial Summary: Pulls fresh orders/products data before calculations
+
+Profit Margin Analysis: Fetches latest inventory and sales data
+
+Automatic Cache Synchronization: Updates local storage with Firestore data
+
+2. Enhanced Analytics Modules
+Financial Dashboard: Revenue, costs, taxes, shipping, net profit calculations
+
+Profit Intelligence: Category/product profitability with actionable insights
+
+Customer Analytics: Retailer, wholesaler, personal customer breakdowns
+
+3. Cross-Module Integration
+javascript
+// New Firestore refresh function in OrdersManager
+OrdersManager.refreshFromFirestore()  // Syncs orders data
+ProductsManager.updateFromFirestoreInBackground()  // Syncs products data
+How It Works
+User opens Analytics tab → System checks Firestore first
+
+Fresh data fetched → Updates local cache silently
+
+Calculations performed → Real-time margin analysis
+
+Insights generated → Actionable business recommendations
+
+Data Flow
+text
+Firestore (Live Data)
+        ↓
+OrdersManager.refreshFromFirestore()
+        ↓
+ProductsManager.updateFromFirestoreInBackground()
+        ↓
+salesAnalytics.calculateFinancialData()
+        ↓
+Dashboard Display (Fresh Analytics)
+Benefits
+✅ Always Fresh Data - No stale analytics
+✅ Offline Capable - Falls back to cache if offline
+✅ Performance Optimized - 30-minute cache expiration
+✅ Business Insights - Actionable profit recommendations
+
+Usage
+Access via Admin Dashboard → Analytics Tab:
+
+Financial Summary Dashboard - Overall business health
+
+
+Profit Margin Intelligence - Category/product profitability
+
+Inventory Analytics - Stock tracking and reporting
+
+Tech Stack: Firebase Firestore + LocalStorage Cache + Real-time Calculations
+Update Frequency: On-demand + 30-minute cache expiry
+Data Sources: Orders, Products, Customer Types, Inventory
+
 
