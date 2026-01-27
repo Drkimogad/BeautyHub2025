@@ -1715,13 +1715,38 @@ const salesAnalytics = (function() {
         }
     }
 
+//====added new for data calculatiins from firestore ⬇️⬇️⬇️========
+async function refreshDataFromFirestore() {
+    try {
+        const db = firebase.firestore();
+        
+        // Refresh orders from Firestore
+        if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.refreshFromFirestore === 'function') {
+            await OrdersManager.refreshFromFirestore();
+        }
+        
+        // Refresh products from Firestore
+        if (typeof ProductsManager !== 'undefined' && typeof ProductsManager.updateFromFirestoreInBackground === 'function') {
+            await ProductsManager.updateFromFirestoreInBackground();
+        }
+        
+        console.log('[SalesAnalytics] Firestore data refreshed');
+    } catch (error) {
+        console.warn('[SalesAnalytics] Firestore refresh failed, using cached data:', error);
+    }
+}
     // ========================================================
-    // DATA CALCULATION FUNCTIONS
+    // DATA CALCULATION FUNCTIONS⬆️⬆️⬆️⬆️⬆️⬆️
     // ========================================================
-    function calculateFinancialData(period = CONFIG.DEFAULT_PERIOD) {
+    async function calculateFinancialData(period = CONFIG.DEFAULT_PERIOD) {
         debug.log('Calculating financial data for period:', period);
         
         try {
+          // TRY FIRESTORE FIRST FOR FRESH DATA
+        if (typeof firebase !== 'undefined' && firebase.firestore) {
+            console.log('[SalesAnalytics] Fetching fresh orders from Firestore...');
+            await refreshDataFromFirestore();
+        }
             if (typeof OrdersManager === 'undefined') {
                 debug.error('OrdersManager not available');
                 return getEmptyFinancialData();
