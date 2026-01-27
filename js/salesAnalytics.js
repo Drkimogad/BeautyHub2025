@@ -2008,10 +2008,16 @@ async function refreshDataFromFirestore() {
     // ========================================================
     // PROFIT MARGIN CALCULATION FUNCTIONS
     // ========================================================
-    function calculateProfitMarginData(period = currentPeriod, customerType = 'all') {
+   async function calculateProfitMarginData(period = currentPeriod, customerType = 'all') {
         debug.log('Calculating profit margin data for period:', period, 'customer type:', customerType);
         
         try {
+                    // TRY FIRESTORE FIRST FOR FRESH DATA
+        if (typeof firebase !== 'undefined' && firebase.firestore) {
+            console.log('[SalesAnalytics] Fetching fresh data for profit analysis...');
+            await refreshDataFromFirestore(); // IT WORKS FOR BOTH MODALS ✅️✅️✅️
+        }
+            
             if (typeof OrdersManager === 'undefined' || typeof ProductsManager === 'undefined') {
                 debug.error('Required managers not available');
                 return getEmptyProfitData();
