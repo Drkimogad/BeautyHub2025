@@ -1189,32 +1189,43 @@ function handleStatusFilter(e) {
     }
 }
 
+// ========================================================
+// ANALYTICS BUTTONS HANDLER - FIXED VERSION
+// ========================================================
 function handleAnalyticsButtons(e) {
     // Track Inventory button
     if (e.target.id === 'track-inventory-btn' || e.target.closest('#track-inventory-btn')) {
         console.log('[Analytics] Track Inventory button clicked');
         showInventoryTrackingModal();
+        return;
     }
     
     // Inventory Report button
     if (e.target.id === 'inventory-report-btn' || e.target.closest('#inventory-report-btn')) {
         console.log('[Analytics] Inventory Report button clicked');
         showInventoryReportModal();
+        return;
     }
     
     // Sales Analytics dropdown button (toggle dropdown)
     if (e.target.id === 'sales-analytics-btn' || e.target.closest('#sales-analytics-btn')) {
-        console.log('[Analytics] sales Analytics button clicked');
+        console.log('[Analytics] Sales Analytics button clicked');
         toggleAnalyticsDropdown();
-        return; // Important: return to prevent other handlers
+        return;
     }
     
-    // Dropdown options
+    // Dropdown options - WITH ERROR HANDLING
     if (e.target.id === 'financial-summary-option' || e.target.closest('#financial-summary-option')) {
         console.log('[Analytics] Financial Summary selected');
         hideAnalyticsDropdown();
-        if (typeof salesAnalytics !== 'undefined' && salesAnalytics.showFinancialSummary) {
+        
+        // SAFE CHECK - Show a message if module not loaded
+        if (typeof salesAnalytics === 'undefined') {
+            alert('Sales Analytics module is loading. Please wait a moment and try again.');
+        } else if (typeof salesAnalytics.showFinancialSummary === 'function') {
             salesAnalytics.showFinancialSummary();
+        } else {
+            alert('Financial Summary feature is coming soon!');
         }
         return;
     }
@@ -1222,8 +1233,14 @@ function handleAnalyticsButtons(e) {
     if (e.target.id === 'profit-margin-option' || e.target.closest('#profit-margin-option')) {
         console.log('[Analytics] Profit Margin selected');
         hideAnalyticsDropdown();
-        if (typeof salesAnalytics !== 'undefined' && salesAnalytics.showProfitMarginAnalysis) {
+        
+        // SAFE CHECK
+        if (typeof salesAnalytics === 'undefined') {
+            alert('Sales Analytics module is loading. Please wait a moment and try again.');
+        } else if (typeof salesAnalytics.showProfitMarginAnalysis === 'function') {
             salesAnalytics.showProfitMarginAnalysis();
+        } else {
+            alert('Profit Margin Analysis feature is coming soon!');
         }
         return;
     }
@@ -1236,10 +1253,11 @@ function handleAnalyticsButtons(e) {
         hideAnalyticsDropdown();
     }
     
-    // Customer Insights button (keep as is)
+    // Customer Insights button
     if (e.target.id === 'customer-insights-btn' || e.target.closest('#customer-insights-btn')) {
         console.log('[Analytics] Customer Insights button clicked');
         alert('Customer Insights - Coming Soon');
+        return;
     }
 }
 //======HELPERS FOR SALES ANALYTICS DROPDOWN MENUE==========
