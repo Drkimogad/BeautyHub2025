@@ -64,8 +64,10 @@ const salesAnalytics = (function() {
             return {
                 showFinancialSummary,
                 showProfitMarginAnalysis,
-                getFinancialData,
-                getProfitData,
+               // ⛔️ REMOVE getFinancialData and getProfitData from here
+               // They're already in the main API return statement
+               //  getFinancialData,
+               // getProfitData,
                 calculateFinancialData,
                 calculateProfitMarginData
             };
@@ -3337,6 +3339,41 @@ async function refreshDataFromFirestore() {
         }
     }
 
+// ========================================================
+// MISSING DATA GETTER FUNCTIONS
+// ========================================================
+function getFinancialData() {
+    try {
+        debug.log('Getting financial data for current period:', currentPeriod);
+        return calculateFinancialData(currentPeriod);
+    } catch (error) {
+        debug.error('Failed to get financial data', error);
+        return {
+            success: false,
+            error: error.message,
+            message: 'Failed to load financial data'
+        };
+    }
+}
+
+function getProfitData() {
+    try {
+        debug.log('Getting profit data for current period:', currentPeriod);
+        
+        // Get current customer filter
+        const customerFilter = document.getElementById('customer-type-filter');
+        const customerType = customerFilter ? customerFilter.value : 'all';
+        
+        return calculateProfitMarginData(currentPeriod, customerType);
+    } catch (error) {
+        debug.error('Failed to get profit data', error);
+        return {
+            success: false,
+            error: error.message,
+            message: 'Failed to load profit data'
+        };
+    }
+}
     // ========================================================
     // PUBLIC API
     // ========================================================
