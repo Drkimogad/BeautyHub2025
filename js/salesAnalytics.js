@@ -2152,6 +2152,12 @@ async function refreshDataFromFirestore() {
         });
         
         debug.log('Margin metrics calculated', marginData);
+        // At the END of calculateMarginMetrics(), before return:
+debug.log('Final marginData structure:', {
+    hasWholesale: !!marginData.wholesale,
+    wholesaleType: typeof marginData.wholesale,
+    marginData: marginData
+});
         return marginData;
     }
 
