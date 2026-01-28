@@ -6591,11 +6591,13 @@ header {
 
 .dropdown-item:hover {
     background: #f5f5f5;
+    color: #666;
 }
 
 .dropdown-item:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    background: #f5f5f5;
 }
 
 .dropdown-item i {
