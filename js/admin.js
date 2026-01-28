@@ -336,18 +336,13 @@ const AdminManager = (function() {
             <i class="fas fa-chart-pie"></i>
             Profit Margin Intelligence
         </button>
-        <button class="dropdown-item" id="order-patterns-option" disabled>
-            <i class="fas fa-chart-bar"></i>
-            Order Patterns (Soon)
-        </button>
+        
+            <!-- <button class="dropdown-item" id="order-patterns-option" disabled><i class="fas fa-chart-bar"></i>Order Patterns (Soon)</button>  -->
+            
     </div>
 </div>
                                         
-                                        <button id="customer-insights-btn" class="analytics-action-btn">
-                                            <i class="fas fa-users"></i>
-                                            Customer Insights
-                                        </button>
-                                    </div>
+                    </div>
                                 </div>
                                 
                                 <!-- Analytics Content Area -->
