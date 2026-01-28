@@ -772,7 +772,7 @@ function getOrderCardHTML(order) {
                         <div class="customer-name">${firstName} ${surname}</div>
                         <div class="customer-phone">
                             <i class="fas fa-phone"></i>
-                            ${customerPhone}
+                            ${order.customerPhone}
                         </div>
                     </div>
                 </div>
@@ -782,13 +782,13 @@ function getOrderCardHTML(order) {
                         <i class="fas fa-eye"></i>
                         Details
                     </button>
-                <!-- ⭐⭐⭐ NEW WHATSAPP BUTTON - Shows for ALL orders ⭐⭐⭐ -->
-    <button class="dashboard-action-btn whatsapp-customer" 
-            data-order-id="${orderId}"
-            data-whatsapp="${customerWhatsApp || customerPhone}"
-            data-customer-name="${firstName} ${surname}"
-            data-order-total="${totalAmount.toFixed(2)}"
-            title="Message customer on WhatsApp">
+              <!-- ⭐⭐⭐ NEW WHATSAPP BUTTON - Shows for ALL orders ⭐⭐⭐ -->
+<button class="dashboard-action-btn whatsapp-customer" 
+        data-order-id="${orderId}"
+        data-whatsapp="${order.customerWhatsApp || order.customerPhone}"
+        data-customer-name="${order.firstName} ${order.surname}"
+        data-order-total="${order.totalAmount.toFixed(2)}"
+        title="Message customer on WhatsApp">
         <i class="fab fa-whatsapp"></i>
         WhatsApp
     </button>
