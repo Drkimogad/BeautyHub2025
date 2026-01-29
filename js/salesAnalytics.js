@@ -1,10 +1,5 @@
 // ========================================================
-// salesAnalytics.js - Financial & Profit Analytics Module
-// Core Functionalities:
-// 1. Financial summary modal with period filtering
-// 2. Profit margin intelligence system
-// 3. Category and customer type breakdowns
-// 4. Product profitability analysis
+// salesAnalytics.js - Financial Summary Mofal
 // ========================================================
 
 const salesAnalytics = (function() {
@@ -1012,15 +1007,6 @@ async function refreshDataFromFirestore() {
         container.appendChild(wrapper);
     }
 
-    
-
-
-
-
-
-
-    
-
     // ========================================================
     // UTILITY FUNCTIONS
     // ========================================================
@@ -1189,27 +1175,36 @@ if (printBtn) {
     // ========================================================
     // MODAL CONTROL FUNCTIONS
     // ========================================================
-    function showFinancialSummary() {
-        debug.log('Showing financial summary modal');
+function showFinancialSummary() {
+    debug.log('Showing financial summary modal');
+    
+    try {
+        // Ensure module is initialized
+        if (!financialModal) {
+            createFinancialModal();
+        }
         
-        try {
-            if (!financialModal) {
-                createFinancialModal();
+        // Refresh from Firestore BEFORE showing modal
+        const loadWithFreshData = async () => {
+            try {
+                console.log('[SalesAnalytics] Refreshing from Firestore before showing modal');
+                await refreshDataFromFirestore();
+            } catch (error) {
+                console.warn('[SalesAnalytics] Firestore refresh failed, using cached data', error);
             }
             
-            // Show financial modal
+            // Show modal and load data
             financialModal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
-            
-            // Load initial data
             loadFinancialData();
-            
-            debug.log('Financial modal shown successfully');
-            
-        } catch (error) {
-            debug.error('Failed to show financial modal', error);
-        }
+        };
+        
+        loadWithFreshData();
+        
+    } catch (error) {
+        debug.error('Failed to show financial modal', error);
     }
+}
 
     function closeFinancialModal() {
         debug.log('Closing financial modal');
@@ -1314,18 +1309,5 @@ function getFinancialData() {
         getConfig: function() { return { ...CONFIG }; }
     };
 })();
-
-// Auto-initialize when DOM is ready
-//(function() {
- //   if (document.readyState === 'loading') {
-//        document.addEventListener('DOMContentLoaded', () => {
-//            console.log('[salesAnalytics] DOM ready, initializing module');
- //           window.salesAnalytics = salesAnalytics.init();
- //       });
-  //  } else {
- //       console.log('[salesAnalytics] DOM already ready, initializing module');
- //       window.salesAnalytics = salesAnalytics.init();
-//    }
-//})();
 
 console.log('[salesAnalytics] Module definition complete - Ready for production');
