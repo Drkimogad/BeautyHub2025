@@ -696,36 +696,32 @@ console.log('[ProductsManager] Stock updated locally:', {
         saveProductsToLocalStorage();
         saveProductsToCache();
         
-        // Update Firestore (if enabled) - ONLY stock field
-            // Update Firestore (if enabled) - stock AND salesCount if applicable
+// Update Firestore (if enabled) - stock AND salesCount if applicable
 let firestoreSuccess = true;
 if (CONFIG.USE_FIRESTORE && CONFIG.FIREBASE_READY()) {
     try {
         const db = firebase.firestore();
         const productRef = db.collection(CONFIG.FIRESTORE_COLLECTION).doc(productId);
         
-        // Get current product to check if we need to update salesCount
-        const currentProduct = getProductById(productId);
+        // ⭐⭐ FIX HERE: Use newSalesCount parameter if provided ⭐⭐
         const firestoreUpdate = {
             stock: parseInt(newStock),
             updatedAt: new Date().toISOString()
         };
         
-        // If stock is decreasing (shipping), update salesCount too
-        if (currentProduct && newStock < currentProduct.stock) {
-            const quantitySold = currentProduct.stock - newStock;
-            firestoreUpdate.salesCount = (currentProduct.salesCount || 0) + quantitySold;
+        // If newSalesCount was passed, use it
+        if (newSalesCount !== null) {
+            firestoreUpdate.salesCount = parseInt(newSalesCount);
         }
         
         await productRef.update(firestoreUpdate);
-
-                
-                console.log(`[ProductsManager] Stock updated in Firestore: ${productId}`);
-            } catch (firestoreError) {
-                console.error('[ProductsManager] Firestore stock update error:', firestoreError);
-                firestoreSuccess = false;
-            }
-        }
+        
+        console.log(`[ProductsManager] Stock updated in Firestore: ${productId}`);
+    } catch (firestoreError) {
+        console.error('[ProductsManager] Firestore stock update error:', firestoreError);
+        firestoreSuccess = false;
+    }
+}
         
         // Dispatch update event for UI refresh
         window.dispatchEvent(new CustomEvent('productsUpdated'));
