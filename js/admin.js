@@ -241,7 +241,7 @@ const AdminManager = (function() {
                             
                             <button class="dashboard-tab" data-tab="analytics">
                                 <i class="fas fa-chart-bar"></i>
-                                Analytics <span class="tab-count">(Soon)</span>
+                                Analytics
                             </button>
                                 <!-- ADD THIS -->
                            <button id="dashboard-refresh" class="tab-refresh-btn">
@@ -1192,7 +1192,7 @@ if (e.target.id === 'sales-analytics-btn' || e.target.closest('#sales-analytics-
     } else if (typeof salesAnalytics.showFinancialSummary === 'function') {
         salesAnalytics.showFinancialSummary();
     } else {
-        alert('Financial Summary feature is coming soon!');
+        alert('Failed to load financial Summary Modal!');
     }
     return;
  }
@@ -1678,10 +1678,6 @@ function getInventoryTrackingModalHTML(report) {
                 </div>
                 
                 <div class="inventory-modal-footer">
-                    <button id="export-inventory-btn" class="modal-btn secondary">
-                        <i class="fas fa-download"></i>
-                        Export Data
-                    </button>
                     <button id="refresh-inventory-btn" class="modal-btn primary">
                         <i class="fas fa-sync-alt"></i>
                         Refresh
@@ -1845,10 +1841,6 @@ function getInventoryReportModalHTML(products) {
                     <button id="print-report-btn" class="modal-btn secondary">
                         <i class="fas fa-print"></i>
                         Print Report
-                    </button>
-                    <button id="export-report-btn" class="modal-btn primary">
-                        <i class="fas fa-file-export"></i>
-                        Export CSV
                     </button>
                 </div>
             </div>
