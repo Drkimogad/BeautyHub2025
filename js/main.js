@@ -130,10 +130,12 @@ if (typeof OrdersManager !== 'undefined' && OrdersManager.init) {
     console.log('[AppManager] OrdersManager initialized');
 }
     // === ADD SALES ANALYTICS HERE ===
-// SIMPLER: Just ensure it's in window scope
 if (typeof salesAnalytics !== 'undefined') {
-    window.salesAnalytics = salesAnalytics; // Just make it global
-    console.log('[AppManager] salesAnalytics available');
+    // salesAnalytics is already the module object, just assign it globally
+    window.salesAnalytics = salesAnalytics;
+    console.log('[AppManager] salesAnalytics available globally');
+} else {
+    console.warn('[AppManager] salesAnalytics module not loaded');
 }
 
 // Add this AFTER ProductsManager and OrdersManager initialization:
