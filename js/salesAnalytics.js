@@ -1186,9 +1186,6 @@ if (printBtn) {
                 createFinancialModal();
             }
             
-            // Ensure profit modal is closed
-            closeProfitModal();
-            
             // Show financial modal
             financialModal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
