@@ -122,11 +122,14 @@ function init() {
                         </div>
                         
                         <div class="form-group">
-                            <label for="customer-whatsapp">
-                                WhatsApp (optional)
-                            </label>
-                            <input type="tel" id="customer-whatsapp">
-                        </div>
+    <label for="customer-whatsapp">
+        WhatsApp Number <span style="color: red;">*</span>
+    </label>
+    <input type="tel" id="customer-whatsapp" required>
+    <small style="color: #666; font-size: 0.9rem;">
+        Required for payment instructions and order updates
+    </small>
+</div>
                         
                         <div class="form-group">
                             <label for="customer-email">
@@ -442,6 +445,15 @@ if (searchContainer) {
             if (!formData.customerPhone?.trim()) {
                 errors.push('Phone number is required');
             }
+            // Add this after phone validation
+if (!formData.customerWhatsApp?.trim()) {
+    errors.push('WhatsApp number is required for payment instructions');
+}
+
+// WhatsApp format validation
+if (formData.customerWhatsApp && !/^[\d\s\+\-\(\)]{10,}$/.test(formData.customerWhatsApp)) {
+    errors.push('Please enter a valid WhatsApp number');
+}
             
             if (!formData.shippingAddress?.trim()) {
                 errors.push('Shipping address is required');
