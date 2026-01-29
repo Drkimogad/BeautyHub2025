@@ -1195,6 +1195,7 @@ if (e.target.id === 'sales-analytics-btn' || e.target.closest('#sales-analytics-
         alert('Financial Summary feature is coming soon!');
     }
     return;
+ }
 }
     
 function handleOrderActions(e) {
