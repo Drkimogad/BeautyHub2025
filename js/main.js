@@ -130,14 +130,11 @@ if (typeof OrdersManager !== 'undefined' && OrdersManager.init) {
     console.log('[AppManager] OrdersManager initialized');
 }
     // === ADD SALES ANALYTICS HERE ===
-// salesAnalytics (for financial dashboards)
-if (typeof salesAnalytics !== 'undefined' && salesAnalytics.init) {
-    salesAnalytics.init();
-    console.log('[AppManager] salesAnalytics initialized');
-} else {
-    console.warn('[AppManager] salesAnalytics not available');
+// SIMPLER: Just ensure it's in window scope
+if (typeof salesAnalytics !== 'undefined') {
+    window.salesAnalytics = salesAnalytics; // Just make it global
+    console.log('[AppManager] salesAnalytics available');
 }
-// === END ADDITION ===
 
 // Add this AFTER ProductsManager and OrdersManager initialization:
 // InventoryManager (for stock tracking and transactions)
