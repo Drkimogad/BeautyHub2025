@@ -607,27 +607,32 @@ async function refreshDataFromFirestore() {
     // DATA CALCULATION FUNCTIONS⬆️⬆️⬆️⬆️⬆️⬆️
     // ========================================================
     async function calculateFinancialData(period = CONFIG.DEFAULT_PERIOD) {
-        debug.log('Calculating financial data for period:', period);
-        
-        try {
-          // TRY FIRESTORE FIRST FOR FRESH DATA
+    console.log('[CALC-DEBUG-1] calculateFinancialData called for period:', period);
+    
+    try {
+        // TRY FIRESTORE FIRST FOR FRESH DATA
         if (typeof firebase !== 'undefined' && firebase.firestore) {
-            console.log('[SalesAnalytics] Fetching fresh orders from Firestore...');
+            console.log('[CALC-DEBUG-2] Attempting Firestore refresh');
             await refreshDataFromFirestore();
         }
-            if (typeof OrdersManager === 'undefined') {
-                debug.error('OrdersManager not available');
-                return getEmptyFinancialData();
-            }
-            
-            if (typeof ProductsManager === 'undefined') {
-                debug.error('ProductsManager not available');
-                return getEmptyFinancialData();
-            }
-            
-            // Get all shipped orders
-            const allOrders = OrdersManager.getOrders(CONFIG.STATUS_FILTER);
-            debug.log(`Retrieved ${allOrders.length} shipped orders`);
+        
+        console.log('[CALC-DEBUG-3] Checking managers:', {
+            OrdersManager: typeof OrdersManager,
+            ProductsManager: typeof ProductsManager
+        });
+        
+        if (typeof OrdersManager === 'undefined') {
+            console.error('[CALC-DEBUG-4] OrdersManager not available');
+            return getEmptyFinancialData();
+        }
+        
+        // Get all shipped orders
+        const allOrders = OrdersManager.getOrders(CONFIG.STATUS_FILTER);
+        console.log('[CALC-DEBUG-5] Retrieved orders:', {
+            statusFilter: CONFIG.STATUS_FILTER,
+            totalOrders: allOrders?.length,
+            firstOrder: allOrders?.[0]?.id
+        });
             
             // Filter by period
             const filteredOrders = filterOrdersByPeriod(allOrders, period);
@@ -673,31 +678,60 @@ async function refreshDataFromFirestore() {
         }
     }
 
-    function calculateOrderMetrics(orders) {
-        let totalRevenue = 0;
-        let wholesaleCost = 0;
-        let totalTax = 0;
-        let shippingFees = 0;
-        
-        debug.log('Calculating order metrics for', orders.length, 'orders');
-        
-        // Calculate totals from orders
-        orders.forEach(order => {
-            totalRevenue += parseFloat(order.totalAmount) || 0;
-            totalTax += parseFloat(order.tax) || 0;
-            shippingFees += parseFloat(order.shippingCost) || 0;
-            
-            // Calculate wholesale cost per order
-            if (order.items && Array.isArray(order.items)) {
-                order.items.forEach(item => {
-                    const product = ProductsManager.getProductById(item.productId);
-                    if (product) {
-                        const wholesalePrice = parseFloat(product.wholesalePrice) || 0;
-                        wholesaleCost += wholesalePrice * (parseInt(item.quantity) || 1);
-                    }
-                });
-            }
+function calculateOrderMetrics(orders) {
+    console.log('[DEBUG-1] calculateOrderMetrics ENTERED with:', {
+        ordersExists: !!orders,
+        ordersLength: orders?.length,
+        ordersType: typeof orders,
+        ordersIsArray: Array.isArray(orders)
+    });
+    
+    if (!orders || orders.length === 0) {
+        console.log('[DEBUG-2] No orders or empty array');
+        console.log('[DEBUG-2] orders value:', orders);
+        return getEmptyMetrics();
+    }
+    
+    console.log('[DEBUG-3] Processing', orders.length, 'orders');
+    
+    let totalRevenue = 0;
+    let wholesaleCost = 0;
+    let totalTax = 0;
+    let shippingFees = 0;
+    
+    // Add debug for EACH order
+    orders.forEach((order, index) => {
+        console.log(`[DEBUG-4] Order ${index}:`, {
+            id: order.id,
+            totalAmount: order.totalAmount,
+            tax: order.tax,
+            shippingCost: order.shippingCost,
+            itemsCount: order.items?.length
         });
+        
+        totalRevenue += parseFloat(order.totalAmount) || 0;
+        totalTax += parseFloat(order.tax) || 0;
+        shippingFees += parseFloat(order.shippingCost) || 0;
+        
+        if (order.items && Array.isArray(order.items)) {
+            order.items.forEach((item, itemIndex) => {
+                console.log(`[DEBUG-5] Item ${itemIndex} in order ${index}:`, {
+                    productId: item.productId,
+                    quantity: item.quantity,
+                    price: item.price
+                });
+                
+                const product = ProductsManager.getProductById(item.productId);
+                console.log(`[DEBUG-6] Product found for ${item.productId}:`, !!product);
+                
+                if (product) {
+                    console.log(`[DEBUG-7] Product wholesalePrice:`, product.wholesalePrice);
+                    const wholesalePrice = parseFloat(product.wholesalePrice) || 0;
+                    wholesaleCost += wholesalePrice * (parseInt(item.quantity) || 1);
+                }
+            });
+        }
+    });
         
         // Calculate profits
         const grossProfit = totalRevenue - wholesaleCost;
@@ -901,7 +935,7 @@ async function refreshDataFromFirestore() {
                debug.warn('No metrics in financial data - showing empty state'); // ⭐ CHANGE ERROR TO WARN
                 data = data || getEmptyFinancialData(); // ✅ Use the existing function
              data.metrics = data.metrics || getEmptyMetrics(); // ✅ Now getEmptyMetrics exists
-              return;
+            //  return; it kills the function from excustion
              }
             
             // Update period display
@@ -1197,30 +1231,31 @@ function showFinancialSummary() {
     debug.log('Showing financial summary modal');
     
     try {
-        // Ensure module is initialized
         if (!financialModal) {
             createFinancialModal();
         }
         
-        // Refresh from Firestore BEFORE showing modal
-        const loadWithFreshData = async () => {
-            try {
-                console.log('[SalesAnalytics] Refreshing from Firestore before showing modal');
-                await refreshDataFromFirestore();
-            } catch (error) {
-                console.warn('[SalesAnalytics] Firestore refresh failed, using cached data', error);
-            }
-            
-            // Show modal and load data
-            financialModal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-            loadFinancialData();
-        };
+        // Show loading state immediately
+        financialModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        showLoadingState(); // Add a loading indicator
         
-        loadWithFreshData();
+        // Then refresh and load data
+        refreshAndLoadData();
         
     } catch (error) {
         debug.error('Failed to show financial modal', error);
+    }
+}
+    async function refreshAndLoadData() {
+    try {
+        debug.log('Refreshing from Firestore...');
+        await refreshDataFromFirestore();
+        debug.log('Firestore refresh complete, loading data...');
+        loadFinancialData();
+    } catch (error) {
+        debug.error('Refresh failed, loading cached data', error);
+        loadFinancialData(); // Still try to load cached data
     }
 }
 
