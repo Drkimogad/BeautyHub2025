@@ -885,7 +885,7 @@ async function refreshDataFromFirestore() {
                 return;
             }
             if (!data || !data.metrics) {
-            debug.error('No metrics in financial data');
+               debug.warn('No metrics in financial data - showing empty state'); // ⭐ CHANGE ERROR TO WARN
                 data = data || getEmptyFinancialData(); // ✅ Use the existing function
              data.metrics = data.metrics || getEmptyMetrics(); // ✅ Now getEmptyMetrics exists
               return;
