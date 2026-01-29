@@ -860,7 +860,18 @@ async function refreshDataFromFirestore() {
         };
     }
 
-    
+    function getEmptyMetrics() {
+    return {
+        totalRevenue: 0,
+        wholesaleCost: 0,
+        totalTax: 0,
+        shippingFees: 0,
+        grossProfit: 0,
+        grossMargin: 0,
+        netProfit: 0,
+        netMargin: 0
+    };
+}
 
     // ========================================================
     // UI UPDATE FUNCTIONS
@@ -873,6 +884,12 @@ async function refreshDataFromFirestore() {
                 debug.warn('No data provided for financial modal update');
                 return;
             }
+            if (!data || !data.metrics) {
+            debug.error('No metrics in financial data');
+                data = data || getEmptyFinancialData(); // ✅ Use the existing function
+             data.metrics = data.metrics || getEmptyMetrics(); // ✅ Now getEmptyMetrics exists
+              return;
+             }
             
             // Update period display
             const periodText = document.getElementById('period-text');
@@ -885,13 +902,7 @@ async function refreshDataFromFirestore() {
             
             // Update main metrics
             const metrics = data.metrics;
-            // Line 2436 - Add before accessing data.metrics:
-if (!data || !data.metrics) {
-    debug.error('No metrics in financial data');
-    data = data || {};
-    data.metrics = data.metrics || getEmptyMetrics();
-    return;
-}    
+            
             document.getElementById('total-revenue').textContent = 
                 formatCurrency(metrics.totalRevenue);
             document.getElementById('wholesale-cost').textContent = 
