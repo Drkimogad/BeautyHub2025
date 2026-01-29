@@ -2431,7 +2431,13 @@ debug.log('Final marginData structure:', {
             
             // Update main metrics
             const metrics = data.metrics;
-            
+            // Line 2436 - Add before accessing data.metrics:
+if (!data || !data.metrics) {
+    debug.error('No metrics in financial data');
+    data = data || {};
+    data.metrics = data.metrics || getEmptyMetrics();
+    return;
+}    
             document.getElementById('total-revenue').textContent = 
                 formatCurrency(metrics.totalRevenue);
             document.getElementById('wholesale-cost').textContent = 
@@ -2577,6 +2583,14 @@ debug.log('Final marginData structure:', {
     }
 
     function updateMarginOverview(marginData) {
+        // Line 2581 - Add at function start:
+if (!marginData || !marginData.wholesale) {
+    debug.error('Invalid marginData structure');
+    marginData = marginData || {};
+    marginData.wholesale = marginData.wholesale || { avg: 0, high: 0, low: 0 };
+    marginData.retail = marginData.retail || { avg: 0, high: 0, low: 0 };
+    marginData.actual = marginData.actual || { avg: 0, high: 0, low: 0 };
+}
         // Wholesale margins
         document.getElementById('wholesale-avg-margin').textContent = `${marginData.wholesale.avg}%`;
         document.getElementById('wholesale-high-margin').textContent = `${marginData.wholesale.high}%`;
@@ -3233,7 +3247,7 @@ debug.log('Final marginData structure:', {
                         refreshBtn.innerHTML = originalHtml;
                         refreshBtn.disabled = false;
                     }
-                }, 50);
+                }, 500); // increased from 50 to 500
             } else {
                 // If no button, just calculate and update
                 const data = calculateFinancialData(currentPeriod);
@@ -3325,7 +3339,7 @@ debug.log('Final marginData structure:', {
                         refreshBtn.innerHTML = originalHtml;
                         refreshBtn.disabled = false;
                     }
-                }, 50);
+                }, 500); // increased from 50 to 500
             } else {
                 // If no button, just calculate and update
                 const customerFilter = document.getElementById('customer-type-filter');
