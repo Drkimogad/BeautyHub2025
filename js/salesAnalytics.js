@@ -44,25 +44,43 @@ const salesAnalytics = (function() {
     // ========================================================
     // INITIALIZATION
     // ========================================================
-    function init() {
-        debug.log('Initializing financial analytics module');
+function init() {
+    debug.log('Initializing financial analytics module');
+    
+    try {
+        createFinancialModal();
+        setupPeriodSelector();
         
-        try {
-            createFinancialModal();
-            setupPeriodSelector();
-            
-            debug.log('Module initialized successfully');
-            
-            return {
-                showFinancialSummary,
-                calculateFinancialData
-            };
-            
-        } catch (error) {
-            debug.error('Failed to initialize module', error);
-            return null;
-        }
+        debug.log('Module initialized successfully');
+        
+        // Return the module's public API
+        return {
+            showFinancialSummary,
+            calculateFinancialData,
+            getFinancialData: function() { return financialData; },
+            formatCurrency,
+            setDebugMode: function(enabled) { CONFIG.DEBUG = enabled; },
+            getConfig: function() { return { ...CONFIG }; }
+        };
+        
+    } catch (error) {
+        debug.error('Failed to initialize module', error);
+        return null;
     }
+}
+
+// Auto-assign to global scope after module is defined
+// This makes salesAnalytics available immediately
+if (typeof window !== 'undefined') {
+    window.salesAnalytics = {
+        init,
+        showFinancialSummary,
+        calculateFinancialData,
+        formatCurrency,
+        setDebugMode: function(enabled) { CONFIG.DEBUG = enabled; },
+        getConfig: function() { return { ...CONFIG }; }
+    };
+}
 
     // ========================================================
     // MODAL 1: FINANCIAL SUMMARY
