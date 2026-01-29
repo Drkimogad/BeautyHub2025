@@ -318,31 +318,11 @@ const AdminManager = (function() {
                                             <i class="fas fa-chart-line"></i>
                                             Inventory Report
                                         </button>
-                                        
-                                        <div class="analytics-btn-group">
-    <button class="analytics-action-btn" id="sales-analytics-btn">
-        <i class="fas fa-chart-line"></i>
-        <span>Sales Analytics</span>
-        <i class="fas fa-chevron-down dropdown-arrow"></i>
-    </button>
-    
-    <!-- Hidden dropdown menu -->
-    <div class="analytics-dropdown" id="analytics-dropdown">
-        <button class="dropdown-item" id="financial-summary-option">
-            <i class="fas fa-chart-line"></i>
-            Financial Summary Dashboard
-        </button>
-        <button class="dropdown-item" id="profit-margin-option">
-            <i class="fas fa-chart-pie"></i>
-            Profit Margin Intelligence
-        </button>
-        
-            <!-- <button class="dropdown-item" id="order-patterns-option" disabled><i class="fas fa-chart-bar"></i>Order Patterns (Soon)</button>  -->
-            
-    </div>
-</div>
-                                        
-                    </div>
+                                        <button class="analytics-action-btn" id="sales-analytics-btn">
+                                             <i class="fas fa-chart-line"></i>
+                                          <span>Sales Analytics</span>
+                                         </button>              
+                           </div>
                                 </div>
                                 
                                 <!-- Analytics Content Area -->
@@ -1201,83 +1181,21 @@ function handleAnalyticsButtons(e) {
         showInventoryReportModal();
         return;
     }
+       
+    // Sales Analytics button (now opens directly without dropdown)
+if (e.target.id === 'sales-analytics-btn' || e.target.closest('#sales-analytics-btn')) {
+    console.log('[Analytics] Sales Analytics button clicked');
     
-    // Sales Analytics dropdown button (toggle dropdown)
-    if (e.target.id === 'sales-analytics-btn' || e.target.closest('#sales-analytics-btn')) {
-        console.log('[Analytics] Sales Analytics button clicked');
-        toggleAnalyticsDropdown();
-        return;
+    // SAFE CHECK - Show a message if module not loaded
+    if (typeof salesAnalytics === 'undefined') {
+        alert('Sales Analytics module is loading. Please wait a moment and try again.');
+    } else if (typeof salesAnalytics.showFinancialSummary === 'function') {
+        salesAnalytics.showFinancialSummary();
+    } else {
+        alert('Financial Summary feature is coming soon!');
     }
-    
-    // Dropdown options - WITH ERROR HANDLING
-    if (e.target.id === 'financial-summary-option' || e.target.closest('#financial-summary-option')) {
-        console.log('[Analytics] Financial Summary selected');
-        hideAnalyticsDropdown();
-        
-        // SAFE CHECK - Show a message if module not loaded
-        if (typeof salesAnalytics === 'undefined') {
-            alert('Sales Analytics module is loading. Please wait a moment and try again.');
-        } else if (typeof salesAnalytics.showFinancialSummary === 'function') {
-            salesAnalytics.showFinancialSummary();
-        } else {
-            alert('Financial Summary feature is coming soon!');
-        }
-        return;
-    }
-    
-    if (e.target.id === 'profit-margin-option' || e.target.closest('#profit-margin-option')) {
-        console.log('[Analytics] Profit Margin selected');
-        hideAnalyticsDropdown();
-        
-        // SAFE CHECK
-        if (typeof salesAnalytics === 'undefined') {
-            alert('Sales Analytics module is loading. Please wait a moment and try again.');
-        } else if (typeof salesAnalytics.showProfitMarginAnalysis === 'function') {
-            salesAnalytics.showProfitMarginAnalysis();
-        } else {
-            alert('Profit Margin Analysis feature is coming soon!');
-        }
-        return;
-    }
-    
-    // Close dropdown when clicking outside
-    const dropdown = document.getElementById('analytics-dropdown');
-    const btnGroup = document.querySelector('.analytics-btn-group');
-    if (dropdown && dropdown.classList.contains('show') && 
-        !btnGroup.contains(e.target)) {
-        hideAnalyticsDropdown();
-    }
-    
-    // Customer Insights button
-    if (e.target.id === 'customer-insights-btn' || e.target.closest('#customer-insights-btn')) {
-        console.log('[Analytics] Customer Insights button clicked');
-        alert('Customer Insights - Coming Soon');
-        return;
-    }
+    return;
 }
-//======HELPERS FOR SALES ANALYTICS DROPDOWN MENUE==========
-// Add these helper functions
-function toggleAnalyticsDropdown() {
-    const dropdown = document.getElementById('analytics-dropdown');
-    const btnGroup = document.querySelector('.analytics-btn-group');
-    
-    if (dropdown && btnGroup) {
-        dropdown.classList.toggle('show');
-        btnGroup.classList.toggle('active');
-    }
-}
-
-function hideAnalyticsDropdown() {
-    const dropdown = document.getElementById('analytics-dropdown');
-    const btnGroup = document.querySelector('.analytics-btn-group');
-    
-    if (dropdown && btnGroup) {
-        dropdown.classList.remove('show');
-        btnGroup.classList.remove('active');
-    }
-}
-//====END OF HELPERS===
-
     
 function handleOrderActions(e) {
     const orderId = e.target.dataset.orderId;
