@@ -599,7 +599,12 @@ if (CONFIG.USE_FIRESTORE) {
         salesCount: updatedProduct.salesCount,
         updatedAt: updatedProduct.updatedAt
     };
-    
+    // ADD THIS: Include tags if they were updated
+     if (normalizedUpdate.tags !== undefined) {
+       firestorePayload.tags = updatedProduct.tags;
+      console.log('[ProductsManager] Including tags in Firestore update:', updatedProduct.tags);
+     }
+ 
     // If other fields were updated, include them too
     if (normalizedUpdate.retailPrice !== undefined) {
         firestorePayload.retailPrice = updatedProduct.retailPrice;
