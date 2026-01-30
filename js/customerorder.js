@@ -538,8 +538,18 @@ if (formData.customerWhatsApp && !/^[\d\s\+\-\(\)]{10,}$/.test(formData.customer
             
         } catch (error) {
             console.error('[CustomerOrder] Order submission failed:', error);
-            showError('Failed to place order. Please try again.');
+        // ========== CUSTOMER SEES THIS ==========
+        showError('Failed to place order. Please try again.');
+        
+        // ========== ADMIN SEES THIS (if you add it) ==========
+        // Optional: Alert admin in dashboard
+        if (typeof window.isAdminDashboardOpen === 'function' && 
+            window.isAdminDashboardOpen() && 
+            typeof window.showDashboardNotification === 'function') {
+            
+            window.showDashboardNotification('⚠️ Customer checkout failed', 'error');
         }
+     }
     }
 
     function getFormData() {
