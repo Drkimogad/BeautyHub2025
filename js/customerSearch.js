@@ -24,12 +24,22 @@ const CustomerSearchManager = (function() {
     // ========================================================
     let searchContainer = null;
     let searchForm = null;
-
+    let isInitialized = false;
 // ========================================================
     // INITIALIZATION    UPDATED
 // ========================================================
 function init(containerSelector = '#checkout-form') {
     console.log('[CustomerSearch] Initializing customer search system...');
+        // ========== ADD THIS CHECK ==========
+    if (isInitialized) {
+        console.log('[CustomerSearch] Already initialized, skipping');
+        return {
+            searchCustomer,
+            autoFillForm,
+            normalizePhone
+        };
+    }
+    // ========== END ADDITION ==========
     
     try {
         // Check if UI already exists
@@ -59,11 +69,13 @@ function init(containerSelector = '#checkout-form') {
         // Rest of your existing init code for creating new UI...
         createSearchUI();
         setupEventListeners();
-        
+
+        isInitialized = true; // Set flag
         console.log('[CustomerSearch] Initialization complete');
         
     } catch (error) {
         console.error('[CustomerSearch] Initialization failed:', error);
+        isInitialized = false; // Reset on error
     }
     
     return {
