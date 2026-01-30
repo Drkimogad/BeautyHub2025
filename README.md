@@ -1014,3 +1014,6 @@ You login to Admin Dashboard
         ↓
 [6] Mark as paid/shipped in admin
 
+// refresh functions in admin.js have been merged in a ui refresh manager and the calls have been updated in the other files too. 
+// salesAanalytics.js has its own refresh function that refreshes data from firestore when refresh data button is clicked in the modal. 
+// salesAnalytics.js  is now initialized in main.js and made public in its file and available globally.
