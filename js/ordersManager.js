@@ -321,9 +321,14 @@ function deleteOrder(orderId) {
                 
                 if (success) {
                     // ========== REFRESH DASHBOARD ==========
-                    if (typeof window.refreshDashboardOrders === 'function') {
-                        window.refreshDashboardOrders();
-                    }
+                    if (typeof window.refreshDashboard === 'function') {
+    window.refreshDashboard({
+        refreshOrders: true,
+        updateBadge: true,
+        externalCall: true
+    });
+}
+
                     
                     // ========== ADD SUCCESS NOTIFICATION ==========
                     if (typeof window.showDashboardNotification === 'function') {
@@ -339,9 +344,14 @@ function deleteOrder(orderId) {
         } else {
             // For local storage only (no Firestore)
             // ========== REFRESH DASHBOARD ==========
-            if (typeof window.refreshDashboardOrders === 'function') {
-                window.refreshDashboardOrders();
-            }
+            if (typeof window.refreshDashboard === 'function') {
+    window.refreshDashboard({
+        refreshOrders: true,
+        updateBadge: true,
+        externalCall: true
+    });
+}
+
             
             // ========== ADD SUCCESS NOTIFICATION ==========
             if (typeof window.showDashboardNotification === 'function') {
@@ -703,10 +713,15 @@ function updateOrderStatus(orderId, newStatus, shippingDate = '') {
         console.log(`[OrdersManager] Order ${orderId} status updated successfully`);
             // ========== ADD THESE LINES ==========
     // Refresh dashboard if open
-    if (typeof window.refreshDashboardOrders === 'function') {
-        console.log('[OrdersManager] Calling dashboard refresh...');
-        window.refreshDashboardOrders();
-    }
+    if (typeof window.refreshDashboard === 'function') {
+    console.log('[OrdersManager] Calling unified dashboard refresh...');
+    window.refreshDashboard({
+        refreshOrders: true,
+        updateBadge: true,
+        externalCall: true
+    });
+}
+
     // ========== END ADDITION ==========
         return true;
     
@@ -2036,9 +2051,14 @@ form.addEventListener('submit', function(e) {
         if (typeof window.isAdminDashboardOpen === 'function' && window.isAdminDashboardOpen()) {
             console.log('📊 Admin dashboard is open, refreshing...');
             
-            // Call the refresh function we just added to admin.js
-            if (typeof window.refreshDashboardOrders === 'function') {
-                window.refreshDashboardOrders();
+            // Call the unified refresh function
+if (typeof window.refreshDashboard === 'function') {
+    window.refreshDashboard({
+        refreshOrders: true,
+        updateBadge: true,
+        externalCall: true
+    });
+
             } else {
                 // Fallback: Try to refresh via existing admin functions
                 if (typeof window.loadDashboardData === 'function') {
