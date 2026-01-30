@@ -1017,3 +1017,24 @@ You login to Admin Dashboard
 // refresh functions in admin.js have been merged in a ui refresh manager and the calls have been updated in the other files too. 
 // salesAanalytics.js has its own refresh function that refreshes data from firestore when refresh data button is clicked in the modal. 
 // salesAnalytics.js  is now initialized in main.js and made public in its file and available globally.
+
+WHEN TO DECIDE TO ADD NEW ONLY ON SOME NEW PRODUCTS*/
+/* CSS: Define the badge style */
+.new-product-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: var(--gold);
+    color: var(--dark-text);
+    padding: 0.3rem 1rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    z-index: 2;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* HTML/JS: Add conditionally */
+if (product.isNew) {
+    html += `<div class="new-product-badge">NEW</div>`;
+}
