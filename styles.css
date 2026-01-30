@@ -6792,10 +6792,9 @@ header {
 }
 
 /* ========================================================
-   CLEANED PRODUCT CARD & PRICING STYLES
+   CLEAN PRODUCT CARD STYLES - CONSOLIDATED & FIXED
    ======================================================== */
-
-/* Product Grid Container */
+/* Product Grid */
 .product-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -6809,7 +6808,7 @@ header {
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
     border: 1px solid rgba(233, 30, 99, 0.1);
     display: flex;
@@ -6818,9 +6817,8 @@ header {
 }
 
 .product-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.12);
-    border-color: var(--light-pink);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
 }
 
 /* Product Image */
@@ -6828,12 +6826,12 @@ header {
     width: 100%;
     height: 220px;
     object-fit: cover;
-    transition: transform 0.5s ease;
+    transition: transform 0.3s ease;
     border-bottom: 1px solid #f0f0f0;
 }
 
 .product-card:hover .product-img {
-    transform: scale(1.05);
+    transform: scale(1.03);
 }
 
 /* Product Badges - Top-left */
@@ -6845,7 +6843,6 @@ header {
     flex-direction: column;
     gap: 5px;
     z-index: 20;
-    pointer-events: none;
 }
 
 .product-badge {
@@ -6861,41 +6858,51 @@ header {
     text-overflow: ellipsis;
 }
 
-.badge-discount {
-    background: #e91e63;
+.badge-discount { background: #e91e63; }
+.badge-bestseller { background: #ff9800; }
+.badge-new { background: #4CAF50; }
+.badge-featured { background: #667eea; }
+
+/* REMOVE the automatic "NEW" badge */
+/* .product-card::before { display: none !important; } */
+
+/* PULSATING SALE BANNER */
+.sale-pulse-banner {
+    width: 100%;
+    background: linear-gradient(135deg, #ffd700, #ff9800) !important;
+    color: #333 !important;
+    padding: 10px 15px !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 10;
+    margin: 0 !important;
+    display: block !important;
+    animation: pulse-banner 2s infinite ease-in-out !important;
 }
 
-.badge-bestseller {
-    background: #ff9800;
+@keyframes pulse-banner {
+    0%, 100% { 
+        opacity: 1;
+        box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+    }
+    50% { 
+        opacity: 0.9;
+        box-shadow: 0 4px 15px rgba(255, 152, 0, 0.5);
+    }
 }
 
-.badge-new {
-    background: #4CAF50;
+.sale-pulse-banner .sale-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
-.badge-featured {
-    background: #667eea;
-}
-
-/* "NEW" Badge - Top-right (keep your existing) */
-.product-card::before {
-    content: "NEW";
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: var(--gold);
-    color: var(--dark-text);
-    padding: 0.3rem 1rem;
-    border-radius: 50px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    z-index: 2;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-/* Product Info Section - Optimized Spacing */
+/* Product Info Section */
 .product-info {
-    padding: 1.2rem 1.8rem 0.8rem;
+    padding: 1.2rem 1.5rem 0.5rem;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -6903,97 +6910,70 @@ header {
 
 .product-info h3 {
     color: var(--purple);
-    margin-bottom: 0.3rem !important; /* Reduced from 0.6rem */
-    padding-bottom: 0.3rem !important; /* Add if not present */
-    font-size: 1.2rem;
-    line-height: 1.25 !important; /* Reduced from 1.3 */
-    min-height: 2.4em !important; /* Reduced from 2.8em */
+    margin-bottom: 0.4rem;
+    font-size: 1.15rem;
+    line-height: 1.3;
+    min-height: 2.5em;
 }
 
-
-/* Reduce product description spacing */
 .product-description {
     color: #666;
-    font-size: 0.85rem !important; /* Slightly smaller */
-    margin-bottom: 0.4rem !important; /* Reduced from 0.6rem */
-    line-height: 1.3 !important; /* Reduced from 1.4 */
-    height: 35px !important; /* Reduced from 40px */
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+    height: 40px;
     overflow: hidden;
 }
 
-/* Reduce rating spacing */
 .rating {
     color: var(--gold);
-    font-size: 0.85rem !important; /* Slightly smaller */
-    margin: 0.2rem 0 0.3rem !important; /* Reduced from 0.4rem 0 */
-    min-height: 1em !important; /* Reduced from 1.2em */
+    font-size: 0.85rem;
+    margin: 0.2rem 0 0.3rem;
 }
 
-/* CLEANED PRICING DISPLAY - NO DUPLICATION */
+/* CLEAN PRICING DISPLAY */
 .product-pricing {
-    margin: 0.3rem 0 0.6rem !important; /* Reduced from 0.6rem 0 1rem */
-    min-height: 2.5em !important; /* Reduced from 3em */
+    margin: 0.5rem 0 0.8rem;
+    text-align: center;
 }
 
-/* Discount percentage badge */
-.discount-percentage {
-    display: inline-block;
-    background: linear-gradient(45deg, #e91e63, #ff4081);
-    color: white;
-    padding: 1px 6px !important; /* Reduced from 2px 8px */
-    border-radius: 10px !important; /* Reduced from 12px */
-    font-size: 0.75rem !important; /* Reduced from 0.8rem */
-    font-weight: 700;
-    margin-bottom: 4px !important; /* Reduced from 6px */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important; /* Lighter shadow */
-}
-
-/*  Reduce spacing in price line */
-.price-line {
+.price-comparison {
     display: flex;
     align-items: center;
-    gap: 6px !important; /* Reduced from 10px */
-    flex-wrap: wrap;
     justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .original-price {
     text-decoration: line-through;
     color: #999;
-    font-size: 0.9rem !important; /* Reduced from 0.95rem */
+    font-size: 0.95rem;
     font-weight: 500;
 }
 
+.price-arrow {
+    color: #e91e63;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
 .current-price {
-    font-size: 1.2rem !important; /* Reduced from 1.3rem */
+    font-size: 1.3rem;
     font-weight: 700;
     color: #e91e63;
 }
 
-/* SALE badge - optional, use instead of discount-percentage */
-.sale-badge {
-    background: linear-gradient(45deg, #e91e63, #ff4081);
-    color: white;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-/* Regular price (no discount) */
 .price {
     font-size: 1.3rem;
     font-weight: 700;
     color: #e91e63;
-    display: block;
-    text-align: center;
 }
 
-/* Stock Indicator */
+/* Stock & Sales */
 .stock-indicator {
     font-size: 0.85rem;
-    margin: 0.4rem 0;
+    margin: 0.3rem 0;
     color: #666;
 }
 
@@ -7001,39 +6981,37 @@ header {
 .stock-low { color: #ff9800; }
 .stock-out { color: #ff5252; }
 
-/* Product Actions - FIXED BUTTON STACKING */
+/* PRODUCT ACTIONS - FIXED VISIBILITY */
 .product-actions {
     display: flex;
     flex-direction: column;
-    gap: 6px !important; /* Reduced from 8px */
-    margin-top: 0.3rem !important; /* Reduced from auto - let content dictate spacing */
-    padding: 0 1.8rem 1rem !important; /* Reduced bottom padding from 1.2rem */
-    width: 100%;
+    gap: 8px;
+    padding: 0 1.5rem 1.2rem;
+    margin-top: auto;
 }
 
-/* Quick View Button - POSITIONED ABOVE ADD TO CART */
+/* Quick View Button - VISIBLE & ANIMATED */
 .quick-view {
     background: #667eea;
     color: white;
     border: none;
-    padding: 8px 14px !important; /* Reduced from 10px 16px */
+    padding: 10px 15px;
     border-radius: 6px;
-    font-size: 0.85rem !important; /* Reduced from 0.9rem */
+    font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px; /* Reduced from 8px */
+    gap: 8px;
     width: 100%;
     transition: all 0.3s ease;
-    height: 36px !important; /* Fixed height for consistency */
 }
 
 .quick-view:hover {
     background: #5a6fd8;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 /* Add to Cart Button */
@@ -7041,194 +7019,109 @@ header {
     background: #e91e63;
     color: white;
     border: none;
-    padding: 9px 14px !important; /* Reduced from 12px 16px */
+    padding: 10px 15px;
     border-radius: 6px;
-    font-size: 0.9rem !important; /* Reduced from 0.95rem */
+    font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px; /* Reduced from 8px */
+    gap: 8px;
     width: 100%;
     transition: all 0.3s ease;
-    height: 38px !important; /* Fixed height for consistency */
 }
 
-
 .add-to-cart:hover:not(:disabled) {
-    background: #c2185b;
+    background: #d81b60;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(233, 30, 99, 0.3);
+    box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
 }
 
 .add-to-cart:disabled {
-    opacity: 0.5;
+    background: #cccccc;
     cursor: not-allowed;
     transform: none !important;
 }
 
-/* Responsive Adjustments for mobiles */
+/* MOBILE RESPONSIVENESS */
 @media (max-width: 768px) {
-    .sale-pulse-banner {
-        padding: 8px 12px !important;
-        margin: 6px -1px 10px -1px !important;
+    .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
     }
     
-    .product-card[data-has-discount="true"] .product-pricing {
-        margin: 8px 0 6px 0 !important;
+    .product-img {
+        height: 200px;
+    }
+    
+    .product-info {
+        padding: 1rem 1.2rem 0.5rem;
+    }
+    
+    .product-info h3 {
+        font-size: 1.1rem;
+    }
+    
+    .sale-pulse-banner {
+        padding: 8px 12px !important;
+        font-size: 0.9rem !important;
     }
     
     .product-actions {
-        padding: 0 1.2rem 0.8rem !important;
+        padding: 0 1.2rem 1rem;
+        gap: 6px;
+    }
+    
+    .quick-view,
+    .add-to-cart {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .current-price,
+    .price {
+        font-size: 1.2rem;
     }
 }
 
-/* ========================================================
-   CENTERED PULSATING SALE BADGE - EYE-CATCHING DESIGN
-   ======================================================== */
+/* ULTRA-COMPACT MOBILE */
+@media (max-width: 480px) {
+    .product-grid {
+        grid-template-columns: 1fr;
+        gap: 1.2rem;
+    }
+    
+    .product-img {
+        height: 180px;
+    }
+    
+    .product-info {
+        padding: 0.8rem 1rem 0.4rem;
+    }
+    
+    .product-actions {
+        padding: 0 1rem 0.8rem;
+    }
+}
 
-/* Remove any existing sale badge positioning */
-.product-pricing .discount-badge,
-.product-pricing .discount-percentage,
+/* CLEANUP - Hide conflicting elements */
+.product-pricing .pricing-with-discount,
+.product-pricing .currentprice-line,
+.product-pricing .retail-price,
 .product-card::before {
     display: none !important;
 }
 
-/* ========================================================
-   PULSATING SALE BANNER & CLEAN PRICING - SURGICAL OVERRIDES
-   ======================================================== */
-
-/* 1. HIDE all existing inline sale displays */
-.product-pricing .pricing-with-discount,
-.product-pricing .currentprice-line,
-.product-pricing .retail-price,
-.product-pricing .discount-badge,
-.product-pricing .sale-badge {
-    display: none !important;
+/* Ensure price elements reset */
+.product-pricing * {
+    all: unset;
+    box-sizing: border-box;
 }
 
-/* 2. PULSATING SALE BANNER */
-.sale-pulse-banner {
-    position: relative;
-    width: calc(100% + 2px) !important; /* Extend slightly beyond borders */
-    background: linear-gradient(135deg, #ffd700, #ff9800, #ff5722) !important;
-    color: #333 !important;
-    padding: 10px 15px !important; /* Reduced from 12px 15px */
-    margin: 8px -1px 12px -1px !important; /* Reduced from 10px -1px 15px -1px */
-    font-size: 0.95rem !important; /* Reduced from 1rem */
-    font-weight: 800 !important;
-    text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    z-index: 10;
-    border-radius: 0 !important;
-    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4) !important;
-    display: block !important;
-    overflow: hidden;
-    cursor: default;
-    transition: all 0.3s ease;
-    animation: pulse-gold-full 2s infinite ease-in-out !important;
-}
-
-.sale-pulse-banner .sale-text {
-    font-size: 1rem !important; /* Reduced from 1.1rem */
-    gap: 6px !important; /* Reduced from 8px */
-}
-
-/* 2. Adjust product info spacing when banner is present */
-.product-card[data-has-discount="true"] .product-info {
-    padding-top: 2px !important; /* Reduced from 5px */
-}
-
-.product-card[data-has-discount="true"] .product-pricing {
-    margin: 10px 0 8px 0 !important; /* Reduced spacing */
-}
-
-/* 3. Move buttons up slightly */
-.product-actions {
-    padding: 0 1.8rem 1rem !important; /* Already good */
-    margin-top: 0 !important; /* Remove any extra margin */
-}
-
-/* 4. Make quick view button hover animation */
-.quick-view {
-    transition: all 0.3s ease !important;
-    position: relative !important;
-    overflow: hidden !important;
-}
-
-.quick-view::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
-}
-
-.quick-view:hover::after {
-    width: 300px;
-    height: 300px;
-}
-
-/* 5. Add to cart button animation */
-.add-to-cart {
-    transition: all 0.3s ease !important;
-    position: relative !important;
-    overflow: hidden !important;
-}
-
-.add-to-cart::before {
-    content: '🛒';
-    position: absolute;
-    left: -30px;
-    transition: left 0.3s ease;
-    opacity: 0;
-}
-
-.add-to-cart:hover::before {
-    left: 10px;
-    opacity: 1;
-}
-
-.add-to-cart:hover span {
-    transform: translateX(10px);
-    transition: transform 0.3s ease;
-}
-
-
-/* Dashboard Product Cards - Keep Untouched */
-#dashboard-orders-container .product-card,
-#products-manager .product-card,
-.products-management-header .product-card {
-    /* These styles remain separate for admin/dashboard */
-    transform: none !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
-}
-
-/* Remove all conflicting/duplicate rules by adding this */
-.product-card *[class*="price"],
-.product-card *[class*="Price"],
-.product-card *[class*="pricing"],
-.product-card *[class*="Pricing"] {
-    all: unset !important;
-    box-sizing: border-box !important;
-}
-
-/* Force consistent price display */
 .pricing-with-discount,
 .currentprice-line,
 .currentprice-line * {
-    all: unset !important;
+    all: unset;
 }
 
-/* Hide any duplicate sale badges */
-.product-card > .sale-badge,
-.product-card > .discount-percentage {
-    display: none !important;
-}
