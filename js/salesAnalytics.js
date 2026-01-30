@@ -1,13 +1,12 @@
-// ========================================================
-// salesAnalytics.js - Financial Summary Mofal
-// ========================================================
-
+// salesAnalytics.js - Financial Summary Modal
+/* You're using refreshDataFromFirestore() function in salesAnalytics.js.
+   This function is called in showFinancialSummary() before loading data to ensure fresh Firestore data.
+*/
 const salesAnalytics = (function() {
     'use strict';
-
-    // ========================================================
+// ========================================================
     // CONFIGURATION
-    // ========================================================
+// ========================================================
     const CONFIG = {
         VAT_PERCENTAGE: 15,
         STATUS_FILTER: 'shipped',
@@ -16,8 +15,7 @@ const salesAnalytics = (function() {
         DEFAULT_PERIOD: 'current-month',
         MODAL_ZINDEX: 9999
     };
-
-    // ========================================================
+// ========================================================
     // DEBUG UTILITY
     // ========================================================
     const debug = {
