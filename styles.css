@@ -126,6 +126,141 @@ header {
     }
 }
 
+/* ===== PRODUCT GRID ===== */
+/* ===== ENHANCED PRODUCT GRID ===== */
+.products {
+    padding: 4rem 2rem;
+    max-width: 1400px; /* Slightly wider */
+    margin: 0 auto;
+    position: relative;
+}
+
+#products-heading.section-title {
+    text-align: left;
+    font-size: 2.5rem;
+    color: var(--purple);
+    margin-bottom: 3rem;
+    margin-left: 1rem;
+    position: relative;
+    display: block; /* Changed from inline-block */
+    transform: none; /* Removed translateX */
+}
+
+.section-title::after {
+    left: 0; /* Changed from 50% */
+    transform: none; /* Removed translateX */
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2.5rem;
+    padding: 1rem;
+}
+
+.product-card {
+    background: var(--white);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+    position: relative;
+    border: 1px solid rgba(233, 30, 99, 0.1);
+}
+
+.product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.12);
+    border-color: var(--light-pink);
+}
+
+.product-img {
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.product-card:hover .product-img {
+    transform: scale(1.05);
+}
+
+.product-info {
+    padding: 1.8rem;
+    position: relative;
+}
+
+.product-info h3 {
+    color: var(--purple);
+    margin-bottom: 0.8rem;
+    font-size: 1.3rem;
+}
+
+/* SURPRISE #1: Floating "New" Badge */
+.product-card::before {
+    content: "NEW";
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: var(--gold);
+    color: var(--dark-text);
+    padding: 0.3rem 1rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    z-index: 2;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* SURPRISE #2: Quick View Button */
+.quick-view {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--pink);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 50px;
+    opacity: 0;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.product-card:hover .quick-view {
+    opacity: 1;
+    bottom: 20px;
+}
+
+/* SURPRISE #3: Star Ratings */
+.rating {
+    color: var(--gold);
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+}
+
+/* Responsive Tweaks */
+@media (max-width: 768px) {
+    .product-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.8rem;
+    }
+    
+    .product-img {
+        height: 200px;
+    }
+    
+    .quick-view {
+        opacity: 1; /* Always visible on mobile */
+        bottom: 15px;
+    }
+}
+
+
+
 /* ===== CONTACT SOCIALS ===== */
 /* ===== SOCIALS CONTAINER ===== */
 .social-container {
@@ -323,6 +458,27 @@ header {
     background: rgba(0,0,0,0.3);
     z-index: 1;
 }
+
+/* Product Grid Enhancements */
+.product-card {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.price {
+    display: block;
+    color: var(--pink);
+    font-weight: bold;
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .price {
+        font-size: 0.9rem;
+    }
+}
+
 
 /*=======================*/
 /*  SHIPPING SECTIONS Problematic */
@@ -1138,6 +1294,401 @@ header {
     border-radius: 3px;
 }
 
+/* ================================================== */
+/* PRODUCTS DISPLAY CSS - EXTRACTED FROM products.js */
+/* ================================================== */
+
+/* Product Card */
+.product-card {
+    position: relative;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 1rem;
+    background: white;
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* Product Badges - Top-left badges (NEW, BESTSELLER, FEATURED) */
+.product-badges {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 20;
+    pointer-events: none;
+}
+
+.product-badge {
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    max-width: 100px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.badge-discount {
+    background: #e91e63;
+}
+
+.badge-bestseller {
+    background: #ff9800;
+}
+
+.badge-new {
+    background: #4CAF50;
+}
+
+.badge-featured {
+    background: #667eea;
+}
+
+/* Product Image Container */
+.product-image-container {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.product-img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* ================================================== */
+/* PRODUCTS DISPLAY CSS - EXTRACTED FROM products.js */
+/* ================================================== */
+
+/* Product Grid */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem 0;
+}
+
+/* Product Card */
+.product-card {
+    position: relative;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 1rem;
+    background: white;
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* Product Badges */
+.product-badges {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.product-badge {
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.badge-discount {
+    background: #e91e63;
+}
+
+.badge-bestseller {
+    background: #ff9800;
+}
+
+.badge-new {
+    background: #4CAF50;
+}
+
+.badge-featured {
+    background: #667eea;
+}
+
+/* Product Image */
+.product-image-container {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.product-img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* Product Info */
+.product-info {
+    flex: 1;
+    margin-bottom: 1rem;
+}
+
+.product-name {
+    margin: 0.5rem 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.product-description {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+    height: 40px;
+    overflow: hidden;
+    line-height: 1.4;
+}
+
+/* Pricing */
+.product-pricing {
+    margin: 0.5rem 0;
+}
+
+.pricing-with-discount {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 0.9rem;
+}
+
+.current-price, .price {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #e91e63;
+}
+
+/* Stock Indicator */
+.stock-indicator {
+    font-size: 0.85rem;
+    margin: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stock-ok {
+    color: #4CAF50;
+}
+
+.stock-low {
+    color: #ff9800;
+}
+
+.stock-out {
+    color: #ff5252;
+}
+
+/* Sales Count */
+.sales-count {
+    font-size: 0.8rem;
+    color: #666;
+    margin: 0.25rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Rating */
+.rating {
+    margin: 0.5rem 0;
+    color: #ffc107;
+    font-size: 0.9rem;
+}
+
+/* Product Actions */
+.product-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: auto;
+}
+
+.add-to-cart {
+    background: #e91e63;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    flex: 1;
+    transition: background 0.3s;
+}
+
+.add-to-cart:hover:not(:disabled) {
+    background: #c2185b;
+}
+
+.add-to-cart:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.quick-view {
+    background: #e91e63;
+    color: #333;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    flex: 1;
+    transition: background 0.3s;
+}
+
+.quick-view:hover {
+    background: #e0e0e0;
+}
+
+/* Empty State */
+.products-empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+}
+
+.products-empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+}
+
+.products-empty-state h3 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+}
+
+.products-empty-state p {
+    margin: 0;
+    color: #666;
+}
+
+/* Price row for alignment */
+.price-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* ====================================== */
+/* NUCLEAR PRICING OVERRIDE - FIXED */
+/* ====================================== */
+
+/* Clear ALL inherited styles for pricing elements */
+.product-pricing * {
+    all: unset !important;
+    box-sizing: border-box !important;
+}
+
+/* Product Pricing Container */
+.product-pricing {
+    display: block !important;
+    width: 100% !important;
+    margin: 0.5rem 0 !important;
+}
+
+/* Discount percentage on its OWN line */
+.discount-percentage-line {
+    display: block !important;
+    width: 100% !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    color: #e91e63 !important;
+    margin-bottom: 8px !important;
+    text-align: center !important;
+    clear: both !important;
+}
+
+/* Prices and badge on NEXT line */
+.price-line {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    clear: both !important;
+}
+
+/* Original price (strikethrough) */
+.original-price {
+    text-decoration: line-through !important;
+    color: #999 !important;
+    font-size: 0.9rem !important;
+    display: inline !important;
+    margin: 0 !important;
+}
+
+/* Current price */
+.current-price {
+    font-size: 1.2rem !important;
+    font-weight: bold !important;
+    color: #e91e63 !important;
+    display: inline !important;
+    margin: 0 !important;
+}
+
+/* Sale badge */
+.sale-badge {
+    display: inline-block !important;
+    background: linear-gradient(45deg, #e91e63, #ff4081) !important;
+    color: white !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+    margin: 0 !important;
+}
+
+/* Regular price (no discount) */
+.price {
+    font-size: 1.2rem !important;
+    font-weight: bold !important;
+    color: #e91e63 !important;
+    display: block !important;
+}
 /* ================================================== */
 /* QUICK VIEW MODAL CSS */
 /* ================================================== */
@@ -4655,6 +5206,7 @@ header {
 /* ========================================================
    ORDERS MANAGER STYLES
    ======================================================== */
+
 /* Order Cards */
 .order-card-detailed {
     background: white;
@@ -5340,8 +5892,7 @@ header {
 
 
 
-/* Products Management Inline Styles
-  FOR PRODUCTS DISPLAYED IN THAT SECTION  */
+/* Products Management Inline Styles */
 .products-management-header {
     display: flex;
     justify-content: space-between;
@@ -5997,9 +6548,91 @@ header {
     transform: scale(0.99);
 }
 
+/* FOR ADMIN.JS CSS*/
+.analytics-btn-group {
+    position: relative;
+    display: inline-block;
+}
+
+.analytics-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 280px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    z-index: 1000;
+    padding: 8px 0;
+    margin-top: 4px;
+    border: 1px solid #e0e0e0;
+}
+
+.analytics-dropdown.show {
+    display: block;
+    animation: slideDown 0.2s ease;
+}
+
+.dropdown-item {
+    width: 100%;
+    padding: 12px 16px;
+    text-align: left;
+    background: none;
+    border: none;
+    font-size: 0.9rem;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.dropdown-item:hover {
+    background: #f5f5f5;
+    color: #666;
+}
+
+.dropdown-item:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f5f5f5;
+}
+
+.dropdown-item i {
+    font-size: 1rem;
+    color: #9c27b0;
+    width: 20px;
+}
+
+.dropdown-arrow {
+    font-size: 0.8rem;
+    margin-left: auto;
+    transition: transform 0.2s;
+    color: #666;
+}
+
+.analytics-btn-group.active .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
 /* ========================================================
    WHATSAPP BUTTON STYLES
    ======================================================== */
+
 /* WhatsApp button in order cards */
 .dashboard-action-btn.whatsapp-customer {
     background: linear-gradient(135deg, #25D366 0%, #128C7E 100%) !important;
@@ -6158,10 +6791,10 @@ header {
     pointer-events: auto; /* Allows clicks inside the modal */
 }
 
-
 /* ========================================================
    CLEANED PRODUCT CARD & PRICING STYLES
    ======================================================== */
+
 /* Product Grid Container */
 .product-grid {
     display: grid;
