@@ -258,26 +258,43 @@ data-product-wholesaleprice="${wholesalePrice}"
             
             container.innerHTML = html;
             console.log('[ProductsDisplay] Products rendered successfully');
+        // Initialize countdown timers AFTER DOM is updated
+        setTimeout(() => {
+            initializeCountdownTimers();
+        }, 100);
+            
         } catch (error) {
             console.error('[ProductsDisplay] Error rendering products:', error);
             console.error('[ProductsDisplay] Error stack:', error.stack);
             showEmptyState();
         }
     }
-    //=========================
+
+//=========================
     // countdown timer
-    //=======================
-    // Add this after your product rendering code
-if (hasDiscount && product.saleEndDate) {
-    // Add timer functionality
-    setTimeout(() => {
-        const timers = document.querySelectorAll('.countdown-timer');
-        timers.forEach(timer => {
-            const endDate = new Date(product.saleEndDate);
+//=======================
+// Add this function after your renderProducts() function
+function initializeCountdownTimers() {
+    const timers = document.querySelectorAll('.countdown-timer');
+    
+    timers.forEach(timer => {
+        const endDate = new Date(timer.dataset.endDate);
+        
+        // Update immediately
+        updateCountdown(timer, endDate);
+        
+        // Update every minute
+        const intervalId = setInterval(() => {
             updateCountdown(timer, endDate);
-            setInterval(() => updateCountdown(timer, endDate), 60000);
-        });
-    }, 100);
+            
+            // Clear interval if sale has ended
+            const now = new Date();
+            if (now >= endDate) {
+                clearInterval(intervalId);
+                timer.querySelector('.timer-text').textContent = 'Expired';
+            }
+        }, 60000); // Update every minute
+    });
 }
 
 function updateCountdown(timerElement, endDate) {
@@ -286,6 +303,7 @@ function updateCountdown(timerElement, endDate) {
     
     if (diff <= 0) {
         timerElement.querySelector('.timer-text').textContent = 'Expired';
+        timerElement.style.opacity = '0.6';
         return;
     }
     
