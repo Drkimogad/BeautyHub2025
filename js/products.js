@@ -149,116 +149,69 @@ const wholesalePrice = product.wholesalePrice || 0;
                 console.log('=== END DEBUG ===');
                 
                 // HTML generation
-                html += `
-                <article class="product-card" data-product-id="${displayId}">
-                    ${badges.length > 0 ? `
-                    <div class="product-badges">
-                        ${badges.map(badge => `
-                            <div class="product-badge ${badge.includes('%') ? 'badge-discount' : 
-                                                   badge === 'BESTSELLER' ? 'badge-bestseller' : 
-                                                   badge === 'NEW' ? 'badge-new' : 'badge-featured'}">
-                                ${badge}
-                            </div>
-                        `).join('')}
-                    </div>` : ''}
-                    
-                    <div class="product-image-container">
-                        <img src="${product.imageUrl || 'gallery/placeholder.jpg'}" 
-                             alt="${product.name}" 
-                             class="product-img"
-                             width="440" height="440"
-                             loading="lazy">
-                    </div>
-                    
-                    <div class="product-info">
-                        <h3 class="product-name">${product.name}</h3>
-                        <p class="product-description">
-                            ${product.description || 'Premium beauty product'}
-                        </p>
-                        
-                        <div class="product-pricing" style="display: block !important; width: 100% !important; margin: 0.5rem 0 !important;">
-                            ${hasDiscount ? `
-                            <div class="pricing-with-discount" style="display: block !important; width: 100% !important;">
-                                ${(discountPercentage > 0 || (isOnSale && hasDiscount)) ? `
-                                <div style="
-                                    display: flex !important;
-                                    align-items: center !important;
-                                    justify-content: center !important;
-                                    gap: 10px !important;
-                                    width: 100% !important;
-                                    margin-bottom: 8px !important;
-                                    flex-wrap: wrap !important;
-                                ">
-                                    ${discountPercentage > 0 ? `
-                                    <div style="
-                                        font-size: 1.1rem !important;
-                                        font-weight: 700 !important;
-                                        color: #e91e63 !important;
-                                        display: inline !important;
-                                        margin: 0 !important;
-                                    ">
-                                        -${discountPercentage}% off
-                                    </div>
-                                    ` : ''}
-                                    
-                                    ${isOnSale && hasDiscount ? `
-                                    <div style="
-                                        display: inline-block !important;
-                                        background: linear-gradient(45deg, #e91e63, #ff4081) !important;
-                                        color: white !important;
-                                        padding: 4px 8px !important;
-                                        border-radius: 4px !important;
-                                        font-size: 0.8rem !important;
-                                        font-weight: 600 !important;
-                                        box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
-                                        margin: 0 !important;
-                                    ">
-                                        SALE
-                                    </div>
-                                    ` : ''}
-                                </div>
-                                ` : ''}
-                                
-                                <div class="currentprice-line" style="
-                                    display: flex !important;
-                                    align-items: center !important;
-                                    gap: 10px !important;
-                                    justify-content: center !important;
-                                    flex-wrap: wrap !important;
-                                    width: 100% !important;
-                                    clear: both !important;
-                                ">
-                                    <span class="retail-price" style="
-                                        text-decoration: line-through !important;
-                                        color: #999 !important;
-                                        font-size: 0.9rem !important;
-                                        display: inline !important;
-                                        margin: 0 !important;
-                                    ">
-                                        R${retailPrice.toFixed(2)}
-                                    </span>
-                                    <span class="current-price" style="
-                                        font-size: 1.2rem !important;
-                                        font-weight: bold !important;
-                                        color: #e91e63 !important;
-                                        display: inline !important;
-                                        margin: 0 !important;
-                                    ">
-                                        R${currentPrice.toFixed(2)}
-                                    </span>
-                                </div>
-                            </div>
-                            ` : `
-                            <span class="currentprice" style="
-                                font-size: 1.2rem !important;
-                                font-weight: bold !important;
-                                color: #e91e63 !important;
-                                display: block !important;
-                            ">
-                                R${currentPrice.toFixed(2)}
-                            </span>
-                            `}
-                        </div>
+html += `
+<article class="product-card" data-product-id="${displayId}" ${hasDiscount ? 'data-has-discount="true"' : ''}>
+    ${badges.length > 0 ? `
+    <div class="product-badges">
+        ${badges.map(badge => `
+            <div class="product-badge ${badge.includes('%') ? 'badge-discount' : 
+                                           badge === 'BESTSELLER' ? 'badge-bestseller' : 
+                                           badge === 'NEW' ? 'badge-new' : 'badge-featured'}">
+                ${badge}
+            </div>
+        `).join('')}
+    </div>` : ''}
+    
+    <div class="product-image-container">
+        <img src="${product.imageUrl || 'gallery/placeholder.jpg'}" 
+             alt="${product.name}" 
+             class="product-img"
+             width="440" height="440"
+             loading="lazy">
+    </div>
+    
+    ${hasDiscount ? `
+    <!-- PULSATING SALE BANNER - Add this section -->
+    <div class="sale-pulse-banner">
+        <span class="sale-text">
+            ${discountPercentage > 0 ? `🔥 SALE -${discountPercentage}% OFF` : '🔥 SALE'}
+            ${product.saleEndDate ? `
+            <span class="countdown-timer" style="
+                font-size: 0.85rem !important;
+                background: rgba(0,0,0,0.2) !important;
+                padding: 2px 6px !important;
+                border-radius: 10px !important;
+                margin-left: 8px !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                gap: 4px !important;
+            ">
+                <i class="fas fa-clock" style="font-size: 0.7rem !important;"></i>
+                <span class="timer-text">Ends Soon</span>
+            </span>
+            ` : ''}
+        </span>
+    </div>
+    ` : ''}
+    
+    <div class="product-info">
+        <h3 class="product-name">${product.name}</h3>
+        <p class="product-description">
+            ${product.description || 'Premium beauty product'}
+        </p>
+        
+        <!-- SIMPLIFIED PRICING - Remove the inline styles and use clean CSS -->
+        <div class="product-pricing">
+            ${hasDiscount ? `
+            <div class="price-comparison">
+                <span class="original-price">R${retailPrice.toFixed(2)}</span>
+                <span class="price-arrow">→</span>
+                <span class="current-price">R${currentPrice.toFixed(2)}</span>
+            </div>
+            ` : `
+            <span class="price">R${currentPrice.toFixed(2)}</span>
+            `}
+        </div>
                         
                         <div class="stock-indicator ${product.stock === 0 ? 'stock-out' : 
                                                    product.stock <= 5 ? 'stock-low' : 'stock-ok'}">
@@ -311,6 +264,43 @@ data-product-wholesaleprice="${wholesalePrice}"
             showEmptyState();
         }
     }
+    //=========================
+    // countdown timer
+    //=======================
+    // Add this after your product rendering code
+if (hasDiscount && product.saleEndDate) {
+    // Add timer functionality
+    setTimeout(() => {
+        const timers = document.querySelectorAll('.countdown-timer');
+        timers.forEach(timer => {
+            const endDate = new Date(product.saleEndDate);
+            updateCountdown(timer, endDate);
+            setInterval(() => updateCountdown(timer, endDate), 60000);
+        });
+    }, 100);
+}
+
+function updateCountdown(timerElement, endDate) {
+    const now = new Date();
+    const diff = endDate - now;
+    
+    if (diff <= 0) {
+        timerElement.querySelector('.timer-text').textContent = 'Expired';
+        return;
+    }
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 24) {
+        const days = Math.floor(hours / 24);
+        timerElement.querySelector('.timer-text').textContent = `${days}d left`;
+    } else if (hours > 0) {
+        timerElement.querySelector('.timer-text').textContent = `${hours}h ${minutes}m`;
+    } else {
+        timerElement.querySelector('.timer-text').textContent = `${minutes}m left`;
+    }
+}
     
     // ==================================================
     // SHOW EMPTY STATE FUNCTION
