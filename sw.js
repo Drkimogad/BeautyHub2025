@@ -1,5 +1,5 @@
 // sw.js - Service Worker for BeautyHub2025 (FIXED)
-const CACHE_NAME = 'beautyhub-v3.1';
+const CACHE_NAME = 'beautyhub-v3.2';
 
 // Determine environment
 const isGitHub = self.location.pathname.includes('/BeautyHub2025/');
@@ -12,17 +12,20 @@ const CORE_ASSETS = [
     // HTML - ABSOLUTE paths for SW
     ROOT_PATH + 'index.html',
     ROOT_PATH + 'offline.html',
-    ROOT_PATH + 'terms-of-sercice.html',
+    ROOT_PATH + 'terms-of-service.html',
     ROOT_PATH + 'privacy-policy.html',
     ROOT_PATH + 'shipping-returns.html',
     
     // Core CSS/JS - ABSOLUTE paths
     ROOT_PATH + 'styles.css',
+    ROOT_PATH + 'salesAnalytics.css',
+
     ROOT_PATH + 'js/main.js',
     ROOT_PATH + 'js/cart.js',
     ROOT_PATH + 'js/ordersManager.js',
     ROOT_PATH + 'js/productsManager.js',
     ROOT_PATH + 'js/inventoryManager.js',
+    ROOT_PATH + 'js/salesAnalytics.js',
     ROOT_PATH + 'js/products.js',
     ROOT_PATH + 'js/customerSearch.js',
     ROOT_PATH + 'js/customerorder.js',
