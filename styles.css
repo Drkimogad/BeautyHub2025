@@ -198,7 +198,7 @@ header {
 }
 
 /* SURPRISE #1: Floating "New" Badge */
-.product-card::before {
+/*.product-card::before {
     content: "NEW";
     position: absolute;
     top: 15px;
@@ -211,7 +211,7 @@ header {
     font-weight: bold;
     z-index: 2;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
+} */
 
 /* SURPRISE #2: Quick View Button */
 .quick-view {
@@ -6903,33 +6903,35 @@ header {
 
 .product-info h3 {
     color: var(--purple);
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.4rem !important; /* Reduced from 0.6rem */
     font-size: 1.2rem;
-    line-height: 1.3;
-    min-height: 2.8em;
+    line-height: 1.25 !important; /* Reduced from 1.3 */
+    min-height: 2.4em !important; /* Reduced from 2.8em */
 }
 
+
+/* Reduce product description spacing */
 .product-description {
     color: #666;
-    font-size: 0.9rem;
-    margin-bottom: 0.6rem;
-    line-height: 1.4;
-    height: 40px;
+    font-size: 0.85rem !important; /* Slightly smaller */
+    margin-bottom: 0.4rem !important; /* Reduced from 0.6rem */
+    line-height: 1.3 !important; /* Reduced from 1.4 */
+    height: 35px !important; /* Reduced from 40px */
     overflow: hidden;
 }
 
-/* Rating - Reduced Spacing */
+/* Reduce rating spacing */
 .rating {
     color: var(--gold);
-    font-size: 0.9rem;
-    margin: 0.4rem 0;
-    min-height: 1.2em;
+    font-size: 0.85rem !important; /* Slightly smaller */
+    margin: 0.2rem 0 0.3rem !important; /* Reduced from 0.4rem 0 */
+    min-height: 1em !important; /* Reduced from 1.2em */
 }
 
 /* CLEANED PRICING DISPLAY - NO DUPLICATION */
 .product-pricing {
-    margin: 0.6rem 0 1rem;
-    min-height: 3em;
+    margin: 0.3rem 0 0.6rem !important; /* Reduced from 0.6rem 0 1rem */
+    min-height: 2.5em !important; /* Reduced from 3em */
 }
 
 /* Discount percentage badge */
@@ -6937,34 +6939,32 @@ header {
     display: inline-block;
     background: linear-gradient(45deg, #e91e63, #ff4081);
     color: white;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.8rem;
+    padding: 1px 6px !important; /* Reduced from 2px 8px */
+    border-radius: 10px !important; /* Reduced from 12px */
+    font-size: 0.75rem !important; /* Reduced from 0.8rem */
     font-weight: 700;
-    margin-bottom: 6px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 4px !important; /* Reduced from 6px */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important; /* Lighter shadow */
 }
 
-/* Price line container */
+/*  Reduce spacing in price line */
 .price-line {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px !important; /* Reduced from 10px */
     flex-wrap: wrap;
     justify-content: center;
 }
 
-/* Original price (strikethrough) */
 .original-price {
     text-decoration: line-through;
     color: #999;
-    font-size: 0.95rem;
+    font-size: 0.9rem !important; /* Reduced from 0.95rem */
     font-weight: 500;
 }
 
-/* Current price */
 .current-price {
-    font-size: 1.3rem;
+    font-size: 1.2rem !important; /* Reduced from 1.3rem */
     font-weight: 700;
     color: #e91e63;
 }
@@ -7004,9 +7004,9 @@ header {
 .product-actions {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-top: auto;
-    padding: 0 1.8rem 1.2rem;
+    gap: 6px !important; /* Reduced from 8px */
+    margin-top: 0.3rem !important; /* Reduced from auto - let content dictate spacing */
+    padding: 0 1.8rem 1rem !important; /* Reduced bottom padding from 1.2rem */
     width: 100%;
 }
 
@@ -7015,22 +7015,18 @@ header {
     background: #667eea;
     color: white;
     border: none;
-    padding: 10px 16px;
+    padding: 8px 14px !important; /* Reduced from 10px 16px */
     border-radius: 6px;
-    font-size: 0.9rem;
+    font-size: 0.85rem !important; /* Reduced from 0.9rem */
     font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px; /* Reduced from 8px */
     width: 100%;
     transition: all 0.3s ease;
-    opacity: 1;
-    position: relative;
-    bottom: auto;
-    left: auto;
-    transform: none;
+    height: 36px !important; /* Fixed height for consistency */
 }
 
 .quick-view:hover {
@@ -7044,18 +7040,20 @@ header {
     background: #e91e63;
     color: white;
     border: none;
-    padding: 12px 16px;
+    padding: 9px 14px !important; /* Reduced from 12px 16px */
     border-radius: 6px;
-    font-size: 0.95rem;
+    font-size: 0.9rem !important; /* Reduced from 0.95rem */
     font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px; /* Reduced from 8px */
     width: 100%;
     transition: all 0.3s ease;
+    height: 38px !important; /* Fixed height for consistency */
 }
+
 
 .add-to-cart:hover:not(:disabled) {
     background: #c2185b;
@@ -7071,30 +7069,201 @@ header {
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
-    .product-grid {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 1.5rem;
-    }
-    
-    .product-img {
-        height: 190px;
-    }
-    
     .product-info {
-        padding: 1rem 1.2rem 0.6rem;
+        padding: 0.8rem 1.2rem 0.5rem !important; /* Further reduced */
     }
     
     .product-info h3 {
         font-size: 1.1rem;
+        margin-bottom: 0.3rem !important;
+        min-height: 2.2em !important;
+    }
+    
+    .product-description {
+        height: 30px !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    .product-pricing {
+        margin: 0.2rem 0 0.4rem !important;
     }
     
     .product-actions {
-        padding: 0 1.2rem 1rem;
+        padding: 0 1.2rem 0.8rem !important;
+        gap: 4px !important;
     }
     
     .current-price, .price {
-        font-size: 1.2rem;
+        font-size: 1.1rem !important;
     }
+}
+
+/* ========================================================
+   CENTERED PULSATING SALE BADGE - EYE-CATCHING DESIGN
+   ======================================================== */
+
+/* Remove any existing sale badge positioning */
+.product-pricing .discount-badge,
+.product-pricing .discount-percentage,
+.product-card::before {
+    display: none !important;
+}
+
+/* ========================================================
+   PULSATING SALE BANNER & CLEAN PRICING - SURGICAL OVERRIDES
+   ======================================================== */
+
+/* 1. HIDE all existing inline sale displays */
+.product-pricing .pricing-with-discount,
+.product-pricing .currentprice-line,
+.product-pricing .retail-price,
+.product-pricing .discount-badge,
+.product-pricing .sale-badge {
+    display: none !important;
+}
+
+/* 2. PULSATING SALE BANNER */
+.sale-pulse-banner {
+    position: relative;
+    width: calc(100% + 2px) !important; /* Extend slightly beyond borders */
+    margin: 10px -1px 15px -1px !important; /* Center align with card */
+    background: linear-gradient(135deg, #ffd700, #ff9800, #ff5722) !important;
+    color: #333 !important;
+    padding: 12px 15px !important;
+    font-size: 1rem !important;
+    font-weight: 800 !important;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    z-index: 10;
+    border-radius: 0 !important;
+    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4) !important;
+    display: block !important;
+    overflow: hidden;
+    cursor: default;
+    transition: all 0.3s ease;
+    animation: pulse-gold-full 2s infinite ease-in-out !important;
+}
+
+/* Pulsing animation */
+@keyframes pulse-gold-full {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+        background: linear-gradient(135deg, #ffd700, #ff9800, #ff5722) !important;
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 6px 20px rgba(255, 152, 0, 0.6);
+        background: linear-gradient(135deg, #ff9800, #ffd700, #ff5722) !important;
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+        background: linear-gradient(135deg, #ffd700, #ff9800, #ff5722) !important;
+    }
+}
+
+/* Banner text */
+.sale-pulse-banner .sale-text {
+    font-size: 1.1rem !important;
+    font-weight: 900 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+}
+
+/* Shine effect */
+.sale-pulse-banner::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shine 3s infinite !important;
+}
+
+@keyframes shine {
+    0% { left: -100%; }
+    20%, 100% { left: 200%; }
+}
+
+/* 3. CLEAN PRICING UNDERNEATH */
+.product-pricing {
+    display: flex !important;
+    justify-content: center !important;
+    margin: 15px 0 10px 0 !important;
+    min-height: auto !important;
+}
+
+.price-comparison {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    font-size: 1.1rem !important;
+}
+
+.original-price {
+    text-decoration: line-through !important;
+    color: #999 !important;
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+}
+
+.price-arrow {
+    color: #e91e63 !important;
+    font-weight: bold !important;
+    font-size: 1rem !important;
+}
+
+.current-price {
+    font-size: 1.4rem !important;
+    font-weight: 800 !important;
+    color: #e91e63 !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
+}
+
+.price {
+    font-size: 1.4rem !important;
+    font-weight: 800 !important;
+    color: #e91e63 !important;
+}
+
+/* 4. Adjust spacing for cards with sale banner */
+.product-card[data-has-discount="true"] .product-info {
+    padding-top: 5px !important;
+}
+
+/* 5. Mobile responsive */
+@media (max-width: 768px) {
+    .sale-pulse-banner {
+        padding: 10px 12px !important;
+        font-size: 0.95rem !important;
+        margin: 8px -1px 12px -1px !important;
+    }
+    
+    .sale-pulse-banner .sale-text {
+        font-size: 1rem !important;
+        flex-wrap: wrap !important;
+        gap: 4px !important;
+    }
+    
+    .price-comparison {
+        font-size: 1rem !important;
+        gap: 8px !important;
+    }
+    
+    .current-price, .price {
+        font-size: 1.3rem !important;
+    }
+}
+
+/* 6. Optional: Hide existing badges when sale banner is present */
+.product-card[data-has-discount="true"] .product-badges .badge-discount {
+    display: none !important;
 }
 
 /* Dashboard Product Cards - Keep Untouched */
