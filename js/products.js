@@ -125,17 +125,13 @@ const ProductsDisplay = (function() {
                 const hasDiscount = product.discountPercent > 0 && retailPrice > currentPrice;
                 const discountAmount = hasDiscount ? retailPrice - currentPrice : 0;
                 const discountPercentage = product.discountPercent || 
-                                          (hasDiscount ? Math.round((discountAmount / retailPrice) * 100) : 0);
-                
+                (hasDiscount ? Math.round((discountAmount / retailPrice) * 100) : 0);
                 // Determine badges
-let badges = [];
-if (isOnSale && hasDiscount) badges.push(`-${discountPercentage}%`);
-
-// FIXED: Case-insensitive tag checking
-const tags = product.tags || [];
-if (tags.some(tag => tag.toLowerCase() === 'bestseller')) badges.push('BESTSELLER');
-if (tags.some(tag => tag.toLowerCase() === 'new')) badges.push('NEW');
-if (tags.some(tag => tag.toLowerCase() === 'featured')) badges.push('FEATURED');
+                let badges = [];
+                if (isOnSale && hasDiscount) badges.push(`-${discountPercentage}%`);
+                if (product.tags && product.tags.includes('bestseller')) badges.push('BESTSELLER');
+                if (product.tags && product.tags.includes('new')) badges.push('NEW');
+                if (product.tags && product.tags.includes('featured')) badges.push('FEATURED');
                 
                 // Debug info
                 console.log('2. Badges array created:', badges);
