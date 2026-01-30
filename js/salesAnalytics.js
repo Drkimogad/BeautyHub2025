@@ -807,8 +807,10 @@ function calculateOrderMetrics(orders) {
         debug.log('Category breakdown calculated', result);
         return result;
     }
-
-    function calculateCustomerBreakdown(orders) {
+/*=====================================
+  calculate customer breakdown
+  ===================================*/
+function calculateCustomerBreakdown(orders) {
         const customerTypes = {
             retailer: { count: 0, orders: 0 },
             wholesaler: { count: 0, orders: 0 },
@@ -856,36 +858,58 @@ function calculateOrderMetrics(orders) {
         debug.log('Customer breakdown calculated', result);
         return result;
     }
-
-    function filterOrdersByPeriod(orders, period) {
-        const now = new Date();
-        let startDate = new Date();
+/*=======================================
+  filter orders by date on top of the modal
+  =====================================*/
+  function filterOrdersByPeriod(orders, period) {
+    const now = new Date();
+    let startDate = new Date();
+    let endDate = now; // Default end date
+    
+    switch(period) {
+        case 'current-month':
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Last day of current month
+            break;
+        case 'last-month':
+            startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            endDate = new Date(now.getFullYear(), now.getMonth(), 0); // Last day of previous month
+            break;
+        case 'last-3-months':
+            startDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+            break;
+        case 'current-year':
+            startDate = new Date(now.getFullYear(), 0, 1);
+            endDate = new Date(now.getFullYear(), 11, 31); // Dec 31
+            break;
+        case 'all-time':
+            return orders; // No filtering
+        default:
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    }
+    
+    console.log(`[DEBUG] Period: ${period}, Start: ${startDate.toDateString()}, End: ${endDate.toDateString()}`);
+    
+    return orders.filter(order => {
+        // ⭐⭐ FIX: For shipped orders, use shippingDate FIRST! ⭐⭐
+        let orderDate;
         
-        switch(period) {
-            case 'current-month':
-                startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-                break;
-            case 'last-month':
-                startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                break;
-            case 'last-3-months':
-                startDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-                break;
-            case 'current-year':
-                startDate = new Date(now.getFullYear(), 0, 1);
-                break;
-            case 'all-time':
-                return orders; // No filtering
-            default:
-                startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        if (order.status === 'shipped' && order.shippingDate) {
+            orderDate = new Date(order.shippingDate);
+        } else {
+            orderDate = new Date(order.createdAt || order.updatedAt);
         }
         
-        return orders.filter(order => {
-            const orderDate = new Date(order.createdAt || order.shippingDate || order.updatedAt);
-            return orderDate >= startDate && orderDate <= now;
-        });
-    }
-
+        console.log(`[DEBUG] Order ${order.id}: date=${orderDate.toDateString()}, inRange=${orderDate >= startDate && orderDate <= endDate}`);
+        
+        return orderDate >= startDate && orderDate <= endDate;
+    });
+}
+    
+/*===============================
+         get empty financial data
+    =================================*/   
     function getEmptyFinancialData() {
         return {
             period: currentPeriod,
@@ -911,8 +935,10 @@ function calculateOrderMetrics(orders) {
             filteredOrders: []
         };
     }
-
-    function getEmptyMetrics() {
+/*=============================
+  get empty metrics
+  =============================*/
+function getEmptyMetrics() {
     return {
         totalRevenue: 0,
         wholesaleCost: 0,
