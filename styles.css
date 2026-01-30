@@ -166,6 +166,7 @@ header {
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
     position: relative;
     border: 1px solid rgba(233, 30, 99, 0.1);
+    padding-bottom: 1.5rem; /* Reduced from default */
 }
 
 .product-card:hover {
@@ -176,7 +177,7 @@ header {
 
 .product-img {
     width: 100%;
-    height: 240px;
+    height: 220px; /* Reduced from 240px */
     object-fit: cover;
     transition: transform 0.5s ease;
     border-bottom: 1px solid #f0f0f0;
@@ -187,7 +188,7 @@ header {
 }
 
 .product-info {
-    padding: 1.8rem;
+    padding: 1.2rem 1.8rem 1rem; /* Top | Horizontal | Bottom */
     position: relative;
 }
 
@@ -214,25 +215,29 @@ header {
 }
 
 /* SURPRISE #2: Quick View Button */
+/* REMOVE these quick-view absolute positioning rules: */
 .quick-view {
-    position: absolute;
-    bottom: -20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--pink);
-    color: white;
+    position: absolute; /* ← DELETE THIS LINE */
+    bottom: -20px; /* ← DELETE THIS LINE */
+    left: 50%; /* ← DELETE THIS LINE */
+    transform: translateX(-50%); /* ← DELETE THIS LINE */
+    opacity: 0; /* ← DELETE THIS LINE */
+    /* Keep other properties below */
+    background: #e91e63;
+    color: #333;
     border: none;
-    padding: 0.6rem 1.5rem;
-    border-radius: 50px;
-    opacity: 0;
-    transition: all 0.3s ease;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
     cursor: pointer;
-    font-weight: 600;
+    font-size: 0.9rem;
+    flex: 1;
+    transition: background 0.3s;
 }
 
+/* REMOVE this hover effect: */
 .product-card:hover .quick-view {
-    opacity: 1;
-    bottom: 20px;
+    opacity: 1; /* ← DELETE THIS LINE */
+    bottom: 20px; /* ← DELETE THIS LINE */
 }
 
 /* SURPRISE #3: Star Ratings */
@@ -250,12 +255,7 @@ header {
     }
     
     .product-img {
-        height: 200px;
-    }
-    
-    .quick-view {
-        opacity: 1; /* Always visible on mobile */
-        bottom: 15px;
+        height: 190px; /* Adjusted from 200px */
     }
 }
 
@@ -1533,8 +1533,10 @@ header {
 /* Product Actions */
 .product-actions {
     display: flex;
+    flex-direction: column; /* Stack vertically */
     gap: 0.5rem;
-    margin-top: auto;
+    margin-top: 1rem;
+    padding: 0 1.8rem; /* Match product-info padding */
 }
 
 .add-to-cart {
