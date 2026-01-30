@@ -1323,7 +1323,7 @@ header {
     display: flex;
     flex-direction: column;
     gap: 5px;
-    z-index: 20;
+    z-index: 1000 !important; /* FIX BADGE Z-INDEX - MAKE THEM APPEAR ABOVE IMAGE */
     pointer-events: none;
 }
 
@@ -1338,6 +1338,8 @@ header {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    z-index: 1001 !important; /* ADD THIS */
+    position: relative !important; /* ADD THIS */
 }
 
 .badge-discount {
@@ -1358,7 +1360,8 @@ header {
 
 /* Product Image Container */
 .product-image-container {
-    position: relative;
+    position: relative !important;
+    z-index: 1 !important; /* LOWER THAN BADGES */
     margin-bottom: 1rem;
 }
 
@@ -1367,6 +1370,8 @@ header {
     height: 250px;
     object-fit: cover;
     border-radius: 8px;
+    position: relative !important;
+    z-index: 1 !important; /* LOWER THAN BADGES */
 }
 
 /* ================================================== */
