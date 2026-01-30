@@ -126,6 +126,18 @@ const ProductsDisplay = (function() {
                 const discountAmount = hasDiscount ? retailPrice - currentPrice : 0;
                 const discountPercentage = product.discountPercent || 
                 (hasDiscount ? Math.round((discountAmount / retailPrice) * 100) : 0);
+                // DEBUG: Check what's really happening
+console.log('=== BADGE DEBUG FOR:', product.name, '===');
+console.log('Product tags:', product.tags);
+console.log('Tags type:', typeof product.tags);
+console.log('Is array?', Array.isArray(product.tags));
+console.log('Raw tags:', JSON.stringify(product.tags));
+console.log('Has "new" (exact):', product.tags && product.tags.includes('new'));
+console.log('Has "NEW" (uppercase):', product.tags && product.tags.includes('NEW'));
+console.log('Tags after lowercase:', product.tags && product.tags.map(t => t.toLowerCase()));
+console.log('Has "new" (case-insensitive):', product.tags && product.tags.some(t => t.toLowerCase() === 'new'));
+console.log('Badges that will be created:', badges);
+console.log('=== END DEBUG ===');
                 // Determine badges
                 let badges = [];
                 if (isOnSale && hasDiscount) badges.push(`-${discountPercentage}%`);
