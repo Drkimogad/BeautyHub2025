@@ -608,6 +608,11 @@ async function refreshDataFromFirestore() {
     // ========================================================
     async function calculateFinancialData(period = CONFIG.DEFAULT_PERIOD) {
     console.log('[CALC-DEBUG-1] calculateFinancialData called for period:', period);
+         // ADD THIS LINE:
+    console.log('[CALC-DEBUG] OrdersManager.getOrders("shipped"):', 
+        OrdersManager.getOrders('shipped')?.length || 0, 
+        'orders'
+    );
     
     try {
         // TRY FIRESTORE FIRST FOR FRESH DATA
