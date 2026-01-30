@@ -1276,49 +1276,47 @@ function showFinancialSummary() {
         }
     }
 
-    function loadFinancialData() {
-        debug.log('Loading financial data');
-        
-        try {
-            // Show loading state
-            const refreshBtn = document.getElementById('refresh-financial-btn');
-            if (refreshBtn) {
-                const originalHtml = refreshBtn.innerHTML;
-                refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-                refreshBtn.disabled = true;
-                
-                // Calculate data asynchronously to prevent UI freeze
-                setTimeout(() => {
-                    try {
-                        const data = calculateFinancialData(currentPeriod);
-                        updateFinancialModal(data);
-                        
-                        // Reset button
-                        refreshBtn.innerHTML = originalHtml;
-                        refreshBtn.disabled = false;
-                    } catch (error) {
-                        debug.error('Error in financial data calculation', error);
-                        refreshBtn.innerHTML = originalHtml;
-                        refreshBtn.disabled = false;
-                    }
-                }, 500); // increased from 50 to 500
-            } else {
-                // If no button, just calculate and update
-                const data = calculateFinancialData(currentPeriod);
+async function loadFinancialData() {
+    debug.log('Loading financial data');
+    
+    try {
+        // Show loading state
+        const refreshBtn = document.getElementById('refresh-financial-btn');
+        if (refreshBtn) {
+            const originalHtml = refreshBtn.innerHTML;
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            refreshBtn.disabled = true;
+            
+            try {
+                // AWAIT the async calculation!
+                const data = await calculateFinancialData(currentPeriod);
                 updateFinancialModal(data);
-            }
-            
-        } catch (error) {
-            debug.error('Failed to load financial data', error);
-            
-            // Reset button on error
-            const refreshBtn = document.getElementById('refresh-financial-btn');
-            if (refreshBtn) {
-                refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Data';
+                
+                // Reset button
+                refreshBtn.innerHTML = originalHtml;
+                refreshBtn.disabled = false;
+            } catch (error) {
+                debug.error('Error in financial data calculation', error);
+                refreshBtn.innerHTML = originalHtml;
                 refreshBtn.disabled = false;
             }
+        } else {
+            // If no button, just calculate and update
+            const data = await calculateFinancialData(currentPeriod);
+            updateFinancialModal(data);
+        }
+        
+    } catch (error) {
+        debug.error('Failed to load financial data', error);
+        
+        // Reset button on error
+        const refreshBtn = document.getElementById('refresh-financial-btn');
+        if (refreshBtn) {
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Data';
+            refreshBtn.disabled = false;
         }
     }
+}
 
 
 
