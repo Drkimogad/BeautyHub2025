@@ -200,13 +200,9 @@ async function updateProductInFirestore(productId, updateData) {
         }
         
         // Refresh dashboard
-        if (typeof window.refreshDashboard === 'function') {
-    window.refreshDashboard({
-        refreshProducts: true,
-        updateBadge: true,
-        externalCall: true
-    });
-}
+        if (typeof window.refreshDashboardOrders === 'function') {
+            window.refreshDashboardOrders();
+        }
         
         return true;
         
@@ -501,14 +497,9 @@ const calculatedPrice = discountPercent > 0
         }
         
         // ========== REFRESH DASHBOARD ==========
-        if (typeof window.refreshDashboard === 'function') {
-    window.refreshDashboard({
-        refreshProducts: true,  // ✅ Specific to products tab
-        updateBadge: true,
-        externalCall: true
-    });
-}
-
+        if (typeof window.refreshDashboardOrders === 'function') {
+            window.refreshDashboardOrders();
+        }
         // ========== END ADDITIONS ==========
             return newProduct;
             
@@ -646,13 +637,9 @@ if (CONFIG.USE_FIRESTORE) {
         }
         
         // ========== REFRESH DASHBOARD ==========
-        if (typeof window.refreshDashboard === 'function') {
-    window.refreshDashboard({
-        refreshProducts: true,  // ✅ Products were updated
-        updateBadge: true,
-        externalCall: true
-    });
-}
+        if (typeof window.refreshDashboardOrders === 'function') {
+            window.refreshDashboardOrders();
+        }
         // ========== END ADDITIONS ==========
         
         return true;
@@ -740,14 +727,9 @@ if (CONFIG.USE_FIRESTORE && CONFIG.FIREBASE_READY()) {
         window.dispatchEvent(new CustomEvent('productsUpdated'));
         
         // Refresh dashboard if open
-        if (typeof window.refreshDashboard === 'function') {
-    window.refreshDashboard({
-        refreshOrders: true,    // ✅ Stock changes affect orders
-        refreshProducts: true,  // ✅ Products tab needs update
-        updateBadge: true,
-        externalCall: true
-    });
-}
+        if (typeof window.refreshDashboardOrders === 'function') {
+            window.refreshDashboardOrders();
+        }
         
         // Show notification
         if (typeof window.showDashboardNotification === 'function') {
@@ -1863,13 +1845,9 @@ async function handlePermanentDelete(productId) {
             }
             
             // ========== REFRESH DASHBOARD ==========
-            if (typeof window.refreshDashboard === 'function') {
-    window.refreshDashboard({
-        refreshProducts: true,  // ✅ Product was deleted
-        updateBadge: true,
-        externalCall: true
-    });
-}
+            if (typeof window.refreshDashboardOrders === 'function') {
+                window.refreshDashboardOrders();
+            }
             // ========== END ADDITIONS ==========
             
             errorDiv.style.background = '#e8f5e9';
