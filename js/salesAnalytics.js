@@ -1238,7 +1238,6 @@ function showFinancialSummary() {
         // Show loading state immediately
         financialModal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
-        showLoadingState(); // Add a loading indicator
         
         // Then refresh and load data
         refreshAndLoadData();
