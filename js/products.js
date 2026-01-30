@@ -186,8 +186,6 @@ html += `
                 align-items: center !important;
                 gap: 4px !important;
             ">
-                <i class="fas fa-clock" style="font-size: 0.7rem !important;"></i>
-                <span class="timer-text">Ends Soon</span>
             </span>
             ` : ''}
         </span>
@@ -237,8 +235,8 @@ html += `
                                 data-product-id="${displayId}"
                                 data-product-name="${product.name}"
                                 data-product-currentprice="${currentPrice}"
-data-product-retailprice="${retailPrice}"
-data-product-wholesaleprice="${wholesalePrice}"
+                                data-product-retailprice="${retailPrice}"
+                                data-product-wholesaleprice="${wholesalePrice}"
                                 data-product-img="${product.imageUrl || 'gallery/placeholder.jpg'}"
                                 ${product.stock === 0 ? 'disabled' : ''}>
                             <i class="fas fa-shopping-cart"></i> 
@@ -258,10 +256,6 @@ data-product-wholesaleprice="${wholesalePrice}"
             
             container.innerHTML = html;
             console.log('[ProductsDisplay] Products rendered successfully');
-        // Initialize countdown timers AFTER DOM is updated
-        setTimeout(() => {
-            initializeCountdownTimers();
-        }, 100);
             
         } catch (error) {
             console.error('[ProductsDisplay] Error rendering products:', error);
@@ -270,57 +264,7 @@ data-product-wholesaleprice="${wholesalePrice}"
         }
     }
 
-//=========================
-    // countdown timer
-//=======================
-// Add this function after your renderProducts() function
-function initializeCountdownTimers() {
-    const timers = document.querySelectorAll('.countdown-timer');
-    
-    timers.forEach(timer => {
-        const endDate = new Date(timer.dataset.endDate);
-        
-        // Update immediately
-        updateCountdown(timer, endDate);
-        
-        // Update every minute
-        const intervalId = setInterval(() => {
-            updateCountdown(timer, endDate);
-            
-            // Clear interval if sale has ended
-            const now = new Date();
-            if (now >= endDate) {
-                clearInterval(intervalId);
-                timer.querySelector('.timer-text').textContent = 'Expired';
-            }
-        }, 60000); // Update every minute
-    });
-}
-
-function updateCountdown(timerElement, endDate) {
-    const now = new Date();
-    const diff = endDate - now;
-    
-    if (diff <= 0) {
-        timerElement.querySelector('.timer-text').textContent = 'Expired';
-        timerElement.style.opacity = '0.6';
-        return;
-    }
-    
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (hours > 24) {
-        const days = Math.floor(hours / 24);
-        timerElement.querySelector('.timer-text').textContent = `${days}d left`;
-    } else if (hours > 0) {
-        timerElement.querySelector('.timer-text').textContent = `${hours}h ${minutes}m`;
-    } else {
-        timerElement.querySelector('.timer-text').textContent = `${minutes}m left`;
-    }
-}
-    
-    // ==================================================
+// ==================================================
     // SHOW EMPTY STATE FUNCTION
     // ==================================================
     function showEmptyState() {
