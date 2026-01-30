@@ -200,12 +200,16 @@ saveInventoryTransaction({
                 console.log(`[InventoryManager] Stock successfully deducted for order: ${order.id}`);
                     // ========== ADD SUCCESS NOTIFICATION ==========
     if (typeof window.showDashboardNotification === 'function') {
-        window.showDashboardNotification('Stock updated successfully!', 'success');
+    window.showDashboardNotification(`Stock deducted for order ${order.id}`, 'success');     
     }
     
-    if (typeof window.refreshDashboardOrders === 'function') {
-        window.refreshDashboardOrders();
-    }
+    if (typeof window.refreshDashboard === 'function') {
+    window.refreshDashboard({
+        refreshOrders: true,
+        updateBadge: true,
+        externalCall: true
+    });
+}
 
                 return true;
             }
@@ -442,9 +446,14 @@ function getStockHistory(productId, limit = 10) {
           window.showDashboardNotification('Stock updated successfully!', 'success');
            }
 
-        if (typeof window.refreshDashboardOrders === 'function') {
-           window.refreshDashboardOrders();
-              }
+        if (typeof window.refreshDashboard === 'function') {
+    window.refreshDashboard({
+        refreshOrders: true,
+        updateBadge: true,
+        externalCall: true
+    });
+}
+
             
             return true;
             
