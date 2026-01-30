@@ -447,7 +447,7 @@ const AdminManager = (function() {
             
             dashboardModal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
-            loadDashboardData();
+            refreshDashboard();
             updateDashboardTime();
             console.log('[UI] Admin dashboard opened');
         } catch (error) {
@@ -467,29 +467,20 @@ const AdminManager = (function() {
         }
     }
 
-    // ========================================================
+// ========================================================
     // DASHBOARD DATA FUNCTIONS
-    // ========================================================
-    function loadDashboardData() {
-        console.log('[Dashboard] Loading dashboard data...');
-        
-        try {
-            // Update order counts
-            updateOrderCounts();
-            
-            // Render orders for current filter
-            renderDashboardOrders(currentStatusFilter);
-            
-            // Update dashboard badge
-            updateDashboardBadge();
-            
-            console.log('[Dashboard] Dashboard data loaded');
-            
-        } catch (error) {
-            console.error('[Dashboard] Failed to load data:', error);
-            showDashboardError('Failed to load dashboard data');
-        }
-    }
+// ========================================================
+function loadDashboardData() {
+    console.log('[Dashboard] Initial data load');
+    
+    refreshDashboard({
+        forceFirestore: false,    // Initial load uses cached data
+        refreshOrders: true,
+        refreshProducts: false,
+        updateBadge: true,
+        updateTimestamp: true
+    });
+}
 
   function updateOrderCounts() {
     try {
@@ -974,72 +965,166 @@ function getOrderCardHTML(order) {
         }
     }
 
-//===================================
-    // new function for refresh button
-//=======================================
-    function refreshAllDashboardData() {
-    console.log('[Dashboard] Refreshing all data...');
-        
-    // Safety check: only refresh if dashboard is open
-    if (!isDashboardOpen()) {
-        console.log('[Dashboard] Dashboard not open, skipping refresh');
-        return;
+// ========================================================
+// UI REFRESH MANAGER - Single source for all dashboard refreshes
+// ========================================================
+function refreshDashboard(options = {}) {
+    console.log('[UI Refresh] Dashboard refresh requested:', options);
+    
+    // Default options
+    const config = {
+        forceFirestore: false,    // Force Firestore sync
+        refreshOrders: true,      // Refresh orders tab
+        refreshProducts: false,   // Refresh products tab (if open)
+        updateBadge: true,        // Update admin badge
+        updateTimestamp: true,    // Update last updated time
+        externalCall: false       // Called from outside admin.js
+    };
+    
+    // Merge with provided options
+    Object.assign(config, options);
+    
+    // Safety check: dashboard must be open for UI refreshes
+    if (!isDashboardOpen() && !config.externalCall) {
+        console.log('[UI Refresh] Dashboard not open, skipping UI update');
+        return false;
     }
     
-    console.log('[Dashboard] Refreshing all data...');
+    try {
+        // ===== FIREBASE SYNC =====
+        if (config.forceFirestore) {
+            console.log('[UI Refresh] Syncing with Firestore...');
+            
+            // Sync orders
+            if (typeof OrdersManager !== 'undefined' && 
+                typeof OrdersManager.refreshFromFirestore === 'function') {
+                OrdersManager.refreshFromFirestore().catch(err => {
+                    console.warn('[UI Refresh] Orders sync failed:', err);
+                });
+            }
+            
+            // Sync products
+            if (typeof ProductsManager !== 'undefined' && 
+                typeof ProductsManager.updateFromFirestoreInBackground === 'function') {
+                ProductsManager.updateFromFirestoreInBackground().catch(err => {
+                    console.warn('[UI Refresh] Products sync failed:', err);
+                });
+            }
+        }
+        
+        // ===== UI UPDATES =====
+        if (config.refreshOrders) {
+            console.log('[UI Refresh] Updating orders display...');
+            updateOrderCounts();
+            
+            if (currentStatusFilter === 'cancelled') {
+                renderCancelledOrdersDirectly();
+            } else {
+                renderDashboardOrders(currentStatusFilter);
+            }
+        }
+        
+        if (config.refreshProducts) {
+            const productsTab = document.getElementById('products-tab-content');
+            if (productsTab && productsTab.style.display !== 'none') {
+                console.log('[UI Refresh] Refreshing products tab...');
+                loadProductsTab();
+            }
+        }
+        
+        if (config.updateBadge) {
+            updateDashboardBadge();
+            updateAdminButtonVisibility(); // Also update main admin button
+        }
+        
+        if (config.updateTimestamp) {
+            updateDashboardTime();
+        }
+        
+        console.log('[UI Refresh] Dashboard refresh complete');
+        return true;
+        
+    } catch (error) {
+        console.error('[UI Refresh] Failed:', error);
+        return false;
+    }
+}
+
+//==========================================
+ //   REFRESH ALL DASHBOARD DATA
+//==================================
+function refreshAllDashboardData() {
+    console.log('[Dashboard] Full refresh requested');
     
     const refreshBtn = document.getElementById('dashboard-refresh');
     if (refreshBtn) {
         refreshBtn.classList.add('refreshing');
         refreshBtn.disabled = true;
     }
-
     
-    try {
-    // 1. Refresh orders
-    updateOrderCounts();
-    if (currentStatusFilter === 'cancelled') {
-        renderCancelledOrdersDirectly();
-    } else {
-        renderDashboardOrders(currentStatusFilter);
-    }
+    // Use the master refresh function
+    refreshDashboard({
+        forceFirestore: true,     // Always sync with Firestore
+        refreshOrders: true,
+        refreshProducts: true,    // Refresh products tab too
+        updateBadge: true,
+        updateTimestamp: true
+    });
     
-    // 2. Refresh products tab if open
-    const productsTab = document.getElementById('products-tab-content');
-    if (productsTab && productsTab.style.display !== 'none') {
-        console.log('[Dashboard] Refreshing products tab...');
-        loadProductsTab(); // or ProductsManager.renderProductsAdmin()
-    }
-    
-    // 3. Refresh badge
-    updateDashboardBadge();
-    
-    // 4. Update timestamp
-    updateDashboardTime();
-    
-    // 5. Force Firestore sync if needed
-    if (typeof ProductsManager !== 'undefined' && 
-        typeof ProductsManager.updateFromFirestoreInBackground === 'function') {
-        ProductsManager.updateFromFirestoreInBackground();
-    }
-    
-    if (typeof OrdersManager !== 'undefined' && 
-        typeof OrdersManager.refreshFromFirestore === 'function') {
-        OrdersManager.refreshFromFirestore();
-    }
-        } finally {
-        // Remove spinning after refresh completes
-        setTimeout(() => {
-            if (refreshBtn) {
-                refreshBtn.classList.remove('refreshing');
-                refreshBtn.disabled = false;
-            }
-        }, 1000);
-    }    
-    console.log('[Dashboard] All data refreshed');
+    // Remove spinning after refresh
+    setTimeout(() => {
+        if (refreshBtn) {
+            refreshBtn.classList.remove('refreshing');
+            refreshBtn.disabled = false;
+        }
+    }, 1000);
 }
+
+// ========================================================
+ //REFRESH DASHBOARD ORDERS
+// ========================================================
+function refreshDashboardOrders() {
+    console.log('[Dashboard] External orders refresh requested');
     
-    // ========================================================
+    // External calls might happen when dashboard is closed
+    refreshDashboard({
+        forceFirestore: false,    // External calls handle their own Firestore
+        refreshOrders: true,
+        refreshProducts: false,
+        updateBadge: true,
+        updateTimestamp: false,
+        externalCall: true        // Allow refresh even if dashboard closed
+    });
+}
+
+// ========================================================
+// MAKE REFRESH FUNCTIONS GLOBALLY AVAILABLE
+// ========================================================
+
+// For backward compatibility
+window.refreshDashboardOrders = function() {
+    refreshDashboard({
+        refreshOrders: true,
+        updateBadge: true,
+        externalCall: true
+    });
+};
+
+// New unified refresh system
+window.refreshDashboard = refreshDashboard;
+
+// Optional: Specific refresh helpers
+window.UIRefresh = {
+    refreshOrders: () => refreshDashboard({ refreshOrders: true }),
+    refreshProducts: () => refreshDashboard({ refreshProducts: true }),
+    refreshAll: () => refreshDashboard({ 
+        refreshOrders: true, 
+        refreshProducts: true,
+        forceFirestore: true 
+    }),
+    updateBadge: () => refreshDashboard({ updateBadge: true })
+};
+// ========================================================
     // EVENT LISTENERS SETUP
     // ========================================================
     function setupEventListeners() {
@@ -1122,28 +1207,38 @@ function getOrderCardHTML(order) {
     }
 
     function handleTabSwitch(e) {
-        try {
-            const tab = e.target.closest('.dashboard-tab');
-            const tabName = tab.dataset.tab;
-            
-            // Update active tab styles
-            document.querySelectorAll('.dashboard-tab').forEach(t => {
-                t.classList.toggle('active', t === tab);
+    try {
+        const tab = e.target.closest('.dashboard-tab');
+        const tabName = tab.dataset.tab;
+        
+        // Update active tab styles
+        document.querySelectorAll('.dashboard-tab').forEach(t => {
+            t.classList.toggle('active', t === tab);
+        });
+        
+        // Show corresponding content
+        document.querySelectorAll('.tab-pane').forEach(pane => {
+            pane.style.display = pane.id === `${tabName}-tab-content` ? 'flex' : 'none';
+        });
+        
+        // Handle specific tab content loading
+        if (tabName === 'products') {
+            // ✅ Use refreshDashboard instead of loadProductsTab()
+            refreshDashboard({
+                refreshProducts: true,
+                forceFirestore: true // Fresh data for products tab
             });
-            
-            // Show corresponding content
-            document.querySelectorAll('.tab-pane').forEach(pane => {
-                pane.style.display = pane.id === `${tabName}-tab-content` ? 'flex' : 'none';
+        } else if (tabName === 'orders') {
+            refreshDashboard({
+                refreshOrders: true
             });
-            
-            // Handle specific tab content loading
-            if (tabName === 'products') {
-                loadProductsTab();
-            }
-        } catch (error) {
-            console.error('[Dashboard] Tab switch error:', error);
+        } else if (tabName === 'analytics') {
+            // Analytics tab doesn't need immediate refresh
         }
+    } catch (error) {
+        console.error('[Dashboard] Tab switch error:', error);
     }
+}
 
 function handleStatusFilter(e) {
     try {
@@ -1156,8 +1251,11 @@ function handleStatusFilter(e) {
         
         currentStatusFilter = status;
         
-        // ALWAYS use renderDashboardOrders - it already handles cancelled status!
-        renderDashboardOrders(status);
+          // ✅ Use refreshDashboard
+    refreshDashboard({
+        refreshOrders: true,
+        forceFirestore: false // Just filter existing data
+    });
         
     } catch (error) {
         console.error('[Dashboard] Status filter error:', error);
@@ -1238,36 +1336,25 @@ function handleOrderActions(e) {
             
             return; // Prevent other handlers
         }
-        
-        // MARK AS PAID
+           // MARK AS PAID
 if (e.target.classList.contains('mark-paid') || e.target.closest('.mark-paid')) {
     if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.markAsPaid === 'function') {
         if (confirm(`Mark order ${orderId} as paid?`)) {
             if (OrdersManager.markAsPaid(orderId)) {
-                // ✅ IMMEDIATE UI UPDATE - Remove from pending view
-                const orderCard = e.target.closest('.dashboard-order-card');
-                if (orderCard) {
-                    orderCard.remove(); // Remove from pending list
-                }
+                // ✅ CLEAN: Single refresh call replaces all manual updates
+                refreshDashboard({
+                    refreshOrders: true,
+                    updateBadge: true,
+                    forceFirestore: false
+                });
                 
-                // ✅ Refresh the WHOLE pending orders list
-                if (currentStatusFilter === 'pending') {
-                    renderDashboardOrders('pending');
-                }
-                
-                // Update counts
-                updateOrderCounts();
-                updateDashboardBadge();
-                updateAdminButtonVisibility();
-                
-                // Show success message
                 alert(`✅ Order ${orderId} marked as paid!`);
             }
         }
     }
 }
-        
-        // MARK AS SHIPPED
+
+// MARK AS SHIPPED
 if (e.target.classList.contains('mark-shipped') || e.target.closest('.mark-shipped')) {
     if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.markAsShipped === 'function') {
         // Ask for shipping date
@@ -1286,65 +1373,54 @@ if (e.target.classList.contains('mark-shipped') || e.target.closest('.mark-shipp
         
         if (confirm(`Mark order ${orderId} as shipped on ${shippingDate || defaultDate}?`)) {
             if (OrdersManager.markAsShipped(orderId, shippingDate || defaultDate)) {
-                // ✅ Remove from current view if it's in paid view
-                const orderCard = e.target.closest('.dashboard-order-card');
-                if (orderCard && currentStatusFilter === 'paid') {
-                    orderCard.remove();
-                }
-                
-                // ✅ Refresh the current view
-                renderDashboardOrders(currentStatusFilter);
-                
-                // Refresh counts
-                updateOrderCounts();
-                updateDashboardBadge();
-                updateAdminButtonVisibility();
+                // ✅ CLEAN: Remove manual UI manipulation
+                refreshDashboard({
+                    refreshOrders: true,
+                    updateBadge: true,
+                    forceFirestore: false
+                });
                 
                 alert(`✅ Order ${orderId} marked as shipped!`);
             }
         }
     }
 }
-        
-        // 4. CANCEL ORDER
-        if (e.target.classList.contains('cancel-order') || e.target.closest('.cancel-order')) {
-            if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.showCancellationModal === 'function') {
-                OrdersManager.showCancellationModal(orderId);
+
+// CANCEL ORDER (when modal completes)
+// Note: Cancellation modal handles its own refresh via OrdersManager
+if (e.target.classList.contains('cancel-order') || e.target.closest('.cancel-order')) {
+    if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.showCancellationModal === 'function') {
+        OrdersManager.showCancellationModal(orderId);
+    }
+}
+
+// DELETE ORDER
+if (e.target.classList.contains('delete-order') || e.target.closest('.delete-order')) {
+    if (confirm(`Are you sure you want to delete order ${orderId}? This action cannot be undone.`)) {
+        if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.deleteOrder === 'function') {
+            if (OrdersManager.deleteOrder(orderId)) {
+                // ✅ CLEAN: Single refresh call
+                refreshDashboard({
+                    refreshOrders: true,
+                    updateBadge: true,
+                    forceFirestore: true  // Delete needs Firestore sync
+                });
+                
+                alert(`Order ${orderId} deleted successfully!`);
             }
         }
-        
-        // 5. DELETE ORDER
-        if (e.target.classList.contains('delete-order') || e.target.closest('.delete-order')) {
-            if (confirm(`Are you sure you want to delete order ${orderId}? This action cannot be undone.`)) {
-                if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.deleteOrder === 'function') {
-                    if (OrdersManager.deleteOrder(orderId)) {
-                        // Remove from UI
-                        const orderCard = e.target.closest('.dashboard-order-card');
-                        if (orderCard) {
-                            orderCard.remove();
-                        }
-                        
-                        // Refresh counts
-                        updateOrderCounts();
-                        updateDashboardBadge();
-                        updateAdminButtonVisibility();
-                        
-                        alert(`Order ${orderId} deleted successfully!`);
-                    }
-                }
-            }
+    }
+}
+
+// PRINT ORDER (no UI update needed)
+if (e.target.classList.contains('print-order') || e.target.closest('.print-order')) {
+    if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.getOrderById === 'function') {
+        const order = OrdersManager.getOrderById(orderId);
+        if (order && typeof OrdersManager.generatePrintHTML === 'function') {
+            OrdersManager.generatePrintHTML(order);
         }
-        
-        // 6. PRINT ORDER
-        if (e.target.classList.contains('print-order') || e.target.closest('.print-order')) {
-            if (typeof OrdersManager !== 'undefined' && typeof OrdersManager.getOrderById === 'function') {
-                const order = OrdersManager.getOrderById(orderId);
-                if (order && typeof OrdersManager.generatePrintHTML === 'function') {
-                    OrdersManager.generatePrintHTML(order);
-                }
-            }
-        }
-        
+    }
+}        
     } catch (error) {
         console.error('[Dashboard] Order action error:', error);
     }
@@ -1437,21 +1513,25 @@ function sendWhatsAppToCustomer(whatsappNumber, customerName, orderId, orderTota
     // ========================================================
     // CROSS-TAB ORDER LISTENER
     // ========================================================
-    function setupCrossTabOrderListener() {
-        console.log('[CrossTab] Setting up storage event listener');
-        
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'beautyhub_orders') {
-                console.log('[CrossTab] New order detected from another tab');
-                
-                if (dashboardModal && dashboardModal.style.display === 'flex') {
-                    console.log('[CrossTab] Dashboard is open, refreshing data');
-                    loadDashboardData();
-                    updateAdminButtonVisibility();
-                }
-            }
-        });
-    }
+function setupCrossTabOrderListener() {
+    console.log('[CrossTab] Setting up storage event listener');
+    
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'beautyhub_orders' || e.key === 'beautyhub_products') {
+            console.log('[CrossTab] Data changed in another tab:', e.key);
+            
+            // ✅ Use the new refresh system
+            refreshDashboard({
+                refreshOrders: e.key === 'beautyhub_orders',
+                refreshProducts: e.key === 'beautyhub_products',
+                updateBadge: true,
+                updateTimestamp: true,
+                externalCall: true, // Allow even if dashboard closed
+                forceFirestore: false // Don't re-sync, just update UI
+            });
+        }
+    });
+}
 
     // ========================================================
     // ANALYTICS MODAL FUNCTIONS
@@ -2026,46 +2106,6 @@ function isDashboardOpen() {
 
 // Make it globally available
 window.isAdminDashboardOpen = isDashboardOpen;
-
-// ========================================================
-// DASHBOARD REFRESH FUNCTION - FOR EXTERNAL CALLS new.  I NEEED 5HIS TO REFRESH TH3 WEBSITE WHILE
-// IS OPEN AND IT UPDATES WHATEVER WAS UPDATED. ⛔️⛔️⛔️
-// ========================================================
-function refreshDashboardOrders() {
-    console.log('[Admin] Dashboard refresh requested externally');
-    
-    try {
-        // Only refresh if dashboard is open
-        if (dashboardModal && dashboardModal.style.display === 'flex') {
-            console.log('[Admin] Dashboard is open, refreshing data...');
-            
-            // Update order countssuccessNotification
-            updateOrderCounts();
-            
-            // Refresh the currently active view
-            if (currentStatusFilter === 'cancelled') {
-                renderCancelledDashboardOrders();
-            } else {
-                renderDashboardOrders(currentStatusFilter);
-            }
-            
-            // Update badge
-            updateDashboardBadge();
-            
-            console.log('[Admin] Dashboard refreshed successfully');
-            return true;
-        } else {
-            console.log('[Admin] Dashboard not open, skipping refresh');
-            return false;
-        }
-    } catch (error) {
-        console.error('[Admin] Failed to refresh dashboard:', error);
-        return false;
-    }
-}
-
-// Make it globally available so ordersManager.js can call it
-window.refreshDashboardOrders = refreshDashboardOrders;
 
     // ========================================================
     // PRODUCTS TAB LOADING
