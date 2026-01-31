@@ -159,8 +159,8 @@ function init() {
                                 </label>
                                 <select id="preferred-payment-method">
                                     <option value="manual">Manual/Cash</option>
-                                    <option value="payfast">PayFast</option>
-                                    <option value="credit_card">Credit Card</option>
+                         <!--       <option value="payfast">PayFast</option>  -->
+                          <!--      <option value="credit_card">Credit Card</option>  -->
                                     <option value="eft">EFT</option>
                                 </select>
                             </div>
@@ -186,13 +186,20 @@ function init() {
                             <textarea id="shipping-address" rows="3" required></textarea>
                         </div>
                         
-                        <!-- Additional Notes -->
-                        <div class="form-group">
-                            <label for="order-notes">
-                                Special Instructions (optional)
-                            </label>
-                            <textarea id="order-notes" rows="2"></textarea>
-                        </div>
+                               <!-- Additional Notes -->
+<div class="form-group">
+    <label for="order-notes">
+        Special Instructions (optional)
+    </label>
+    <textarea 
+        id="order-notes" 
+        rows="2"
+        placeholder="e.g., Deliver on weekends, leave at gate, Ask for Jennie, etc."
+    ></textarea>
+    <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
+        Add delivery instructions or special requests for your order
+    </div>
+</div>
                         
                         <!-- Order Summary -->
                         <div class="order-summary-section">
