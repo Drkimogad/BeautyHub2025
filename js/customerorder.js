@@ -95,8 +95,8 @@ function init() {
            
             <button id="close-checkout" class="modal-close-btn" 
                 style="position: absolute !important; top: 16px !important; 
-                       right: 16px !important; background: none !important; 
-                       border: none !important; font-size: 28px !important; 
+                       right: 16px !important; background: white !important; 
+                       border: gold !important; font-size: 28px !important; 
                        color: #666 !important; cursor: pointer !important; 
                        z-index: 1000 !important;">&times;</button>
                     
